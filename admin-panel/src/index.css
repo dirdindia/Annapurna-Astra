@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: 'Outfit', 'Fraunces', sans-serif;
+  --font-sans: 'Inter', system-ui, sans-serif;
+  
+  --color-lagoon-50: #EAF3F1;
+  --color-lagoon-100: #CFE3DF;
+  --color-lagoon-200: #A8CEC6;
+  --color-lagoon-300: #7CB5AA;
+  --color-lagoon-400: #4B9A8E;
+  --color-lagoon-500: #1F6F6B;
+  --color-lagoon-600: #165B58;
+  --color-lagoon-700: #0F4B4A;
+  --color-lagoon-800: #0C3D3C;
+  --color-lagoon-900: #0A2F2F;
+  --color-lagoon-950: #061C1C;
+  
+  --color-saffron-300: #FACB78;
+  --color-saffron-400: #F6B445;
+  --color-saffron-500: #F2A33A;
+  --color-saffron-600: #D98A1F;
+  --color-saffron-700: #B26E14;
+  
+  --color-linen: #F8F9F5;
+  --color-linen-card: #FFFFFF;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  font-family: var(--font-sans);
+  background-color: #F8F9F5;
+  color: #0A2F2F;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom Scrollbar for sidebar and tables */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent; 
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(15, 75, 74, 0.2); 
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(15, 75, 74, 0.4); 
+}
+
+/* Luxury card shadow */
+.stayflow-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(207, 227, 223, 0.7);
+  box-shadow: 0 10px 30px -10px rgba(10, 47, 47, 0.05), 0 4px 12px -2px rgba(10, 47, 47, 0.02);
+}
