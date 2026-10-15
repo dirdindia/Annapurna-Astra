@@ -145,6 +145,11 @@ export const orderAPI = {
   printKOT: (data) => api.post("/api/orders/print-kot", data),
 };
 
+export const tableBookingAPI = {
+  getBookings: () => api.get("/api/public/admin/table-bookings"),
+  updateBooking: (id, data) => api.put(`/api/public/admin/table-bookings/${id}`, data),
+};
+
 export const roomBookingAPI = {
   exportBookings: (params) => api.get("/api/room-bookings/export", { params, responseType: 'blob' }),
 };

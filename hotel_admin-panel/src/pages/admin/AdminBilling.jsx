@@ -184,7 +184,7 @@ export default function AdminBilling() {
         key: data.keyId || razorpayKeyId,
         amount: data.amount,
         currency: data.currency || "INR",
-        name: data.hotelName || currentUser?.hotelName || "StayFlow PMS",
+        name: data.hotelName || currentUser?.hotelName || "Annapurna Astra PMS",
         description: `${planKey} Plan Subscription (${billingCycle === "yearly" ? "1 Year" : "30 Days"})`,
         image: "/favicon.svg",
         order_id: data.orderId,
@@ -318,7 +318,7 @@ export default function AdminBilling() {
             Hotel Subscription & Billing
           </h1>
           <p className="text-slate-400 mt-1 text-sm">
-            Activate or upgrade your StayFlow plan to enable staff logins, billing counters, and POS operations.
+            Activate or upgrade your Annapurna Astra plan to enable staff logins, billing counters, and POS operations.
           </p>
         </div>
 

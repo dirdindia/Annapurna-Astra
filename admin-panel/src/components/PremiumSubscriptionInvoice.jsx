@@ -70,13 +70,13 @@ export default function PremiumSubscriptionInvoice({ invoice, onClose }) {
         {/* Header */}
         <div className="flex items-start justify-between mb-4 border-b-2 border-black pb-4">
           <div className="w-1/4">
-            <h1 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-lagoon-900 to-lagoon-500 uppercase font-display">StayFlow</h1>
-            <p className="text-xs mt-1 font-bold text-lagoon-900">StayFlow Solutions</p>
+            <h1 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-lagoon-900 to-lagoon-500 uppercase font-display">Annapurna Astra</h1>
+            <p className="text-xs mt-1 font-bold text-lagoon-900">Annapurna Astra Solutions</p>
           </div>
           <div className="w-2/4 text-center">
             <h1 className="text-xl font-bold tracking-wide uppercase underline">Tax Invoice (Subscription)</h1>
-            <p className="text-xs font-semibold mt-2">www.stayflow.com</p>
-            <p className="text-xs font-semibold">support@stayflow.com</p>
+            <p className="text-xs font-semibold mt-2">www.annapurnaastra.com</p>
+            <p className="text-xs font-semibold">support@annapurnaastra.com</p>
           </div>
           <div className="w-1/4 text-right text-xs font-bold space-y-1">
             <p>Invoice No: {invoice.txnid}</p>
@@ -167,7 +167,7 @@ export default function PremiumSubscriptionInvoice({ invoice, onClose }) {
           <div className="w-1/3 flex flex-col justify-end items-center pl-4 pb-2">
             <div className="w-32 border-b border-black mb-1"></div>
             <p className="text-xs font-bold">Authorized Signatory</p>
-            <p className="text-[10px] font-semibold mt-1 uppercase text-lagoon-700">StayFlow</p>
+            <p className="text-[10px] font-semibold mt-1 uppercase text-lagoon-700">Annapurna Astra</p>
           </div>
         </div>
       </div>

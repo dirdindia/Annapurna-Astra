@@ -20,13 +20,54 @@ exports.createTable = async (req, res) => {
   }
 };
 
+const TableBooking = require("../models/TableBooking");
+
 // @desc    Get all tables
 // @route   GET /api/tables
 // @access  Private
 exports.getTables = async (req, res) => {
   try {
-    const tables = await Table.find({ hotelId: req.user.hotelId }).sort({ createdAt: 1 });
-    res.status(200).json({ success: true, count: tables.length, data: tables });
+    const hotelId = req.user.hotelId;
+    const tables = await Table.find({ hotelId }).sort({ createdAt: 1 }).lean();
+
+    // Fetch confirmed bookings for tables in this hotel
+    const confirmedBookings = await TableBooking.find({
+      hotelId,
+      status: "confirmed"
+    }).sort({ bookingDate: 1, bookingTime: 1 }).lean();
+
+    // Map confirmed bookings to respective tables
+    const assignedBookingIds = new Set();
+    const tablesWithBookings = tables.map(table => {
+      // 1. Direct match by tableId or tableNo
+      let booking = confirmedBookings.find(b => 
+        (b.tableId && b.tableId.toString() === table._id.toString()) ||
+        (b.tableNo && b.tableNo.trim().toLowerCase() === table.tableNo.trim().toLowerCase())
+      );
+
+      if (booking) {
+        assignedBookingIds.add(booking._id.toString());
+      }
+
+      return {
+        ...table,
+        advanceBooking: booking || null
+      };
+    });
+
+    // 2. If there are confirmed bookings without a specific table assigned, attach them to available tables
+    const unassignedConfirmed = confirmedBookings.filter(b => !assignedBookingIds.has(b._id.toString()));
+    if (unassignedConfirmed.length > 0) {
+      let unIdx = 0;
+      for (let i = 0; i < tablesWithBookings.length && unIdx < unassignedConfirmed.length; i++) {
+        if (!tablesWithBookings[i].advanceBooking && tablesWithBookings[i].status === "Available") {
+          tablesWithBookings[i].advanceBooking = unassignedConfirmed[unIdx];
+          unIdx++;
+        }
+      }
+    }
+
+    res.status(200).json({ success: true, count: tablesWithBookings.length, data: tablesWithBookings });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

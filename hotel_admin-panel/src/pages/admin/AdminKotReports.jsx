@@ -13,6 +13,7 @@ export default function AdminKotReports() {
   const [loading, setLoading] = useState(false);
   const [paymentMode, setPaymentMode] = useState("");
   const [orderType, setOrderType] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
   const [sourceFilter, setSourceFilter] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
@@ -22,15 +23,17 @@ export default function AdminKotReports() {
 
   useEffect(() => {
     fetchOrders();
-  }, [page, search, paymentMode, orderType, sourceFilter, fromDate, toDate]);
+  }, [page, search, paymentMode, orderType, statusFilter, sourceFilter, fromDate, toDate]);
 
   // Real-time SSE listener so status changes (preparing -> ready -> delivered -> billed) reflect instantly
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
 
-    const streamUrl = `http://localhost:5000/api/kds/stream?token=${encodeURIComponent(token)}`;
-    const eventSource = new EventSource(streamUrl);
+    const baseUrl = api.defaults.baseURL || "http://localhost:5000/";
+    const streamUrl = new URL("/api/kds/stream", baseUrl);
+    streamUrl.searchParams.set("token", token);
+    const eventSource = new EventSource(streamUrl.toString());
 
     eventSource.onmessage = (event) => {
       try {
@@ -56,7 +59,7 @@ export default function AdminKotReports() {
     setLoading(true);
     try {
       const res = await api.get("api/orders/all", {
-        params: { page, limit, search, paymentMode, orderType, source: sourceFilter, fromDate, toDate }
+        params: { page, limit, search, paymentMode, orderType, status: statusFilter, source: sourceFilter, fromDate, toDate }
       });
       if (res.data.success) {
         setOrders(res.data.data);
@@ -99,9 +102,21 @@ export default function AdminKotReports() {
             >
               <option value="">All Order Types</option>
               <option value="Table">Dine-in (Table)</option>
+              <option value="Room">Room Guest</option>
               <option value="Parcel">Parcel</option>
               <option value="Swiggy">Swiggy</option>
               <option value="Zomato">Zomato</option>
+            </select>
+
+            <select
+              value={statusFilter}
+              onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+              className="bg-slate-900 border border-slate-800 text-slate-300 rounded-lg text-xs px-3 py-2 outline-none focus:border-amber-500/50"
+            >
+              <option value="">All Statuses</option>
+              <option value="Active">Active</option>
+              <option value="Billed">Billed</option>
+              <option value="Cancelled">Declined / Cancelled</option>
             </select>
 
             <select
@@ -247,11 +262,18 @@ export default function AdminKotReports() {
                           <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
                             order.status === "Billed" 
                               ? "bg-emerald-500/20 text-emerald-400" 
+                              : order.status === "Cancelled" || order.approvalStatus === "rejected"
+                              ? "bg-rose-500/20 text-rose-400 border border-rose-500/30"
                               : "bg-amber-500/20 text-amber-400"
                           }`}>
-                            {order.status}
+                            {order.status === "Cancelled" || order.approvalStatus === "rejected" ? "Declined" : order.status}
                           </span>
-                          {order.status === "Active" && order.kdsStatus && (
+                          {(order.status === "Cancelled" || order.approvalStatus === "rejected") && order.rejectionReason && (
+                            <span className="text-[9px] text-rose-400/80 max-w-[120px] truncate" title={order.rejectionReason}>
+                              {order.rejectionReason}
+                            </span>
+                          )}
+                          {order.status === "Active" && order.approvalStatus !== "rejected" && order.kdsStatus && (
                             <span className={`px-1.5 py-0.2 rounded text-[9px] font-black uppercase tracking-wider ${
                               order.kdsStatus === "ready"
                                 ? "bg-emerald-500 text-slate-950"
@@ -364,8 +386,16 @@ export default function AdminKotReports() {
               <div className="flex flex-wrap gap-4 mb-6">
                 <div className="flex-1 min-w-[120px] bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3 border border-slate-200 dark:border-slate-800">
                   <p className="text-[10px] text-slate-500 dark:text-slate-500 font-bold uppercase tracking-wider mb-1">Status</p>
-                  <p className={`text-sm font-semibold ${selectedOrder.status === 'Billed' ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
-                    {selectedOrder.status}
+                  <p className={`text-sm font-semibold ${
+                    selectedOrder.status === 'Billed' 
+                      ? 'text-emerald-600 dark:text-emerald-400' 
+                      : selectedOrder.status === 'Cancelled' || selectedOrder.approvalStatus === 'rejected'
+                      ? 'text-rose-600 dark:text-rose-400'
+                      : 'text-amber-600 dark:text-amber-400'
+                  }`}>
+                    {selectedOrder.status === 'Cancelled' || selectedOrder.approvalStatus === 'rejected' 
+                      ? `Declined (${selectedOrder.rejectionReason || 'Declined'})` 
+                      : selectedOrder.status}
                   </p>
                 </div>
                 <div className="flex-1 min-w-[120px] bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3 border border-slate-200 dark:border-slate-800">

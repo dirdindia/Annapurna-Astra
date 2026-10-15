@@ -41,12 +41,12 @@ export default function Register() {
   return (
     <div className="grid min-h-screen lg:grid-cols-5">
       <aside className="hidden bg-lagoon-900 p-12 text-white lg:col-span-2 lg:flex lg:flex-col lg:justify-between">
-        <Link to="/" className="font-display text-2xl font-bold">Stay<span className="text-saffron-500">Flow</span></Link>
+        <Link to="/" className="font-display text-2xl font-bold">Annapurna <span className="text-saffron-500">Astra</span></Link>
         <div>
           <h2 className="text-4xl font-bold leading-tight">14 din free. Card ki zaroorat nahi.</h2>
           <p className="mt-3 text-lagoon-100/80">Apna hotel register karo aur aaj hi bookings shuru karo.</p>
         </div>
-        <p className="text-xs text-lagoon-100/50">© StayFlow</p>
+        <p className="text-xs text-lagoon-100/50">© Annapurna Astra</p>
       </aside>
 
       <form onSubmit={submit} className="mx-auto flex w-full max-w-xl flex-col justify-center gap-4 px-5 py-12 lg:col-span-3 sm:px-10">

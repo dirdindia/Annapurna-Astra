@@ -3,6 +3,7 @@ const Table = require("../models/Table");
 const Invoice = require("../models/Invoice");
 const Dish = require("../models/Dish");
 const InventoryItem = require("../models/InventoryItem");
+const RoomBooking = require("../models/RoomBooking");
 const { broadcastKDSUpdate } = require("./kdsController");
 
 // @desc    Create or update order
@@ -10,7 +11,7 @@ const { broadcastKDSUpdate } = require("./kdsController");
 // @access  Private (Staff)
 exports.createOrUpdateOrder = async (req, res) => {
   try {
-    const { tableId, items, subTotal, tax, grandTotal, orderType, orderId } = req.body;
+    const { tableId, items, subTotal, tax, grandTotal, orderType, orderId, roomBookingId } = req.body;
     
     const type = orderType || "Table";
 
@@ -74,17 +75,25 @@ exports.createOrUpdateOrder = async (req, res) => {
         }
       } else {
         // Create new virtual order
-        const count = await Order.countDocuments({ orderType: type, hotelId: req.user.hotelId });
-        let prefix = "PAR";
-        if (type === "Swiggy") prefix = "SW";
-        if (type === "Zomato") prefix = "ZOM";
-        
-        const displayId = `${prefix}-${count + 1}`;
+        let displayId;
+        if (type === "Room" && roomBookingId) {
+          const booking = await RoomBooking.findById(roomBookingId).populate("room");
+          const rNum = booking?.room?.roomNumber || "Guest";
+          displayId = `Room ${rNum}`;
+        } else {
+          const count = await Order.countDocuments({ orderType: type, hotelId: req.user.hotelId });
+          let prefix = "PAR";
+          if (type === "Swiggy") prefix = "SW";
+          if (type === "Zomato") prefix = "ZOM";
+          if (type === "Room") prefix = "ROOM";
+          displayId = `${prefix}-${count + 1}`;
+        }
         
         order = await Order.create({
           hotelId: req.user.hotelId,
           orderType: type,
           orderDisplayId: displayId,
+          roomBookingId: roomBookingId || null,
           items,
           subTotal,
           tax,
@@ -143,7 +152,7 @@ exports.getActiveVirtualOrders = async (req, res) => {
 // @access  Private
 exports.checkoutOrder = async (req, res) => {
   try {
-    const { customerName, customerMobile, customerEmail, paymentMode, discountPercentage = 0 } = req.body;
+    const { customerName, customerMobile, customerEmail, paymentMode, discountPercentage = 0, roomBookingId } = req.body;
     
     const order = await Order.findOne({ _id: req.params.orderId, hotelId: req.user.hotelId }).populate("table");
     if (!order) {
@@ -153,6 +162,8 @@ exports.checkoutOrder = async (req, res) => {
     if (order.status === "Billed") {
       return res.status(400).json({ success: false, message: "Order is already billed" });
     }
+
+    const effectiveRoomBookingId = roomBookingId || order.roomBookingId;
 
     let cName = customerName || "Guest";
     if (order.orderType === "Table" && order.table && !customerName) {
@@ -166,13 +177,18 @@ exports.checkoutOrder = async (req, res) => {
     const newTax = Math.round(((order.subTotal - discountAmount) * 0.05) * 100) / 100;
     const newGrandTotal = Math.round((order.subTotal - discountAmount + newTax) * 100) / 100;
 
+    let invoiceStatus = "Paid";
+    if (effectiveRoomBookingId || order.orderType === "Room") {
+      invoiceStatus = "Added to Room";
+    }
+
     // Create Invoice
     const invoice = await Invoice.create({
       hotelId: req.user.hotelId,
       customerName: cName,
       customerMobile: customerMobile || "N/A",
       customerEmail: customerEmail || "",
-      paymentMode: paymentMode || "Cash",
+      paymentMode: paymentMode || (invoiceStatus === "Added to Room" ? "Room" : "Cash"),
       items: order.items,
       subTotal: order.subTotal,
       discountPercentage,
@@ -182,8 +198,16 @@ exports.checkoutOrder = async (req, res) => {
       createdBy: req.user._id,
       tableId: order.table ? order.table._id : null,
       orderId: order._id,
-      status: "Paid",
+      roomBookingId: effectiveRoomBookingId || null,
+      status: invoiceStatus,
     });
+
+    if (effectiveRoomBookingId) {
+      await RoomBooking.findOneAndUpdate(
+        { _id: effectiveRoomBookingId },
+        { $push: { restaurantBills: invoice._id } }
+      );
+    }
 
     // Update Order
     order.status = "Billed";
@@ -261,6 +285,7 @@ exports.getAllOrders = async (req, res) => {
     const search = req.query.search || "";
     const paymentMode = req.query.paymentMode || "";
     const orderType = req.query.orderType || "";
+    const status = req.query.status || "";
     const source = req.query.source || "";
     const fromDate = req.query.fromDate || "";
     const toDate = req.query.toDate || "";
@@ -277,6 +302,9 @@ exports.getAllOrders = async (req, res) => {
     }
     if (orderType) {
       query.orderType = orderType;
+    }
+    if (status) {
+      query.status = status;
     }
     if (source) {
       query.source = source;

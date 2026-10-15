@@ -17,7 +17,12 @@ export default function Navbar({ currentUser, onLogout, theme, toggleTheme, togg
             <Menu className="w-5 h-5" />
           </button>
         )}
-        <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate("/")}>
+        <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate("/staff")}>
+          {Boolean(currentUser?.hotelLogo && currentUser.hotelLogo.trim()) && (
+            <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-700/60 overflow-hidden flex items-center justify-center p-1 shadow-md shrink-0">
+              <img src={currentUser.hotelLogo} alt={currentUser?.hotelName || "Hotel Logo"} className="w-full h-full object-contain rounded-lg" />
+            </div>
+          )}
           <div>
             <h1 className="text-xl font-bold font-display tracking-tight text-slate-100 leading-none uppercase">
               {currentUser?.hotelName?.replace("Zoox", "Sapphire Inn") || "Sapphire Inn"}
@@ -50,18 +55,16 @@ export default function Navbar({ currentUser, onLogout, theme, toggleTheme, togg
 
           {currentUser && currentUser.role === "staff" && (
             <div className="flex items-center gap-1.5 bg-slate-900/60 border border-slate-800/80 p-1.5 rounded-xl mr-2">
-              {(!currentUser.staffPermissions || currentUser.staffPermissions.restaurant) && (
-                <button
-                  onClick={() => navigate("/staff")}
-                  className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                    window.location.pathname === "/staff"
-                      ? "bg-saffron-500/20 text-saffron-400 border border-saffron-500/30 font-semibold"
-                      : "text-slate-400 hover:text-slate-200"
-                  }`}
-                >
-                  Restaurant
-                </button>
-              )}
+              <button
+                onClick={() => navigate("/staff")}
+                className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                  window.location.pathname === "/staff"
+                    ? "bg-saffron-500/20 text-saffron-400 border border-saffron-500/30 font-semibold"
+                    : "text-slate-400 hover:text-slate-200"
+                }`}
+              >
+                Dashboard
+              </button>
               {(!currentUser.staffPermissions || currentUser.staffPermissions.roomBooking) && (
                 <button
                   onClick={() => navigate("/staff/rooms")}
@@ -176,19 +179,17 @@ export default function Navbar({ currentUser, onLogout, theme, toggleTheme, togg
           {/* Staff Nav Links */}
           {currentUser.role === "staff" && (
             <div className="flex flex-col gap-2 mb-1 border-b border-slate-800/50 pb-4 mt-2">
-              {(!currentUser.staffPermissions || currentUser.staffPermissions.restaurant) && (
-                <button
-                  onClick={() => { navigate("/staff"); setIsStaffMenuOpen(false); }}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left ${
-                    window.location.pathname === "/staff"
-                      ? "bg-saffron-500/20 text-saffron-400 border border-saffron-500/30 font-semibold"
-                      : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
-                  }`}
-                >
-                  <Utensils className="w-5 h-5 text-saffron-400" />
-                  Restaurant Billing
-                </button>
-              )}
+              <button
+                onClick={() => { navigate("/staff"); setIsStaffMenuOpen(false); }}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left ${
+                  window.location.pathname === "/staff"
+                    ? "bg-saffron-500/20 text-saffron-400 border border-saffron-500/30 font-semibold"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
+                }`}
+              >
+                <FileText className="w-5 h-5 text-saffron-400" />
+                Staff Dashboard
+              </button>
               {(!currentUser.staffPermissions || currentUser.staffPermissions.roomBooking) && (
                 <button
                   onClick={() => { navigate("/staff/rooms"); setIsStaffMenuOpen(false); }}

@@ -11,7 +11,7 @@ export default function SignIn() {
   return (
     <div className="grid min-h-screen place-items-center px-5">
       <form onSubmit={submit} className="grid w-full max-w-sm gap-4">
-        <Link to="/" className="font-display text-2xl font-bold">Stay<span className="text-saffron-600">Flow</span></Link>
+        <Link to="/" className="font-display text-2xl font-bold">Annapurna <span className="text-saffron-600">Astra</span></Link>
         <h1 className="text-3xl font-bold">Wapas aaiye</h1>
         <input required type="email" className="input" placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
         <input required type="password" className="input" placeholder="Password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />

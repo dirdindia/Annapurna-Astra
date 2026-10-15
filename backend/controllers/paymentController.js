@@ -185,7 +185,7 @@ const createOrder = async (req, res) => {
       keyId: cleanKey(process.env.RAZORPAY_KEY_ID),
       planName,
       billingCycle,
-      hotelName: hotel ? hotel.name : "StayFlow Hotel",
+      hotelName: hotel ? hotel.name : "Annapurna Astra Hotel",
       customerName: user ? user.name : "Admin",
       customerEmail: user ? user.email : "",
       customerPhone: user ? user.mobile : "",

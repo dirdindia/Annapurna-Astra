@@ -47,9 +47,9 @@ export default function Login({ onLoginSuccess }) {
             transition={{ duration: 0.8 }}
           >
             <div className="bg-white/5 p-2 rounded-3xl backdrop-blur-md inline-block mb-8 shadow-2xl border border-white/10">
-              <img src="/favicon.svg" alt="StayFlow Logo" className="w-24 h-24 rounded-2xl" />
+              <img src="/favicon.svg" alt="Annapurna Astra Logo" className="w-24 h-24 rounded-2xl" />
             </div>
-            <h1 className="text-5xl font-extrabold mb-6 tracking-tight font-display">StayFlow</h1>
+            <h1 className="text-5xl font-extrabold mb-6 tracking-tight font-display">Annapurna Astra</h1>
             <p className="text-lg text-lagoon-50/80 leading-relaxed font-light">
               The ultimate premium dashboard to manage your hotel, track operations, and scale your business securely.
             </p>
@@ -67,7 +67,7 @@ export default function Login({ onLoginSuccess }) {
         >
           <div className="mb-10 text-center lg:text-left">
             <div className="lg:hidden mx-auto mb-6 flex justify-center">
-              <img src="/favicon.svg" alt="StayFlow Logo" className="w-20 h-20 shadow-2xl rounded-2xl" />
+              <img src="/favicon.svg" alt="Annapurna Astra Logo" className="w-20 h-20 shadow-2xl rounded-2xl" />
             </div>
             <h2 className="text-3xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-lagoon-900 to-lagoon-500 tracking-tight">Welcome Back</h2>
             <p className="text-slate-400 mt-2 text-sm font-medium">Please sign in to your hotel admin account</p>

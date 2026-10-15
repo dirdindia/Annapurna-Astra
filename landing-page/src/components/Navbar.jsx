@@ -22,7 +22,7 @@ export default function Navbar() {
         <Link to="/" className="flex items-center gap-2">
           <img src="/dird-logo.webp" alt="DIRD Logo" className="h-8 w-auto" />
           <span className="font-display text-2xl font-bold">
-            Stay<span className="text-saffron-600">Flow</span>
+            Annapurna <span className="text-saffron-600">Astra</span>
           </span>
         </Link>
 

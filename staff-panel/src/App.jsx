@@ -4,6 +4,7 @@ import Navbar from "./components/Navbar";
 
 // Pages
 import Login from "./pages/Login";
+import StaffDashboard from "./pages/staff/StaffDashboard";
 import StaffBilling from "./pages/staff/StaffBilling";
 import StaffRoomBooking from "./pages/staff/StaffRoomBooking";
 import StaffKotBilling from "./pages/staff/StaffKotBilling";
@@ -76,6 +77,14 @@ export default function App() {
     setCurrentUser(null);
   };
 
+  useEffect(() => {
+    if (currentUser && currentUser.hotelName) {
+      document.title = `${currentUser.hotelName} - Annapurna Astra Staff`;
+    } else {
+      document.title = "Annapurna Astra - Staff Desk";
+    }
+  }, [currentUser]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-lagoon-950 flex flex-col items-center justify-center text-saffron-400 font-bold font-display gap-3">
@@ -84,6 +93,7 @@ export default function App() {
       </div>
     );
   }
+
 
   return (
     <Router>
@@ -103,7 +113,7 @@ export default function App() {
           path="/staff"
           element={
             <StaffRoute currentUser={currentUser} handleLogout={handleLogout} theme={theme} toggleTheme={toggleTheme}>
-              <StaffBilling />
+              <StaffDashboard currentUser={currentUser} theme={theme} />
             </StaffRoute>
           }
         />

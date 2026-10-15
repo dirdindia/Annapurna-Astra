@@ -65,9 +65,9 @@ export default function App() {
 
   useEffect(() => {
     if (currentUser && currentUser.hotelName) {
-      document.title = `${currentUser.hotelName} - Admin Dashboard`;
+      document.title = `${currentUser.hotelName} - Annapurna Astra`;
     } else {
-      document.title = "Hotel Admin Panel";
+      document.title = "Annapurna Astra - Hotel Admin Panel";
     }
   }, [currentUser]);
 
@@ -109,7 +109,7 @@ export default function App() {
     return (
       <div className="min-h-screen bg-[#061C1C] flex flex-col items-center justify-center text-saffron-500 font-sans gap-3">
         <div className="w-10 h-10 border-4 border-saffron-500/20 border-t-saffron-500 rounded-full animate-spin"></div>
-        <p className="text-sm font-bold tracking-wide">Loading StayFlow Admin...</p>
+        <p className="text-sm font-bold tracking-wide">Loading Annapurna Astra Admin...</p>
       </div>
     );
   }

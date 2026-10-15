@@ -280,7 +280,7 @@ export default function AdminDashboard() {
             <h3 className="font-bold text-sm text-slate-200">Recent Invoices (Latest 5)</h3>
           </div>
           <Link
-            to="/admin/reports"
+            to="/admin/kot-reports"
             className="text-xs font-bold text-saffron-500 hover:text-saffron-400 flex items-center gap-1 transition-colors"
           >
             View All Reports

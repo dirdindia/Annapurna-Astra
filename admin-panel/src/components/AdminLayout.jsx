@@ -72,7 +72,7 @@ export default function AdminLayout() {
               exit={{ opacity: 0, w: 0 }}
               className="text-xl font-black text-white tracking-tight whitespace-nowrap font-display"
             >
-              Stay<span className="text-saffron-400">Flow</span>
+              Annapurna <span className="text-saffron-400">Astra</span>
             </motion.h1>
           )}
         </div>
@@ -168,7 +168,7 @@ export default function AdminLayout() {
             </button>
             <div className="hidden sm:flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span className="text-xs font-bold text-lagoon-600 uppercase tracking-wider">StayFlow Cloud System Control</span>
+              <span className="text-xs font-bold text-lagoon-600 uppercase tracking-wider">Annapurna Astra Cloud System Control</span>
             </div>
           </div>
 

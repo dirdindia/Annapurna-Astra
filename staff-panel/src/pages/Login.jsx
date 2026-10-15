@@ -33,25 +33,27 @@ export default function Login({ onLoginSuccess }) {
   return (
     <div className="min-h-screen flex font-sans">
       {/* Left side - Branding (Hidden on mobile) */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-lagoon-950 via-lagoon-900 to-lagoon-950 items-center justify-center border-r border-saffron-500/10">
+      <div className="login-left-brand hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-lagoon-950 via-lagoon-900 to-lagoon-950 items-center justify-center border-r border-saffron-500/10">
         {/* Abstract shapes & glow */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-30 pointer-events-none">
           <div className="absolute -top-[20%] -left-[10%] w-[70%] h-[70%] rounded-full bg-lagoon-600 blur-[130px]"></div>
           <div className="absolute top-[60%] left-[50%] w-[50%] h-[50%] rounded-full bg-saffron-500 blur-[110px]"></div>
         </div>
         
-        <div className="relative z-10 p-12 text-center text-slate-100 max-w-lg">
+        <div className="relative z-10 p-12 text-center text-white max-w-lg">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
             <div className="bg-saffron-500/10 p-3 rounded-3xl backdrop-blur-md inline-block mb-8 shadow-2xl border border-saffron-500/20">
-              <img src="/favicon.svg" alt="StayFlow Logo" className="w-20 h-20 rounded-2xl" />
+              <img src="/favicon.svg" alt="Annapurna Astra Logo" className="w-20 h-20 rounded-2xl" />
             </div>
-            <h1 className="text-5xl font-black mb-4 tracking-tight font-display text-white">StayFlow</h1>
+            <h1 className="text-5xl font-black mb-4 tracking-tight font-display !text-white" style={{ color: '#ffffff !important' }}>
+              Annapurna Astra
+            </h1>
             <p className="text-xs uppercase tracking-widest text-saffron-400 font-bold mb-6">Staff Operations Desk</p>
-            <p className="text-base text-lagoon-50/80 leading-relaxed font-normal">
+            <p className="text-base text-white/90 leading-relaxed font-normal" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
               High-speed billing, KOT routing, digital room bookings, and operational efficiency for modern hoteliers.
             </p>
           </motion.div>
@@ -68,7 +70,7 @@ export default function Login({ onLoginSuccess }) {
         >
           <div className="mb-8 text-center lg:text-left">
             <div className="lg:hidden mx-auto mb-6 flex justify-center">
-              <img src="/favicon.svg" alt="StayFlow Logo" className="w-16 h-16 shadow-2xl rounded-2xl" />
+              <img src="/favicon.svg" alt="Annapurna Astra Logo" className="w-16 h-16 shadow-2xl rounded-2xl" />
             </div>
             <h2 className="text-3xl font-display font-bold text-slate-100 tracking-tight">Staff Sign In</h2>
             <p className="text-slate-400 mt-2 text-sm font-medium">Access your shift orders, KOT & booking desks</p>

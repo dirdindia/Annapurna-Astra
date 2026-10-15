@@ -27,6 +27,11 @@
   }
 }
 
+/* Ensure Staff Login left side branding is always 100% pure white */
+.login-left-brand h1 {
+  color: #ffffff !important;
+}
+
 /* Glassmorphism utility - Lagoon and Saffron theme */
 .glass {
   background: rgba(10, 47, 47, 0.65);
@@ -160,10 +165,13 @@ body.light ::-webkit-scrollbar-thumb:hover {
   background: rgba(217, 138, 31, 0.7);
 }
 
-/* Text color overrides in light mode */
-body.light .text-white,
-body.light .text-slate-100,
-body.light .text-slate-200 {
+/* Text color overrides in light mode (excluding login left brand) */
+body.light *:not(.login-left-brand):not(.login-left-brand *) {
+  /* target elements normally */
+}
+body.light .text-white:not(.login-left-brand):not(.login-left-brand *),
+body.light .text-slate-100:not(.login-left-brand):not(.login-left-brand *),
+body.light .text-slate-200:not(.login-left-brand):not(.login-left-brand *) {
   color: #0A2F2F !important; /* lagoon-900 */
 }
 

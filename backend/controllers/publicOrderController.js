@@ -571,6 +571,7 @@ exports.rejectQROrder = async (req, res) => {
     }
 
     order.approvalStatus = "rejected";
+    order.status = "Cancelled";
     order.rejectionReason = reason;
     await order.save();
 
@@ -640,11 +641,30 @@ exports.updateTableBookingStatus = async (req, res) => {
     if (status) booking.status = status;
     if (tableNo) {
       booking.tableNo = tableNo;
-      const table = await Table.findOne({ hotelId, tableNo });
+      const table = await Table.findOne({ hotelId, tableNo: tableNo.trim() });
       if (table) booking.tableId = table._id;
+    } else if (status === "confirmed" && !booking.tableNo) {
+      // Auto-assign first available table with matching capacity or any available table
+      const availableTable = await Table.findOne({ hotelId, status: "Available" }).sort({ capacity: 1 });
+      if (availableTable) {
+        booking.tableId = availableTable._id;
+        booking.tableNo = availableTable.tableNo;
+      }
     }
 
     await booking.save();
+
+    // Broadcast table booking update to Staff & KDS
+    broadcastKDSUpdate(hotelId, {
+      type: "table_booking_updated",
+      bookingId: booking._id,
+      status: booking.status,
+      tableNo: booking.tableNo,
+      customerName: booking.customerName,
+      bookingDate: booking.bookingDate,
+      bookingTime: booking.bookingTime
+    });
+
     res.status(200).json({ success: true, message: `Booking ${status}`, data: booking });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

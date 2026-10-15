@@ -14,8 +14,13 @@ const orderSchema = new mongoose.Schema(
     },
     orderType: {
       type: String,
-      enum: ["Table", "Swiggy", "Zomato", "Parcel"],
+      enum: ["Table", "Swiggy", "Zomato", "Parcel", "Room"],
       default: "Table",
+    },
+    roomBookingId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'RoomBooking',
+      default: null,
     },
     orderDisplayId: {
       type: String,
@@ -54,7 +59,7 @@ const orderSchema = new mongoose.Schema(
     ],
     status: {
       type: String,
-      enum: ["Active", "Billed"],
+      enum: ["Active", "Billed", "Cancelled"],
       default: "Active",
     },
     kdsStatus: {

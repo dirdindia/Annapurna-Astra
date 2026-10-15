@@ -21,7 +21,7 @@ import {
   Check,
 } from "lucide-react";
 import QRCode from "qrcode";
-import { qrOrderAPI } from "../../api";
+import api, { qrOrderAPI, tableAPI } from "../../api";
 import Swal from "sweetalert2";
 
 export default function AdminQrOrders() {
@@ -65,6 +65,7 @@ export default function AdminQrOrders() {
   // Bookings state
   const [bookings, setBookings] = useState([]);
   const [loadingBookings, setLoadingBookings] = useState(false);
+  const [allTables, setAllTables] = useState([]);
 
   // Standee print ref
   const standeeRef = useRef(null);
@@ -123,9 +124,15 @@ export default function AdminQrOrders() {
   const fetchBookings = async () => {
     try {
       setLoadingBookings(true);
-      const res = await qrOrderAPI.getTableBookings();
-      if (res.data.success) {
-        setBookings(res.data.data || []);
+      const [bRes, tRes] = await Promise.all([
+        qrOrderAPI.getTableBookings(),
+        tableAPI.getTables().catch(() => ({ data: { data: [] } }))
+      ]);
+      if (bRes.data.success) {
+        setBookings(bRes.data.data || []);
+      }
+      if (tRes.data?.data) {
+        setAllTables(tRes.data.data || []);
       }
     } catch (err) {
       console.error(err);
@@ -136,6 +143,7 @@ export default function AdminQrOrders() {
 
   useEffect(() => {
     fetchOrders();
+    fetchBookings();
   }, [filterStatus]);
 
   // Real-time SSE Connection: Listens for instant order push from backend
@@ -143,8 +151,10 @@ export default function AdminQrOrders() {
     const token = localStorage.getItem("token");
     if (!token) return;
 
-    const streamUrl = `http://localhost:5000/api/kds/stream?token=${encodeURIComponent(token)}`;
-    const eventSource = new EventSource(streamUrl);
+    const baseUrl = api.defaults.baseURL || "http://localhost:5000/";
+    const streamUrl = new URL("/api/kds/stream", baseUrl);
+    streamUrl.searchParams.set("token", token);
+    const eventSource = new EventSource(streamUrl.toString());
 
     eventSource.onmessage = (event) => {
       try {
@@ -169,6 +179,28 @@ export default function AdminQrOrders() {
             background: "#0f172a",
             color: "#ffffff",
           });
+        } else if (data.type === "new_table_booking") {
+          // Play chime sound
+          playAlertSound();
+
+          // Refresh table bookings
+          fetchBookings();
+
+          // Toast notification for new table reservation
+          Swal.fire({
+            toast: true,
+            position: "top-end",
+            icon: "success",
+            title: `📅 New Table Reservation!`,
+            text: `${data.customerName || "Customer"} • ${data.bookingDate || ""} at ${data.bookingTime || ""}`,
+            showConfirmButton: false,
+            timer: 6000,
+            timerProgressBar: true,
+            background: "#0f172a",
+            color: "#ffffff",
+          });
+        } else if (data.type === "table_booking_updated") {
+          fetchBookings();
         } else if (data.type === "kds_status_update") {
           // Update order status in local state directly and fetch to ensure sync
           setOrders((prev) =>
@@ -341,12 +373,13 @@ export default function AdminQrOrders() {
   const handleDownloadQR = () => {
     if (!qrDataUrl) return;
     const downloadLink = document.createElement("a");
-    downloadLink.download = `${currentUser?.hotelName || "StayFlow"}-QR.png`;
+    downloadLink.download = `${currentUser?.hotelName || "Annapurna Astra"}-QR.png`;
     downloadLink.href = qrDataUrl;
     downloadLink.click();
   };
 
   const pendingCount = orders.filter((o) => o.approvalStatus === "pending").length;
+  const pendingBookingsCount = bookings.filter((b) => b.status === "pending").length;
 
   return (
     <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6">
@@ -412,6 +445,11 @@ export default function AdminQrOrders() {
           >
             <CalendarDays className="w-4 h-4" />
             <span>Table Reservations</span>
+            {pendingBookingsCount > 0 && (
+              <span className="w-5 h-5 rounded-full bg-rose-500 text-white flex items-center justify-center text-[10px] font-black animate-pulse">
+                {pendingBookingsCount}
+              </span>
+            )}
           </button>
         </div>
       </div>
@@ -822,7 +860,7 @@ export default function AdminQrOrders() {
                     {currentUser?.hotelName?.charAt(0) || "S"}
                   </div>
                 )}
-                <h3 className="text-xl font-black text-white tracking-tight">{currentUser?.hotelName || "StayFlow Dining"}</h3>
+                <h3 className="text-xl font-black text-white tracking-tight">{currentUser?.hotelName || "Annapurna Astra Dining"}</h3>
                 <p className="text-xs text-amber-400 font-semibold mt-0.5 uppercase tracking-widest">
                   Scan to View Menu & Order
                 </p>
@@ -863,7 +901,7 @@ export default function AdminQrOrders() {
 
               {/* Footer Powered By */}
               <p className="text-[10px] text-slate-500 mt-4 tracking-wider uppercase font-semibold">
-                Powered by StayFlow SaaS
+                Powered by Annapurna Astra SaaS
               </p>
             </div>
           </div>
@@ -926,7 +964,24 @@ export default function AdminQrOrders() {
                         {b.bookingDate} at {b.bookingTime}
                       </td>
                       <td className="py-3 px-4 font-bold">{b.guestsCount} People</td>
-                      <td className="py-3 px-4">{b.tableNo ? `Table ${b.tableNo}` : "Any Table"}</td>
+                      <td className="py-3 px-4">
+                        {b.tableNo ? (
+                          <span className="font-bold text-amber-400">Table {b.tableNo}</span>
+                        ) : b.status === "pending" ? (
+                          <select
+                            id={`assign-table-${b._id}`}
+                            defaultValue=""
+                            className="bg-slate-900 border border-slate-700 text-amber-400 rounded-lg px-2 py-1 text-xs outline-none focus:border-amber-500"
+                          >
+                            <option value="">Auto / Assign Table</option>
+                            {allTables.map(t => (
+                              <option key={t._id} value={t.tableNo}>Table {t.tableNo} ({t.capacity} Seater)</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <span className="text-slate-400 italic">Unassigned</span>
+                        )}
+                      </td>
                       <td className="py-3 px-4 max-w-xs truncate text-slate-400">{b.specialRequests || "None"}</td>
                       <td className="py-3 px-4">
                         <span
@@ -946,7 +1001,12 @@ export default function AdminQrOrders() {
                           <div className="flex items-center justify-end gap-1.5">
                             <button
                               onClick={async () => {
-                                await qrOrderAPI.updateTableBooking(b._id, { status: "confirmed" });
+                                const selectEl = document.getElementById(`assign-table-${b._id}`);
+                                const chosenTable = selectEl?.value || b.tableNo || "";
+                                await qrOrderAPI.updateTableBooking(b._id, { 
+                                  status: "confirmed",
+                                  tableNo: chosenTable 
+                                });
                                 fetchBookings();
                               }}
                               className="px-2.5 py-1 rounded-lg bg-emerald-500 text-slate-950 font-bold text-[11px] hover:bg-emerald-400"

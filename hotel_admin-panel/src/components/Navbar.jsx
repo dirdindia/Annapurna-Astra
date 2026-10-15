@@ -20,12 +20,14 @@ export default function Navbar({ currentUser, onLogout, theme, toggleTheme, togg
           </button>
         )}
         <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate("/")}>
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-lagoon-700 to-lagoon-900 border border-lagoon-500/30 flex items-center justify-center p-1.5 shadow-md shadow-lagoon-950/20">
-            <img src="/favicon.svg" alt="StayFlow Logo" className="w-full h-full object-contain" />
-          </div>
+          {Boolean(currentUser?.hotelLogo && currentUser.hotelLogo.trim()) && (
+            <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-700/60 overflow-hidden flex items-center justify-center p-1 shadow-md shrink-0">
+              <img src={currentUser.hotelLogo} alt={currentUser?.hotelName || "Hotel Logo"} className="w-full h-full object-contain rounded-lg" />
+            </div>
+          )}
           <div>
             <h1 className="text-xl font-bold font-display tracking-tight text-white leading-none">
-              {currentUser?.hotelName || "StayFlow Admin"}
+              {currentUser?.hotelName || "Annapurna Astra Admin"}
             </h1>
             <p className="text-[10px] text-saffron-500 font-semibold tracking-wider uppercase hidden sm:block mt-0.5">
               Hotel Operations & Billing
@@ -55,18 +57,6 @@ export default function Navbar({ currentUser, onLogout, theme, toggleTheme, togg
 
           {currentUser && currentUser.role === "staff" && (
             <div className="flex items-center gap-2 bg-slate-900/60 border border-slate-800/80 p-1.5 rounded-xl mr-2">
-              {(!currentUser.staffPermissions || currentUser.staffPermissions.restaurant) && (
-                <button
-                  onClick={() => navigate("/staff")}
-                  className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                    window.location.pathname === "/staff"
-                      ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
-                      : "text-slate-400 hover:text-slate-200"
-                  }`}
-                >
-                  Restaurant
-                </button>
-              )}
               {(!currentUser.staffPermissions || currentUser.staffPermissions.roomBooking) && (
                 <button
                   onClick={() => navigate("/staff/rooms")}
@@ -156,19 +146,6 @@ export default function Navbar({ currentUser, onLogout, theme, toggleTheme, togg
           {/* Staff Nav Links */}
           {currentUser.role === "staff" && (
             <div className="flex flex-col gap-2 mb-1 border-b border-slate-800/50 pb-4 mt-2">
-              {(!currentUser.staffPermissions || currentUser.staffPermissions.restaurant) && (
-                <button
-                  onClick={() => { navigate("/staff"); setIsStaffMenuOpen(false); }}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left ${
-                    window.location.pathname === "/staff"
-                      ? "bg-amber-500/20 text-amber-400 border border-amber-500/30 font-semibold"
-                      : "text-slate-400 hover:text-slate-200 hover:bg-slate-900"
-                  }`}
-                >
-                  <Utensils className="w-5 h-5" />
-                  Restaurant Billing
-                </button>
-              )}
               {(!currentUser.staffPermissions || currentUser.staffPermissions.roomBooking) && (
                 <button
                   onClick={() => { navigate("/staff/rooms"); setIsStaffMenuOpen(false); }}

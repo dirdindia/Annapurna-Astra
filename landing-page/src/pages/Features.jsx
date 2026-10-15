@@ -22,7 +22,7 @@ export default function Features() {
               transition={{ delay: 0.2 }}
               className="mt-6 text-xl text-lagoon-100/80 max-w-2xl mx-auto"
             >
-              Hotel ke har department ke liye alag software kyu? StayFlow mein sab kuch connected hai, seamless aur fast.
+              Hotel ke har department ke liye alag software kyu? Annapurna Astra mein sab kuch connected hai, seamless aur fast.
             </motion.p>
          </div>
       </div>

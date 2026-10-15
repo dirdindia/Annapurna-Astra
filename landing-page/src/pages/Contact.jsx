@@ -50,7 +50,7 @@ export default function Contact() {
               </div>
               <div>
                 <p className="text-sm text-lagoon-100/60">Email Us</p>
-                <p className="text-lg font-medium">hello@stayflow.com</p>
+                <p className="text-lg font-medium">contact@annapurnaastra.com</p>
               </div>
             </div>
 
