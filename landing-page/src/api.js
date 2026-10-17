@@ -3,7 +3,8 @@ import Swal from 'sweetalert2';
 
 // Axios Instance
 export const api = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  // baseURL: 'http://localhost:5000/api',
+  baseURL: 'https://annapurna-astra.onrender.com/api',
 });
 
 // Configure SweetAlert to match Lagoon-900 / Saffron-500 theme

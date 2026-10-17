@@ -1,9 +1,8 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:5000/",
-  // baseURL:"https://zoox.onrender.com/"
-  // baseURL:"https://api.grandportico.in/"
+  // baseURL: "http://localhost:5000/",
+   baseURL: 'https://annapurna-astra.onrender.com/',
 });
 
 let activeRequests = 0;
