@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import api from "../../api";
 import { showSuccess, showError, showConfirm } from "../../utils/alerts";
-import { Database, Plus, Edit2, Trash2, ListTree, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { Database, Plus, Edit2, Trash2, ListTree, ChevronLeft, ChevronRight, Search, CheckCircle2, X } from "lucide-react";
+import MagneticButton from "../../components/MagneticButton";
 
 export default function AdminLookups({ isComponent = false }) {
   const [lookups, setLookups] = useState([]);
@@ -155,45 +157,49 @@ export default function AdminLookups({ isComponent = false }) {
       {!isComponent && (
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 no-print">
           <div>
-            <h1 className="text-3xl font-bold text-amber-500 flex items-center gap-3">
-              <Database className="w-8 h-8" />
+            <h1 className="text-3xl font-extrabold text-white flex items-center gap-3">
+              <Database className="w-8 h-8 text-saffron-400" />
               Lookups Master Data
             </h1>
-            <p className="text-slate-400 mt-1">
+            <p className="text-slate-300 mt-1 text-sm">
               Manage system-wide dropdown values, categories, and hierarchical lists.
             </p>
           </div>
           
-          <button
-            onClick={() => handleOpenModal()}
-            className="bg-amber-500 hover:bg-amber-400 text-slate-950 px-5 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-amber-500/20 flex items-center gap-2"
-          >
-            <Plus className="w-5 h-5" />
-            Add New Lookup
-          </button>
+          <MagneticButton>
+            <button
+              onClick={() => handleOpenModal()}
+              className="bg-gradient-to-r from-saffron-400 to-saffron-500 hover:from-saffron-300 hover:to-saffron-400 text-slate-950 px-6 py-2.5 rounded-xl font-extrabold transition-all shadow-lg shadow-saffron-500/20 flex items-center gap-2 cursor-pointer text-sm"
+            >
+              <Plus className="w-5 h-5" />
+              Add New Lookup
+            </button>
+          </MagneticButton>
         </div>
       )}
 
       {/* FILTER & COMPONENT HEADER */}
       {isComponent && (
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          <div className="relative w-full sm:w-64">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+          <div className="relative w-full sm:w-72">
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               placeholder="Search lookups..."
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-              className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50"
+              className="w-full bg-[#061C1C]/80 border border-white/15 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 shadow-inner"
             />
           </div>
-          <button
-            onClick={() => handleOpenModal()}
-            className="bg-amber-500 hover:bg-amber-400 text-slate-950 px-4 py-2 rounded-xl font-bold transition-all shadow-lg shadow-amber-500/20 flex items-center gap-2 text-sm"
-          >
-            <Plus className="w-4 h-4" />
-            Add Lookup
-          </button>
+          <MagneticButton>
+            <button
+              onClick={() => handleOpenModal()}
+              className="bg-gradient-to-r from-saffron-400 to-saffron-500 hover:from-saffron-300 hover:to-saffron-400 text-slate-950 px-5 py-2.5 rounded-xl font-extrabold transition-all shadow-lg shadow-saffron-500/20 flex items-center gap-2 text-xs cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              Add Lookup
+            </button>
+          </MagneticButton>
         </div>
       )}
 
@@ -201,53 +207,72 @@ export default function AdminLookups({ isComponent = false }) {
       {!isComponent && (
         <div className="flex justify-end mb-4">
           <div className="relative w-full sm:w-72">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-saffron-400" />
             <input
               type="text"
               placeholder="Search lookups by name..."
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-              className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500/50"
+              className="w-full bg-[#061C1C]/90 border border-white/20 rounded-xl pl-9 pr-4 py-2.5 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 shadow-inner"
             />
           </div>
         </div>
       )}
 
       {loading ? (
-        <div className="text-amber-500 font-semibold animate-pulse">Loading lookups...</div>
+        <div className="text-saffron-400 font-bold animate-pulse py-8 text-center text-sm">Loading lookups...</div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {Object.keys(groupedLookups).map((type) => {
             const typeLabel = lookupTypes.find(t => t.value === type)?.label || type;
             return (
-              <div key={type} className="glass-card rounded-2xl p-6 border border-slate-800">
-                <div className="flex items-center gap-2 mb-4 border-b border-slate-800 pb-3">
-                  <ListTree className="w-5 h-5 text-amber-500" />
-                  <h2 className="text-lg font-bold text-slate-200">{typeLabel}</h2>
+              <div key={type} className="glass-card rounded-2xl p-6 border border-white/10 bg-[#0A2F2F]/40 shadow-xl">
+                <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 rounded-lg bg-saffron-500/15 border border-saffron-500/20 text-saffron-400">
+                      <ListTree className="w-4 h-4" />
+                    </div>
+                    <h2 className="text-base font-extrabold text-white font-display tracking-wide">{typeLabel}</h2>
+                  </div>
+                  <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-slate-300">
+                    {groupedLookups[type].length} items
+                  </span>
                 </div>
                 
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   {groupedLookups[type].map(lookup => (
-                    <div key={lookup._id} className="flex justify-between items-center bg-slate-900/50 p-3 rounded-lg border border-slate-800/60 hover:border-slate-700 transition-colors">
+                    <div key={lookup._id} className="flex justify-between items-center bg-[#061C1C]/60 p-3.5 rounded-xl border border-white/10 hover:border-saffron-500/40 hover:bg-[#061C1C]/90 transition-all">
                       <div>
-                        <div className="flex items-center gap-2">
-                          <span className={`font-semibold ${lookup.isActive ? 'text-slate-200' : 'text-slate-500 line-through'}`}>
+                        <div className="flex items-center gap-2.5">
+                          <span className={`font-semibold text-sm ${lookup.isActive ? 'text-white' : 'text-slate-400 line-through'}`}>
                             {lookup.name}
                           </span>
-                          {!lookup.isActive && <span className="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">Inactive</span>}
+                          {!lookup.isActive && (
+                            <span className="text-[10px] uppercase font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30 px-2 py-0.5 rounded-md">
+                              Disabled
+                            </span>
+                          )}
                         </div>
                         {lookup.parent && (
-                          <p className="text-xs text-amber-500/70 mt-1 flex items-center gap-1">
-                            <ListTree className="w-3 h-3" />
+                          <p className="text-xs text-saffron-400/90 mt-1 flex items-center gap-1 font-medium">
+                            <ListTree className="w-3.5 h-3.5" />
                             Parent: {lookup.parent.name}
                           </p>
                         )}
                       </div>
-                      <div className="flex items-center gap-2">
-                        <button onClick={() => handleOpenModal(lookup)} className="p-1.5 text-slate-400 hover:text-amber-500 transition-colors">
+                      <div className="flex items-center gap-1.5">
+                        <button 
+                          onClick={() => handleOpenModal(lookup)} 
+                          title="Edit"
+                          className="p-2 rounded-lg text-slate-300 hover:text-saffron-400 hover:bg-white/5 transition-colors cursor-pointer"
+                        >
                           <Edit2 className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleDelete(lookup._id)} className="p-1.5 text-slate-400 hover:text-red-500 transition-colors">
+                        <button 
+                          onClick={() => handleDelete(lookup._id)} 
+                          title="Delete"
+                          className="p-2 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                        >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
@@ -258,8 +283,10 @@ export default function AdminLookups({ isComponent = false }) {
             );
           })}
           {Object.keys(groupedLookups).length === 0 && (
-            <div className="col-span-full text-center py-12 text-slate-500 bg-slate-900/30 rounded-2xl border border-slate-800/50">
-              No lookups found. Add some to get started.
+            <div className="col-span-full text-center py-14 text-slate-300 bg-[#061C1C]/40 rounded-2xl border border-white/10">
+              <Database className="w-10 h-10 text-saffron-400/50 mx-auto mb-2" />
+              <p className="font-semibold text-sm">No lookups found.</p>
+              <p className="text-xs text-slate-400 mt-1">Add items to configure categories and dropdown lists.</p>
             </div>
           )}
         </div>
@@ -288,96 +315,143 @@ export default function AdminLookups({ isComponent = false }) {
         </div>
       )}
 
-      {/* ADD/EDIT MODAL */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="p-5 border-b border-slate-800 flex justify-between items-center shrink-0">
-              <h2 className="text-xl font-bold text-slate-200 flex items-center gap-2">
-                {formData.id ? "Edit Lookup" : "Add Lookup"}
-              </h2>
-              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-white transition-colors">
-                ✕
+      {/* ADD/EDIT MODAL - Portaled to document.body to break free of tab container height */}
+      {showModal && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[99999] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto w-screen h-screen">
+          <div className="bg-[#0A2F2F] border border-white/20 rounded-3xl w-full max-w-xl shadow-2xl overflow-hidden flex flex-col my-auto max-h-[92vh] animate-fade-in lookup-modal-card relative z-[100000]">
+            {/* Modal Header */}
+            <div className="px-6 py-5 border-b border-white/10 flex justify-between items-center bg-[#061C1C]/80 shrink-0 lookup-modal-header">
+              <div className="flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-2xl bg-saffron-500/20 text-saffron-400 border border-saffron-500/30 flex items-center justify-center font-bold shadow-md shadow-saffron-500/10 shrink-0">
+                  <Database className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-lg sm:text-xl font-extrabold text-white font-display tracking-wide">
+                    {formData.id ? "Edit Lookup Value" : "Add New Lookup Item"}
+                  </h2>
+                  <p className="text-xs text-slate-300 font-medium mt-0.5">
+                    Configure master classification & dropdown tags
+                  </p>
+                </div>
+              </div>
+              <button 
+                type="button"
+                onClick={() => setShowModal(false)} 
+                className="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/15 text-slate-300 hover:text-white flex items-center justify-center transition-all cursor-pointer border border-white/10 shrink-0 ml-2"
+                title="Close"
+              >
+                <X className="w-4 h-4" />
               </button>
             </div>
             
-            <div className="p-6 overflow-y-auto overflow-x-hidden">
+            {/* Modal Form */}
+            <div className="p-5 sm:p-7 overflow-y-auto custom-scrollbar flex-1">
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
-                  <label className="block text-sm font-medium text-slate-400 mb-1">Lookup Type</label>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-200 mb-2">
+                    Lookup Classification Type <span className="text-saffron-400">*</span>
+                  </label>
                   <select
                     value={formData.type}
                     onChange={(e) => setFormData({ ...formData, type: e.target.value, parent: "" })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50"
+                    className="w-full bg-[#061C1C]/90 border border-white/20 rounded-xl px-4 py-3 text-white font-semibold focus:outline-none focus:border-saffron-400 focus:ring-2 focus:ring-saffron-400/20 transition-all shadow-inner cursor-pointer"
                   >
                     {lookupTypes.map(t => (
-                      <option key={t.value} value={t.value}>{t.label}</option>
+                      <option key={t.value} value={t.value} className="bg-[#0A2F2F] text-white py-2">
+                        {t.label}
+                      </option>
                     ))}
                   </select>
+                  <p className="text-[11px] text-slate-300 mt-1.5 font-medium">
+                    Select where this lookup will be populated (e.g. Dish Catalog or Inventory categories).
+                  </p>
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-slate-400 mb-1">Name</label>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-200 mb-2">
+                    Item / Category Name <span className="text-saffron-400">*</span>
+                  </label>
                   <input
                     type="text"
                     required
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="e.g. Rice, Veg, Dairy..."
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50"
+                    placeholder="e.g. Basmati Rice, Starters, Beverages, Toiletries..."
+                    className="w-full bg-[#061C1C]/90 border border-white/20 rounded-xl px-4 py-3 text-white font-medium placeholder-slate-400 focus:outline-none focus:border-saffron-400 focus:ring-2 focus:ring-saffron-400/20 transition-all shadow-inner"
                   />
+                  <p className="text-[11px] text-slate-300 mt-1.5 font-medium">
+                    A clear, distinct name shown in dropdowns and reports.
+                  </p>
                 </div>
 
-                {/* <div>
-                  <label className="block text-sm font-medium text-slate-400 mb-1">Parent (Optional)</label>
+                {/* Optional Parent Lookup */}
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-200 mb-2">
+                    Parent Lookup (Optional)
+                  </label>
                   <select
                     value={formData.parent}
                     onChange={(e) => setFormData({ ...formData, parent: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50"
+                    className="w-full bg-[#061C1C]/90 border border-white/20 rounded-xl px-4 py-3 text-white font-medium focus:outline-none focus:border-saffron-400 focus:ring-2 focus:ring-saffron-400/20 transition-all shadow-inner cursor-pointer"
                   >
-                    <option value="">-- No Parent --</option>
-                    
+                    <option value="" className="bg-[#0A2F2F] text-slate-300">None (Top-Level Category)</option>
                     {allLookups
-                      .filter(l => l.type === formData.type && l._id !== formData.id)
+                      .filter(l => l._id !== formData.id && l.type === formData.type)
                       .map(l => (
-                        <option key={l._id} value={l._id}>{l.name}</option>
-                    ))}
+                        <option key={l._id} value={l._id} className="bg-[#0A2F2F] text-white">
+                          {l.name}
+                        </option>
+                      ))}
                   </select>
-                </div> */}
+                  <p className="text-[11px] text-slate-300 mt-1.5 font-medium">
+                    Nest this under an existing parent tag if creating sub-categories.
+                  </p>
+                </div>
 
-                <div className="flex items-center gap-3 pt-2">
+                {/* Status Toggle Box */}
+                <div className="p-4 rounded-2xl bg-[#061C1C]/70 border border-white/15 flex items-center justify-between shadow-sm lookup-status-box">
+                  <div className="pr-4">
+                    <label htmlFor="isActive" className="text-sm font-bold text-white block cursor-pointer">
+                      Status: {formData.isActive ? "Active (Enabled)" : "Inactive (Disabled)"}
+                    </label>
+                    <p className="text-xs text-slate-300 mt-0.5 font-medium">
+                      Available for selection across hotel billing, catalog & inventory modules
+                    </p>
+                  </div>
                   <input
                     type="checkbox"
                     id="isActive"
                     checked={formData.isActive}
                     onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                    className="w-5 h-5 rounded border-slate-700 bg-slate-900 text-amber-500 focus:ring-amber-500/50"
+                    className="w-5 h-5 rounded border-white/30 bg-[#061C1C] text-saffron-500 focus:ring-saffron-400/50 cursor-pointer accent-saffron-500"
                   />
-                  <label htmlFor="isActive" className="text-sm font-medium text-slate-300">
-                    Active (Available in dropdowns)
-                  </label>
                 </div>
 
-                <div className="pt-6 flex justify-end gap-3">
+                {/* Centered Actions with generous horizontal padding */}
+                <div className="pt-4 pb-1 border-t border-white/10 flex flex-wrap justify-center items-center gap-4">
                   <button
                     type="button"
                     onClick={() => setShowModal(false)}
-                    className="px-5 py-2.5 rounded-xl font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+                    className="px-8 py-3 rounded-xl font-bold text-slate-200 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer border border-white/15 min-w-[120px] text-center"
                   >
                     Cancel
                   </button>
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="bg-amber-500 text-slate-950 px-5 py-2.5 rounded-xl font-bold hover:bg-amber-400 transition-colors disabled:opacity-50"
-                  >
-                    {isSubmitting ? "Saving..." : "Save Lookup"}
-                  </button>
+                  <MagneticButton>
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="bg-gradient-to-r from-saffron-400 to-saffron-500 hover:from-saffron-300 hover:to-saffron-400 text-slate-950 px-10 py-3.5 rounded-xl font-black transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer shadow-xl shadow-saffron-500/25 min-w-[200px] justify-center tracking-wide"
+                    >
+                      <CheckCircle2 className="w-5 h-5 text-slate-950 stroke-[2.5]" />
+                      {isSubmitting ? "Saving..." : (formData.id ? "Update Lookup" : "Save Lookup")}
+                    </button>
+                  </MagneticButton>
                 </div>
               </form>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

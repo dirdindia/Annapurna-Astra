@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import api from '../api';
 import Swal from 'sweetalert2';
+import MagneticButton from '../components/MagneticButton';
 
 export default function Subscriptions() {
   const [subscriptions, setSubscriptions] = useState([]);
@@ -180,12 +181,14 @@ export default function Subscriptions() {
           </p>
         </div>
 
-        <button
-          onClick={fetchSubscriptions}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-white border border-lagoon-200 text-lagoon-900 hover:text-saffron-700 hover:border-saffron-500 shadow-sm transition-all"
-        >
-          <RefreshCw className="w-3.5 h-3.5" /> Refresh Data
-        </button>
+        <MagneticButton>
+          <button
+            onClick={fetchSubscriptions}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-white border border-lagoon-200 text-lagoon-900 hover:text-saffron-700 hover:border-saffron-500 shadow-sm transition-all cursor-pointer"
+          >
+            <RefreshCw className="w-3.5 h-3.5" /> Refresh Data
+          </button>
+        </MagneticButton>
       </div>
 
       {/* Metric Cards - Harmonized StayFlow Palette */}
@@ -428,24 +431,28 @@ export default function Subscriptions() {
                     {/* Actions */}
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => handleOpenEdit(hotel)}
-                          className="px-3 py-1.5 rounded-xl bg-lagoon-50 hover:bg-lagoon-100 text-lagoon-900 border border-lagoon-200/80 font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm"
-                          title="Manage Plan & Validity"
-                        >
-                          <Edit3 className="w-3.5 h-3.5 text-saffron-600" /> Manage
-                        </button>
-                        <button
-                          onClick={() => handleToggleStatus(hotel)}
-                          className={`p-2 rounded-xl transition-all border ${
-                            hotel.isActive
-                              ? 'bg-rose-50 text-rose-600 border-rose-200 hover:bg-rose-100'
-                              : 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100'
-                          }`}
-                          title={hotel.isActive ? 'Suspend Staff Access' : 'Activate Staff Access'}
-                        >
-                          <Power className="w-4 h-4" />
-                        </button>
+                        <MagneticButton>
+                          <button
+                            onClick={() => handleOpenEdit(hotel)}
+                            className="px-3 py-1.5 rounded-xl bg-lagoon-50 hover:bg-lagoon-100 text-lagoon-900 border border-lagoon-200/80 font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
+                            title="Manage Plan & Validity"
+                          >
+                            <Edit3 className="w-3.5 h-3.5 text-saffron-600" /> Manage
+                          </button>
+                        </MagneticButton>
+                        <MagneticButton>
+                          <button
+                            onClick={() => handleToggleStatus(hotel)}
+                            className={`p-2 rounded-xl transition-all border cursor-pointer ${
+                              hotel.isActive
+                                ? 'bg-rose-50 text-rose-600 border-rose-200 hover:bg-rose-100'
+                                : 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100'
+                            }`}
+                            title={hotel.isActive ? 'Suspend Staff Access' : 'Activate Staff Access'}
+                          >
+                            <Power className="w-4 h-4" />
+                          </button>
+                        </MagneticButton>
                       </div>
                     </td>
                   </motion.tr>
@@ -586,21 +593,25 @@ export default function Subscriptions() {
 
                 {/* Action Buttons */}
                 <div className="pt-3 flex items-center justify-end gap-3 border-t border-lagoon-100">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedHotel(null)}
-                    className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="px-6 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-saffron-500 to-amber-500 text-slate-950 hover:brightness-105 shadow-md shadow-saffron-500/20 transition-all flex items-center gap-1.5"
-                  >
-                    {submitting ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : null}
-                    Save Subscription Plan
-                  </button>
+                  <MagneticButton>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedHotel(null)}
+                      className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                  </MagneticButton>
+                  <MagneticButton>
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className="px-6 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-saffron-500 to-amber-500 text-slate-950 hover:brightness-105 shadow-md shadow-saffron-500/20 transition-all flex items-center gap-1.5 cursor-pointer"
+                    >
+                      {submitting ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : null}
+                      Save Subscription Plan
+                    </button>
+                  </MagneticButton>
                 </div>
               </form>
             </motion.div>

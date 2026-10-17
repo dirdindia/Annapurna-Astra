@@ -19,6 +19,7 @@ import {
 import api from "../../api";
 import Swal from "sweetalert2";
 import PremiumSubscriptionInvoice from "../../components/PremiumSubscriptionInvoice";
+import MagneticButton from "../../components/MagneticButton";
 
 const loadRazorpayScript = () => {
   return new Promise((resolve) => {
@@ -404,32 +405,36 @@ export default function AdminBilling() {
 
       {/* Billing Cycle Toggle */}
       <div id="plans-section" className="flex flex-col items-center justify-center my-8">
-        <div className="inline-flex items-center p-1.5 bg-slate-900/90 border border-slate-800 rounded-2xl shadow-inner">
-          <button
-            type="button"
-            onClick={() => setBillingCycle("monthly")}
-            className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
-              billingCycle === "monthly"
-                ? "bg-gradient-to-r from-saffron-500 to-amber-500 text-slate-950 shadow-md"
-                : "text-slate-400 hover:text-slate-200"
-            }`}
-          >
-            Monthly Billing
-          </button>
-          <button
-            type="button"
-            onClick={() => setBillingCycle("yearly")}
-            className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${
-              billingCycle === "yearly"
-                ? "bg-gradient-to-r from-saffron-500 to-amber-500 text-slate-950 shadow-md"
-                : "text-slate-400 hover:text-slate-200"
-            }`}
-          >
-            Yearly Billing
-            <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-              Save 17%
-            </span>
-          </button>
+        <div className="inline-flex items-center gap-2 p-1.5 bg-slate-900/90 border border-slate-800 rounded-2xl shadow-inner">
+          <MagneticButton>
+            <button
+              type="button"
+              onClick={() => setBillingCycle("monthly")}
+              className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer ${
+                billingCycle === "monthly"
+                  ? "bg-gradient-to-r from-saffron-400 to-saffron-500 text-slate-950 shadow-md shadow-saffron-500/20"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              Monthly Billing
+            </button>
+          </MagneticButton>
+          <MagneticButton>
+            <button
+              type="button"
+              onClick={() => setBillingCycle("yearly")}
+              className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                billingCycle === "yearly"
+                  ? "bg-gradient-to-r from-saffron-400 to-saffron-500 text-slate-950 shadow-md shadow-saffron-500/20"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              Yearly Billing
+              <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                Save 17%
+              </span>
+            </button>
+          </MagneticButton>
         </div>
         <p className="text-xs text-slate-400 mt-2">
           Payments powered by Razorpay. UPI, NetBanking, Debit/Credit Cards & Wallets supported.

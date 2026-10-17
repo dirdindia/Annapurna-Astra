@@ -23,6 +23,7 @@ import {
 import QRCode from "qrcode";
 import api, { qrOrderAPI, tableAPI } from "../../api";
 import Swal from "sweetalert2";
+import MagneticButton from "../../components/MagneticButton";
 
 export default function AdminQrOrders() {
   const [currentUser] = useState(() => {
@@ -405,52 +406,58 @@ export default function AdminQrOrders() {
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex items-center gap-1.5 p-1 bg-slate-950/80 border border-slate-800 rounded-2xl shrink-0">
-          <button
-            onClick={() => setActiveTab("approvals")}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
-              activeTab === "approvals"
-                ? "bg-saffron-500 text-slate-950 shadow-md shadow-saffron-500/20"
-                : "text-slate-400 hover:text-white"
-            }`}
-          >
-            <Clock className="w-4 h-4" />
-            <span>Incoming Orders</span>
-            {pendingCount > 0 && (
-              <span className="w-5 h-5 rounded-full bg-rose-500 text-white flex items-center justify-center text-[10px]">
-                {pendingCount}
-              </span>
-            )}
-          </button>
+        <div className="flex items-center gap-2 p-1.5 bg-slate-950/80 border border-slate-800 rounded-2xl shrink-0">
+          <MagneticButton>
+            <button
+              onClick={() => setActiveTab("approvals")}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                activeTab === "approvals"
+                  ? "bg-gradient-to-r from-saffron-400 to-saffron-500 text-slate-950 shadow-md shadow-saffron-500/20"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              <Clock className="w-4 h-4" />
+              <span>Incoming Orders</span>
+              {pendingCount > 0 && (
+                <span className="w-5 h-5 rounded-full bg-rose-500 text-white flex items-center justify-center text-[10px] font-bold">
+                  {pendingCount}
+                </span>
+              )}
+            </button>
+          </MagneticButton>
 
-          <button
-            onClick={() => setActiveTab("generator")}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
-              activeTab === "generator"
-                ? "bg-saffron-500 text-slate-950 shadow-md shadow-saffron-500/20"
-                : "text-slate-400 hover:text-white"
-            }`}
-          >
-            <QrCode className="w-4 h-4" />
-            <span>QR Standee Card</span>
-          </button>
+          <MagneticButton>
+            <button
+              onClick={() => setActiveTab("generator")}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                activeTab === "generator"
+                  ? "bg-gradient-to-r from-saffron-400 to-saffron-500 text-slate-950 shadow-md shadow-saffron-500/20"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              <QrCode className="w-4 h-4" />
+              <span>QR Standee Card</span>
+            </button>
+          </MagneticButton>
 
-          <button
-            onClick={() => setActiveTab("bookings")}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
-              activeTab === "bookings"
-                ? "bg-saffron-500 text-slate-950 shadow-md shadow-saffron-500/20"
-                : "text-slate-400 hover:text-white"
-            }`}
-          >
-            <CalendarDays className="w-4 h-4" />
-            <span>Table Reservations</span>
-            {pendingBookingsCount > 0 && (
-              <span className="w-5 h-5 rounded-full bg-rose-500 text-white flex items-center justify-center text-[10px] font-black animate-pulse">
-                {pendingBookingsCount}
-              </span>
-            )}
-          </button>
+          <MagneticButton>
+            <button
+              onClick={() => setActiveTab("bookings")}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                activeTab === "bookings"
+                  ? "bg-gradient-to-r from-saffron-400 to-saffron-500 text-slate-950 shadow-md shadow-saffron-500/20"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              <CalendarDays className="w-4 h-4" />
+              <span>Table Reservations</span>
+              {pendingBookingsCount > 0 && (
+                <span className="w-5 h-5 rounded-full bg-rose-500 text-white flex items-center justify-center text-[10px] font-black animate-pulse">
+                  {pendingBookingsCount}
+                </span>
+              )}
+            </button>
+          </MagneticButton>
         </div>
       </div>
 

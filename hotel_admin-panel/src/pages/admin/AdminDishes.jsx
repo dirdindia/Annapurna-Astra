@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import api from "../../api";
 import { PlusCircle, Utensils, Trash2, Image, ToggleLeft, ToggleRight, Sparkles, Loader2, Search, Edit } from "lucide-react";
 import { showError, showConfirm } from "../../utils/alerts";
+import MagneticButton from "../../components/MagneticButton";
 
 export default function AdminDishes() {
   const [dishes, setDishes] = useState([]);
@@ -411,23 +412,27 @@ export default function AdminDishes() {
 
           {serverTotalPages > 1 && (
             <div className="flex justify-center items-center gap-4 pt-4 border-t border-slate-800/60 mt-2">
-              <button 
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="px-4 py-1.5 bg-slate-800 text-slate-300 rounded-lg disabled:opacity-50 hover:bg-slate-700 transition-colors text-xs font-semibold"
-              >
-                Prev
-              </button>
-              <span className="text-slate-400 text-xs font-semibold">
+              <MagneticButton>
+                <button 
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-4 py-1.5 bg-slate-850 text-slate-200 border border-white/10 rounded-lg disabled:opacity-40 hover:bg-slate-800 transition-colors text-xs font-semibold cursor-pointer shadow-sm"
+                >
+                  Prev
+                </button>
+              </MagneticButton>
+              <span className="text-slate-300 text-xs font-semibold">
                 Page {currentPage} of {serverTotalPages}
               </span>
-              <button 
-                onClick={() => setCurrentPage(p => Math.min(serverTotalPages, p + 1))}
-                disabled={currentPage === serverTotalPages}
-                className="px-4 py-1.5 bg-slate-800 text-slate-300 rounded-lg disabled:opacity-50 hover:bg-slate-700 transition-colors text-xs font-semibold"
-              >
-                Next
-              </button>
+              <MagneticButton>
+                <button 
+                  onClick={() => setCurrentPage(p => Math.min(serverTotalPages, p + 1))}
+                  disabled={currentPage === serverTotalPages}
+                  className="px-4 py-1.5 bg-slate-850 text-slate-200 border border-white/10 rounded-lg disabled:opacity-40 hover:bg-slate-800 transition-colors text-xs font-semibold cursor-pointer shadow-sm"
+                >
+                  Next
+                </button>
+              </MagneticButton>
             </div>
           )}
         </div>
@@ -629,13 +634,17 @@ export default function AdminDishes() {
               )}
             </div>
 
-            <button
-              type="submit"
-              disabled={formSubmitLoading}
-              className="w-full py-3 bg-gradient-to-r from-amber-600 to-yellow-500 hover:from-amber-500 hover:to-yellow-400 text-slate-950 font-bold rounded-xl shadow-lg shadow-amber-600/15 active:scale-[0.98] transition-all flex items-center justify-center text-xs disabled:opacity-50"
-            >
-              {formSubmitLoading ? "Saving..." : (editingDishId ? "Update Dish" : "Add to Catalog")}
-            </button>
+            <div className="pt-2 flex justify-center">
+              <MagneticButton className="w-full">
+                <button
+                  type="submit"
+                  disabled={formSubmitLoading}
+                  className="w-full py-3.5 px-6 bg-gradient-to-r from-saffron-400 to-saffron-500 hover:from-saffron-300 hover:to-saffron-400 text-slate-950 font-extrabold rounded-xl shadow-lg shadow-saffron-500/20 active:scale-[0.98] transition-all flex items-center justify-center text-xs disabled:opacity-50 cursor-pointer"
+                >
+                  {formSubmitLoading ? "Saving..." : (editingDishId ? "Update Dish" : "Add to Catalog")}
+                </button>
+              </MagneticButton>
+            </div>
           </form>
         </div>
       </div>

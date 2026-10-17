@@ -26,6 +26,7 @@ import {
   CheckCircle,
   Hourglass
 } from "lucide-react";
+import MagneticButton from "../../components/MagneticButton";
 
 export default function StaffDashboard({ currentUser, theme }) {
   const navigate = useNavigate();
@@ -220,14 +221,14 @@ export default function StaffDashboard({ currentUser, theme }) {
 
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase border bg-saffron-500/10 text-saffron-500 border-saffron-500/30">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase border bg-saffron-500/15 text-saffron-700 dark:text-saffron-400 border-saffron-500/30">
               <Sparkles className="w-3.5 h-3.5" />
               <span>Staff Operation Hub • Active Shift</span>
             </div>
-            <h1 className="text-2xl md:text-4xl font-bold font-display tracking-tight leading-tight">
-              Welcome back, <span className="text-saffron-500">{currentUser?.name || "Staff Member"}</span>
+            <h1 className="text-2xl md:text-4xl font-extrabold font-display tracking-tight leading-tight text-slate-900 dark:text-white">
+              Welcome back, <span className="text-saffron-700 dark:text-saffron-400">{currentUser?.name || "Staff Member"}</span>
             </h1>
-            <p className={`text-sm md:text-base max-w-2xl ${
+            <p className={`text-sm md:text-base max-w-2xl font-normal leading-relaxed ${
               theme === "light" ? "text-slate-600" : "text-slate-300"
             }`}>
               Hotel desk command center: monitor live restaurant tables, occupied rooms, pending kitchen tickets, and billing metrics in real-time.
@@ -236,19 +237,19 @@ export default function StaffDashboard({ currentUser, theme }) {
 
           {/* Clock & Action Controls */}
           <div className="flex items-center gap-3">
-            <div className={`flex flex-col items-start md:items-end p-4 rounded-2xl border min-w-[200px] ${
+            <div className={`flex flex-col items-start md:items-end p-4 rounded-2xl border min-w-[200px] shadow-md ${
               theme === "light"
                 ? "bg-slate-50 border-slate-200"
-                : "bg-slate-900/70 border-slate-800"
+                : "bg-slate-900/80 border-slate-800"
             }`}>
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-saffron-500">
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-saffron-700 dark:text-saffron-400">
                 <Clock className="w-3.5 h-3.5" />
                 <span>Shift Clock</span>
               </div>
-              <div className="text-2xl font-bold font-mono tracking-tight text-slate-100 light:text-slate-900 mt-1">
+              <div className="text-2xl font-black font-mono tracking-tight text-slate-900 dark:text-white mt-1">
                 {currentTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
               </div>
-              <div className={`text-xs mt-0.5 flex items-center gap-1.5 ${
+              <div className={`text-xs mt-0.5 flex items-center gap-1.5 font-medium ${
                 theme === "light" ? "text-slate-500" : "text-slate-400"
               }`}>
                 <Calendar className="w-3.5 h-3.5" />
@@ -256,18 +257,20 @@ export default function StaffDashboard({ currentUser, theme }) {
               </div>
             </div>
 
-            <button
-              onClick={fetchDashboardStats}
-              disabled={isRefreshing}
-              className={`p-4 rounded-2xl border flex items-center justify-center transition-all ${
-                theme === "light"
-                  ? "bg-white hover:bg-slate-50 border-slate-200 text-slate-700 shadow-sm"
-                  : "bg-slate-900/70 hover:bg-slate-800 border-slate-800 text-slate-300"
-              }`}
-              title="Refresh Data"
-            >
-              <RefreshCw className={`w-5 h-5 ${isRefreshing ? "animate-spin text-saffron-500" : ""}`} />
-            </button>
+            <MagneticButton>
+              <button
+                onClick={fetchDashboardStats}
+                disabled={isRefreshing}
+                className={`p-4 rounded-2xl border flex items-center justify-center transition-all cursor-pointer shadow-md ${
+                  theme === "light"
+                    ? "bg-white hover:bg-slate-50 border-slate-200 text-slate-700"
+                    : "bg-slate-900/80 hover:bg-slate-800 border-slate-800 text-slate-200"
+                }`}
+                title="Refresh Data"
+              >
+                <RefreshCw className={`w-5 h-5 ${isRefreshing ? "animate-spin text-saffron-500" : ""}`} />
+              </button>
+            </MagneticButton>
           </div>
         </div>
       </div>
@@ -275,21 +278,21 @@ export default function StaffDashboard({ currentUser, theme }) {
       {/* Staff Key Metrics Bar */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {/* Metric 1 */}
-        <div className={`p-4 md:p-5 rounded-2xl border transition-all ${
+        <div className={`p-4 md:p-5 rounded-2xl border transition-all duration-200 hover:-translate-y-0.5 shadow-md ${
           theme === "light"
-            ? "bg-white/80 border-slate-200 shadow-sm text-slate-900"
-            : "bg-slate-900/50 border-slate-800/80 text-slate-100"
+            ? "bg-white/90 border-slate-200 shadow-sm text-slate-900"
+            : "bg-slate-900/60 border-slate-800 text-white"
         }`}>
           <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-xs font-medium uppercase tracking-wider">Restaurant Tables</span>
-            <div className="p-2 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Restaurant Tables</span>
+            <div className="p-2 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30">
               <Utensils className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl md:text-3xl font-bold font-display">
+          <div className="text-2xl md:text-3xl font-black font-display text-slate-900 dark:text-white">
             {stats.loading ? "..." : `${stats.activeTables} / ${stats.totalTables}`}
           </div>
-          <p className="text-[11px] text-amber-600/90 dark:text-amber-400/80 mt-1">
+          <p className="text-[11px] text-amber-800 dark:text-amber-400 font-bold mt-1">
             {stats.totalTables ? `${Math.round((stats.activeTables / stats.totalTables) * 100)}% Current Occupancy` : "No tables defined"}
           </p>
         </div>

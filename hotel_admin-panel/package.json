@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@types/three": "^0.186.0",
     "axios": "^1.17.0",
     "country-state-city": "^3.2.1",
     "framer-motion": "^12.42.2",
@@ -18,9 +19,12 @@
     "qrcode": "^1.5.4",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
+    "react-is": "^19.3.1",
     "react-router-dom": "^7.16.0",
     "react-webcam": "^7.2.0",
-    "sweetalert2": "^11.26.25"
+    "recharts": "^3.10.1",
+    "sweetalert2": "^11.26.25",
+    "three": "^0.186.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

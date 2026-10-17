@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Lock, Mail, ArrowRight } from 'lucide-react';
+import { Lock, Mail, ArrowRight, Sparkles, ShieldCheck, Hotel, KeyRound } from 'lucide-react';
 import { motion } from 'framer-motion';
 import api from '../api';
+import HotelLogin3DCanvas from '../components/HotelLogin3DCanvas';
 
 export default function Login({ onLoginSuccess }) {
   const [email, setEmail] = useState('');
@@ -31,85 +32,131 @@ export default function Login({ onLoginSuccess }) {
   };
 
   return (
-    <div className="min-h-screen flex bg-gray-50 font-sans">
-      {/* Left side - Branding (Hidden on mobile) */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-lagoon-900 via-lagoon-700 to-lagoon-900 items-center justify-center">
-        {/* Abstract shapes */}
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-20">
-          <div className="absolute -top-[20%] -left-[10%] w-[70%] h-[70%] rounded-full bg-slate-8000 blur-[120px]"></div>
-          <div className="absolute top-[60%] left-[50%] w-[50%] h-[50%] rounded-full bg-saffron-500 blur-[100px]"></div>
-        </div>
+    <div className="login-page min-h-screen flex bg-[#FAFAF6] font-sans selection:bg-amber-400 selection:text-slate-900">
+      
+      {/* Left side - Hotel 3D Experience (Reception Bell, Cloche, Stars) with Pure White Title */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-[#0A2F2F] via-[#072424] to-[#0A2F2F] items-center justify-center p-12 text-white">
         
-        <div className="relative z-10 p-12 text-center text-[#ffffff] max-w-lg">
+        {/* Subtle Ambient Glows */}
+        <div className="absolute top-0 right-0 w-[450px] h-[450px] bg-amber-500/15 rounded-full blur-[140px] pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-teal-500/15 rounded-full blur-[140px] pointer-events-none"></div>
+
+        {/* 3D WebGL Scene: Floating Reception Bell + Chef Cloche + Orbiting Stars (NO Card) */}
+        <HotelLogin3DCanvas />
+
+        <div className="relative z-10 text-center max-w-lg flex flex-col items-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.7 }}
+            className="flex flex-col items-center"
           >
-            <div className="bg-white/5 p-2 rounded-3xl backdrop-blur-md inline-block mb-8 shadow-2xl border border-white/10">
-              <img src="/favicon.svg" alt="Annapurna Astra Logo" className="w-24 h-24 rounded-2xl" />
+            {/* Centered Logo in frosted glass container */}
+            <div className="bg-white/10 p-5 rounded-3xl backdrop-blur-xl mb-8 shadow-2xl border border-white/15 flex items-center justify-center">
+              <img src="/favicon.svg" alt="Annapurna Astra Logo" className="w-24 h-24 rounded-2xl drop-shadow-md" />
             </div>
-            <h1 className="text-5xl font-extrabold mb-6 tracking-tight font-display">Annapurna Astra</h1>
-            <p className="text-lg text-lagoon-50/80 leading-relaxed font-light">
-              The ultimate premium dashboard to manage your hotel, track operations, and scale your business securely.
+
+            {/* Annapurna Astra in clean pure white (immune to CSS theme overrides) */}
+            <h1 
+              style={{ color: '#FFFFFF' }} 
+              className="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight font-display !text-white"
+            >
+              Annapurna Astra
+            </h1>
+            
+            <p className="text-base text-teal-100/80 leading-relaxed font-light mb-8 max-w-md mx-auto">
+              Reception se rasoi tak, front desk, room reservations aur restaurant POS ka real-time command center.
             </p>
+
+            {/* Quick trust metrics */}
+            <div className="flex items-center justify-center gap-6 text-xs text-teal-100/70 border-t border-white/10 pt-6 w-full max-w-xs">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                <span>256-bit Encrypted</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Hotel className="w-4 h-4 text-amber-400" />
+                <span>Multi-Room Ready</span>
+              </div>
+            </div>
           </motion.div>
         </div>
       </div>
 
-      {/* Right side - Login Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12">
+      {/* Right side - Modern Glassmorphic Login Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 relative overflow-hidden">
+        
+        {/* Subtle background ambient blur for right side */}
+        <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-amber-400/10 blur-[100px]" />
+
         <motion.div 
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="w-full max-w-md"
+          initial={{ opacity: 0, y: 25 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.15 }}
+          className="w-full max-w-md bg-white/95 rounded-3xl p-8 sm:p-10 border border-slate-200/80 shadow-2xl backdrop-blur-xl relative"
         >
-          <div className="mb-10 text-center lg:text-left">
-            <div className="lg:hidden mx-auto mb-6 flex justify-center">
-              <img src="/favicon.svg" alt="Annapurna Astra Logo" className="w-20 h-20 shadow-2xl rounded-2xl" />
+          {/* Top Amber Accent Stripe */}
+          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 rounded-t-3xl" />
+
+          <div className="mb-8 text-center sm:text-left">
+            <div className="lg:hidden mx-auto mb-5 flex justify-center">
+              <img src="/favicon.svg" alt="Annapurna Astra Logo" className="w-16 h-16 shadow-xl rounded-2xl" />
             </div>
-            <h2 className="text-3xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-lagoon-900 to-lagoon-500 tracking-tight">Welcome Back</h2>
-            <p className="text-slate-400 mt-2 text-sm font-medium">Please sign in to your hotel admin account</p>
+            <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-600 mb-2">
+              <KeyRound size={14} />
+              <span>Hotel Administrator</span>
+            </div>
+            <h2 className="text-3xl font-bold text-slate-900 tracking-tight font-display">Welcome Back</h2>
+            <p className="text-slate-500 mt-1.5 text-sm">Apne registered hotel email aur password se login karein</p>
           </div>
 
           {error && (
             <motion.div 
               initial={{ opacity: 0, height: 0 }} 
               animate={{ opacity: 1, height: 'auto' }} 
-              className="bg-red-50 text-red-600 p-4 rounded-xl mb-6 text-sm flex border border-red-100"
+              className="bg-red-50 text-red-600 p-4 rounded-2xl mb-6 text-sm flex items-center gap-2 border border-red-100 shadow-sm"
             >
-              {error}
+              <span>{error}</span>
             </motion.div>
           )}
 
           <form onSubmit={handleLogin} className="space-y-5">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email Address</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+                Work Email
+              </label>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500 group-focus-within:text-lagoon-600 transition-colors">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-amber-600 transition-colors">
                   <Mail className="w-5 h-5" />
                 </div>
                 <input
                   type="email"
                   required
-                  className="block w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-lagoon-600 focus:border-transparent transition-all text-slate-800"
+                  className="login-input block w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-300 rounded-2xl text-sm shadow-sm focus:outline-none focus:ring-4 focus:ring-amber-500/20 focus:border-amber-500 focus:bg-white transition-all !text-slate-900 placeholder:text-slate-400 font-medium focus:scale-[1.01]"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@hotel.com"
+                  placeholder="admin@yourhotel.com"
                 />
               </div>
             </div>
+
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Password</label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                  Password
+                </label>
+                <a href="#" className="text-xs font-semibold text-amber-600 hover:text-amber-700 hover:underline">
+                  Forgot?
+                </a>
+              </div>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500 group-focus-within:text-lagoon-600 transition-colors">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-amber-600 transition-colors">
                   <Lock className="w-5 h-5" />
                 </div>
                 <input
                   type="password"
                   required
-                  className="block w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-lagoon-600 focus:border-transparent transition-all text-slate-800"
+                  className="login-input block w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-300 rounded-2xl text-sm shadow-sm focus:outline-none focus:ring-4 focus:ring-amber-500/20 focus:border-amber-500 focus:bg-white transition-all !text-slate-900 placeholder:text-slate-400 font-medium focus:scale-[1.01]"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
@@ -118,21 +165,31 @@ export default function Login({ onLoginSuccess }) {
             </div>
             
             <div className="pt-2">
-              <button
+              <motion.button
+                whileHover={{ scale: 1.015 }}
+                whileTap={{ scale: 0.985 }}
                 type="submit"
                 disabled={loading}
-                className="group relative w-full flex justify-center py-3.5 px-4 border border-transparent text-sm font-bold rounded-xl text-[#ffffff] bg-gradient-to-r from-lagoon-700 to-lagoon-500 hover:from-lagoon-900 hover:to-lagoon-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-lagoon-700 shadow-md hover:shadow-lg transition-all overflow-hidden disabled:opacity-70"
+                className="w-full flex justify-center items-center py-4 px-6 rounded-2xl text-sm font-bold text-slate-900 bg-amber-400 hover:bg-amber-300 focus:outline-none focus:ring-4 focus:ring-amber-400/20 shadow-xl shadow-amber-400/25 transition-all disabled:opacity-70 gap-2 cursor-pointer"
               >
-                <span className="relative z-10 flex items-center gap-2">
-                  {loading ? "Signing in..." : "Sign In to Dashboard"} 
-                  {!loading && <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />}
-                </span>
-                <div className="absolute inset-0 h-full w-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
-              </button>
+                {loading ? "Signing in..." : "Sign In to Dashboard"} 
+                {!loading && <ArrowRight className="w-4 h-4 transition-transform" />}
+              </motion.button>
             </div>
           </form>
+
+          {/* Quick link to main landing website */}
+          <div className="mt-8 pt-6 border-t border-slate-100 text-center">
+            <p className="text-xs text-slate-500">
+              New property?{' '}
+              <a href="http://localhost:5173/register" className="font-bold text-amber-600 hover:text-amber-700 hover:underline">
+                Register hotel for 14 days free
+              </a>
+            </p>
+          </div>
         </motion.div>
       </div>
+
     </div>
   );
 }

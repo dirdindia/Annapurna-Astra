@@ -11,7 +11,8 @@ import Features from './pages/Features'
 import Pricing from './pages/Pricing'
 import Contact from './pages/Contact'
 import Register from './pages/Register'
-import SignIn from './pages/SignIn'
+
+import SmoothScrollProvider from './components/SmoothScrollProvider'
 
 // Page change par upar scroll + halka fade animation
 function ScrollToTop() {
@@ -37,11 +38,11 @@ function Page({ children }) {
 
 export default function App() {
   const location = useLocation()
-  // Register / SignIn par navbar-footer nahi dikhana (focus rahe)
-  const isAuth = ['/register', '/signin'].includes(location.pathname)
+  // Register par navbar-footer nahi dikhana (focus rahe)
+  const isAuth = location.pathname === '/register'
 
   return (
-    <>
+    <SmoothScrollProvider>
       <ScrollToTop />
       {!isAuth && <Navbar />}
       <AnimatePresence mode="wait">
@@ -52,10 +53,9 @@ export default function App() {
           <Route path="/pricing" element={<Page><Pricing /></Page>} />
           <Route path="/contact" element={<Page><Contact /></Page>} />
           <Route path="/register" element={<Page><Register /></Page>} />
-          <Route path="/signin" element={<Page><SignIn /></Page>} />
         </Routes>
       </AnimatePresence>
       {!isAuth && <Footer />}
-    </>
+    </SmoothScrollProvider>
   )
 }

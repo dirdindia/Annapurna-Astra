@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { BedDouble, Plus, Edit, Trash2, X } from "lucide-react";
 import api from "../../api";
 import { showError, showSuccess, showConfirm, showAlert } from "../../utils/alerts";
+import MagneticButton from "../../components/MagneticButton";
 
 export default function AdminRooms() {
   const [rooms, setRooms] = useState([]);
@@ -143,19 +144,15 @@ export default function AdminRooms() {
           <p className="text-slate-400 mt-1">Manage all hotel rooms and prices</p>
         </div>
         <div className="flex gap-2">
-          {/* <button
-            onClick={handleSeedRooms}
-            className="px-4 py-2 bg-slate-800 text-amber-500 rounded-xl hover:bg-slate-700 transition-colors border border-amber-500/20"
-          >
-            Seed Defaults
-          </button> */}
-          <button
-            onClick={openAddModal}
-            className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-slate-900 font-semibold rounded-xl hover:bg-amber-400 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            Add Room
-          </button>
+          <MagneticButton>
+            <button
+              onClick={openAddModal}
+              className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-saffron-400 to-saffron-500 hover:from-saffron-300 hover:to-saffron-400 text-slate-950 font-extrabold rounded-xl shadow-md shadow-saffron-500/20 transition-all cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              Add Room
+            </button>
+          </MagneticButton>
         </div>
       </div>
 
@@ -307,13 +304,15 @@ export default function AdminRooms() {
                 />
               </div>
 
-              <div className="pt-4">
-                <button
-                  type="submit"
-                  className="w-full bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold py-3 rounded-xl transition-all"
-                >
-                  {isEditing ? "Update Room" : "Save Room"}
-                </button>
+              <div className="pt-4 flex justify-center">
+                <MagneticButton className="w-full">
+                  <button
+                    type="submit"
+                    className="w-full bg-gradient-to-r from-saffron-400 to-saffron-500 hover:from-saffron-300 hover:to-saffron-400 text-slate-950 font-extrabold py-3.5 px-6 rounded-xl shadow-lg shadow-saffron-500/20 transition-all cursor-pointer"
+                  >
+                    {isEditing ? "Update Room" : "Save Room"}
+                  </button>
+                </MagneticButton>
               </div>
             </form>
           </div>

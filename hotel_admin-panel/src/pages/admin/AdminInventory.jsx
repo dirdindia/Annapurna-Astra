@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import api from "../../api";
 import { Package, Plus, Receipt, Search, UploadCloud } from "lucide-react";
 import { showSuccess, showError } from "../../utils/alerts";
+import MagneticButton from "../../components/MagneticButton";
 
 export default function AdminInventory() {
   const [items, setItems] = useState([]);
@@ -162,13 +163,15 @@ export default function AdminInventory() {
           </h1>
           <p className="text-slate-400 mt-1">Manage restaurant stock and track invoices.</p>
         </div>
-        <button
-          onClick={() => setShowStockInModal(true)}
-          className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-950 px-6 py-2.5 rounded-xl font-bold hover:shadow-lg hover:shadow-amber-500/20 transition-all active:scale-95"
-        >
-          <Plus className="w-5 h-5" />
-          Stock In
-        </button>
+        <MagneticButton>
+          <button
+            onClick={() => setShowStockInModal(true)}
+            className="flex items-center gap-2 bg-gradient-to-r from-saffron-400 to-saffron-500 hover:from-saffron-300 hover:to-saffron-400 text-slate-950 px-6 py-2.5 rounded-xl font-extrabold shadow-lg shadow-saffron-500/20 transition-all cursor-pointer"
+          >
+            <Plus className="w-5 h-5" />
+            Stock In
+          </button>
+        </MagneticButton>
       </div>
 
       {/* Tabs */}
@@ -439,21 +442,23 @@ export default function AdminInventory() {
                 </div>
               </div>
 
-              <div className="pt-4 flex justify-end gap-3">
+              <div className="pt-4 flex justify-center items-center gap-4">
                 <button
                   type="button"
                   onClick={() => setShowStockInModal(false)}
-                  className="px-6 py-2.5 rounded-xl font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+                  className="px-6 py-3 rounded-xl font-semibold text-slate-300 hover:text-white hover:bg-slate-800/80 transition-colors cursor-pointer border border-white/10"
                 >
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="bg-amber-500 text-slate-950 px-6 py-2.5 rounded-xl font-bold hover:bg-amber-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                >
-                  {isSubmitting ? "Saving..." : "Save Stock In"}
-                </button>
+                <MagneticButton>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="bg-gradient-to-r from-saffron-400 to-saffron-500 hover:from-saffron-300 hover:to-saffron-400 text-slate-950 px-8 py-3 rounded-xl font-extrabold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer shadow-md shadow-saffron-500/20"
+                  >
+                    {isSubmitting ? "Saving..." : "Save Stock In"}
+                  </button>
+                </MagneticButton>
               </div>
             </form>
           </div>

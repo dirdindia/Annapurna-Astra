@@ -1,5 +1,8 @@
+import { lazy, Suspense } from 'react'
 import { motion } from 'framer-motion'
 import { Building2, Zap, ShieldCheck } from 'lucide-react'
+
+const Subpage3DCanvas = lazy(() => import('../components/Subpage3DCanvas'))
 
 const values = [
   { t: 'Hotel walon ne socha', d: 'Hum front desk aur kitchen ke asli kaam ko dekh kar features banate hain.', icon: Building2 },
@@ -9,7 +12,12 @@ const values = [
 
 export default function About() {
   return (
-    <section className="relative min-h-[calc(100vh-80px)] flex flex-col justify-center py-24 bg-lagoon-900 overflow-hidden">
+    <section className="relative min-h-[calc(100vh-80px)] flex flex-col justify-center py-24 bg-gradient-to-b from-lagoon-900 via-[#072424] to-lagoon-900 overflow-hidden">
+      {/* 3D Background Canvas */}
+      <Suspense fallback={null}>
+        <Subpage3DCanvas />
+      </Suspense>
+
       {/* Abstract Glowing Grid Background */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none"></div>
       

@@ -1,15 +1,23 @@
-import { useState } from 'react'
+import { useState, lazy, Suspense } from 'react'
 import { Link } from 'react-router-dom'
-import { Check } from 'lucide-react'
+import { Check, Sparkles } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { plans } from '../data/content'
+import MagneticButton from '../components/MagneticButton'
+
+const Subpage3DCanvas = lazy(() => import('../components/Subpage3DCanvas'))
 
 export default function Pricing() {
   const [yearly, setYearly] = useState(false)
   const price = (p) => (yearly ? Math.round((p.monthly * 10) / 12) : p.monthly)
 
   return (
-    <section className="relative min-h-[calc(100vh-80px)] py-24 bg-lagoon-900 overflow-hidden flex items-center">
+    <section className="relative min-h-[calc(100vh-80px)] py-24 bg-gradient-to-b from-lagoon-900 via-[#072424] to-lagoon-900 overflow-hidden flex items-center">
+      {/* 3D Canvas Background */}
+      <Suspense fallback={null}>
+        <Subpage3DCanvas />
+      </Suspense>
+
       {/* Background glowing effects */}
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-saffron-500/20 rounded-full blur-[100px] pointer-events-none"></div>
       <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-[100px] pointer-events-none"></div>

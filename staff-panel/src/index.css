@@ -32,6 +32,17 @@
   color: #ffffff !important;
 }
 
+/* Explicit Login Page High-Contrast Input Styling */
+.login-page input:not([type="checkbox"]):not([type="radio"]),
+.login-input {
+  color: #0F172A !important; /* deep high-contrast slate-900 */
+  background-color: #FFFFFF !important;
+}
+.login-page input::placeholder,
+.login-input::placeholder {
+  color: #64748B !important;
+}
+
 /* Glassmorphism utility - Lagoon and Saffron theme */
 .glass {
   background: rgba(10, 47, 47, 0.65);
@@ -64,7 +75,7 @@
   background: rgba(242, 163, 58, 0.7);
 }
 
-/* Dark Mode Palette Harmonization (re-tints generic slate into rich deep lagoon) */
+/* Dark Mode Palette Harmonization (re-tints generic slate into rich deep lagoon & crisp typography) */
 body:not(.light) .bg-slate-950 {
   background-color: #061C1C !important;
 }
@@ -72,19 +83,84 @@ body:not(.light) .bg-slate-900,
 body:not(.light) .bg-slate-900\/80,
 body:not(.light) .bg-slate-900\/60,
 body:not(.light) .bg-slate-900\/50 {
-  background-color: rgba(10, 47, 47, 0.85) !important;
+  background-color: rgba(10, 47, 47, 0.88) !important;
 }
 body:not(.light) .bg-slate-850,
 body:not(.light) .bg-slate-800,
 body:not(.light) .bg-slate-800\/50,
 body:not(.light) .bg-slate-800\/30 {
-  background-color: rgba(15, 75, 74, 0.55) !important;
+  background-color: rgba(15, 75, 74, 0.6) !important;
 }
 body:not(.light) .border-slate-800,
 body:not(.light) .border-slate-800\/80,
 body:not(.light) .border-slate-700,
 body:not(.light) .border-slate-700\/50 {
-  border-color: rgba(207, 227, 223, 0.12) !important;
+  border-color: rgba(207, 227, 223, 0.15) !important;
+}
+
+/* Global High-Contrast Typography Improvements (Dark Mode Light Text) */
+body:not(.light),
+body:not(.light) p,
+body:not(.light) label,
+body:not(.light) .text-slate-400,
+body:not(.light) .text-gray-400,
+body:not(.light) .text-zinc-400 {
+  color: #E2EFEA !important; /* Crisp, readable, luminous light text */
+}
+body:not(.light) .text-slate-500,
+body:not(.light) .text-gray-500,
+body:not(.light) .text-zinc-500 {
+  color: #C3DAD3 !important; /* Brighter, high-contrast secondary text */
+}
+body:not(.light) .text-slate-300,
+body:not(.light) .text-gray-300,
+body:not(.light) .text-zinc-300,
+body:not(.light) .text-slate-200,
+body:not(.light) .text-gray-200,
+body:not(.light) .text-slate-100,
+body:not(.light) .text-gray-100,
+body:not(.light) .text-slate-50 {
+  color: #FFFFFF !important; /* Brightest pure white */
+}
+body:not(.light) .text-amber-500,
+body:not(.light) .text-saffron-500 {
+  color: #F6B445 !important;
+}
+body:not(.light) .text-amber-400,
+body:not(.light) .text-saffron-400 {
+  color: #FFC56B !important;
+}
+
+/* Dedicated Search Section Dark Theming */
+body:not(.light) .search-dark-container {
+  background: rgba(6, 28, 28, 0.95) !important;
+  backdrop-filter: blur(20px);
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+body:not(.light) .search-dark-input {
+  background: rgba(10, 47, 47, 0.85) !important;
+  color: #FFFFFF !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+body:not(.light) .search-dark-input::placeholder {
+  color: #A3C5BD !important;
+}
+
+/* Global Table & Card Polish */
+table tbody tr {
+  transition: background-color 0.2s ease, transform 0.15s ease;
+}
+body:not(.light) table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+}
+body:not(.light):not(.login-page) input:not([type="checkbox"]):not([type="radio"]):not(.text-slate-900),
+body:not(.light):not(.login-page) select,
+body:not(.light):not(.login-page) textarea {
+  color: #FFFFFF;
+}
+body:not(.light):not(.login-page) input:not(.text-slate-900)::placeholder,
+body:not(.light):not(.login-page) textarea::placeholder {
+  color: #799C96;
 }
 
 /* Print Invoice styling */
@@ -166,10 +242,11 @@ body.light ::-webkit-scrollbar-thumb:hover {
 }
 
 /* Text color overrides in light mode (excluding login left brand) */
+/* Text color overrides in light mode (excluding login left brand and protected elements) */
 body.light *:not(.login-left-brand):not(.login-left-brand *) {
   /* target elements normally */
 }
-body.light .text-white:not(.login-left-brand):not(.login-left-brand *),
+body.light .text-white:not(.login-left-brand):not(.login-left-brand *):not([class*="bg-emerald-"]):not([class*="bg-blue-"]):not([class*="bg-red-"]):not([class*="bg-rose-"]):not([class*="from-emerald-"]):not([class*="from-orange-"]):not([class*="from-red-"]):not([class*="from-rose-"]):not([class*="from-blue-"]),
 body.light .text-slate-100:not(.login-left-brand):not(.login-left-brand *),
 body.light .text-slate-200:not(.login-left-brand):not(.login-left-brand *) {
   color: #0A2F2F !important; /* lagoon-900 */
@@ -194,26 +271,105 @@ body.light .text-slate-700 {
   color: #4A6E6B !important;
 }
 
+/* High-contrast status & accent colors in light mode */
+body.light .text-amber-300,
+body.light .text-saffron-300,
+body.light .text-amber-400,
+body.light .text-saffron-400 {
+  color: #B56F14 !important; /* rich deep saffron */
+}
+body.light .text-amber-500,
+body.light .text-saffron-500 {
+  color: #D98A1F !important; /* saffron-600 */
+}
+body.light .text-emerald-300,
+body.light .text-emerald-400,
+body.light .text-emerald-500 {
+  color: #047857 !important; /* deep crisp emerald */
+}
+body.light .text-blue-300,
+body.light .text-blue-400,
+body.light .text-blue-500 {
+  color: #1D4ED8 !important; /* deep crisp blue */
+}
+body.light .text-red-300,
+body.light .text-red-400,
+body.light .text-red-500,
+body.light .text-rose-300,
+body.light .text-rose-400,
+body.light .text-rose-500 {
+  color: #B91C1C !important; /* deep crisp crimson */
+}
+
+/* Safeguard white text on colored solid/gradient buttons & status badges */
+body.light button[class*="from-emerald-"] *,
+body.light button[class*="from-emerald-"],
+body.light button[class*="from-orange-"] *,
+body.light button[class*="from-orange-"],
+body.light button[class*="from-red-"] *,
+body.light button[class*="from-red-"],
+body.light button[class*="from-rose-"] *,
+body.light button[class*="from-rose-"],
+body.light button[class*="from-blue-"] *,
+body.light button[class*="from-blue-"],
+body.light button[class*="bg-emerald-600"] *,
+body.light button[class*="bg-emerald-600"],
+body.light button[class*="bg-emerald-500"] *,
+body.light button[class*="bg-emerald-500"],
+body.light button[class*="bg-blue-600"] *,
+body.light button[class*="bg-blue-600"],
+body.light button[class*="bg-blue-500"] *,
+body.light button[class*="bg-blue-500"],
+body.light button[class*="bg-red-600"] *,
+body.light button[class*="bg-red-600"],
+body.light button[class*="bg-red-500"] *,
+body.light button[class*="bg-red-500"],
+body.light button[class*="bg-rose-600"] *,
+body.light button[class*="bg-rose-600"],
+body.light button[class*="bg-rose-500"] *,
+body.light button[class*="bg-rose-500"],
+body.light span[class*="bg-rose-500"],
+body.light span[class*="bg-red-500"],
+body.light span[class*="bg-emerald-500"]:not(.rounded-full) {
+  color: #FFFFFF !important;
+}
+
+/* Dark text on bright Saffron buttons */
+body.light button[class*="from-saffron-"] *,
+body.light button[class*="from-saffron-"],
+body.light button[class*="bg-amber-500"] *,
+body.light button[class*="bg-amber-500"],
+body.light button[class*="bg-saffron-500"] *,
+body.light button[class*="bg-saffron-500"] {
+  color: #061C1C !important;
+}
+
 /* Background overrides in light mode */
 body.light .bg-slate-900,
 body.light .bg-slate-900\/80,
+body.light .bg-slate-900\/70,
 body.light .bg-slate-900\/60,
 body.light .bg-slate-900\/50,
 body.light .bg-slate-900\/40,
 body.light .bg-slate-900\/30,
 body.light .bg-slate-905\/40,
-body.light .bg-slate-950\/20,
+body.light .bg-slate-950\/20 {
+  background-color: #FFFFFF !important; /* crisp white cards & modals */
+  color: #0A2F2F !important;
+}
+
 body.light .bg-slate-850,
 body.light .bg-slate-800,
 body.light .bg-slate-800\/50,
+body.light .bg-slate-800\/40,
 body.light .bg-slate-800\/30 {
-  background-color: #EAF3F1 !important; /* lagoon-50 */
+  background-color: #F8FAFA !important;
   color: #0A2F2F !important;
 }
 
 body.light .bg-slate-900\/10,
 body.light .bg-slate-900\/20 {
-  background-color: #CFE3DF !important; /* lagoon-100 */
+  background-color: #EAF3F1 !important; /* lagoon-50 */
 }
 
 body.light .bg-slate-905 {
@@ -234,7 +390,9 @@ body.light .divide-slate-800\/50,
 body.light .divide-slate-800\/60,
 body.light .border-gold-800\/15,
 body.light .border-gold-800\/20,
-body.light .border-gold-800\/10 {
+body.light .border-gold-800\/10,
+body.light .border-white\/10,
+body.light .border-white\/15 {
   border-color: #CFE3DF !important; /* lagoon-100 */
 }
 
@@ -257,6 +415,108 @@ body.light textarea:focus {
   box-shadow: 0 0 0 3px rgba(31, 111, 107, 0.15) !important;
 }
 
+/* Room & Table status cards in Light Mode */
+body.light .bg-emerald-950\/25,
+body.light .hover\:bg-emerald-950\/40:hover {
+  background-color: #ECFDF5 !important;
+  border-color: #34D399 !important;
+}
+body.light .bg-emerald-950\/25,
+body.light .bg-emerald-950\/25 * {
+  color: #065F46 !important;
+}
+body.light .bg-emerald-950\/25 .text-white,
+body.light .bg-emerald-950\/25 span.text-white {
+  color: #064E3B !important;
+}
+body.light .bg-emerald-950\/25 .text-amber-300,
+body.light .bg-emerald-950\/25 .text-saffron-400 {
+  color: #B56F14 !important;
+}
+
+body.light .bg-blue-950\/25,
+body.light .hover\:bg-blue-950\/40:hover {
+  background-color: #EFF6FF !important;
+  border-color: #60A5FA !important;
+}
+body.light .bg-blue-950\/25,
+body.light .bg-blue-950\/25 * {
+  color: #1E40AF !important;
+}
+body.light .bg-blue-950\/25 .text-white,
+body.light .bg-blue-950\/25 span.text-white {
+  color: #1E3A8A !important;
+}
+body.light .bg-blue-950\/25 .text-amber-300,
+body.light .bg-blue-950\/25 .text-saffron-400 {
+  color: #B56F14 !important;
+}
+
+body.light .bg-red-950\/25,
+body.light .hover\:bg-red-950\/40:hover {
+  background-color: #FEF2F2 !important;
+  border-color: #F87171 !important;
+}
+body.light .bg-red-950\/25,
+body.light .bg-red-950\/25 * {
+  color: #991B1B !important;
+}
+body.light .bg-red-950\/25 .text-white,
+body.light .bg-red-950\/25 span.text-white {
+  color: #7F1D1D !important;
+}
+body.light .bg-red-950\/25 .text-amber-300,
+body.light .bg-red-950\/25 .text-saffron-400 {
+  color: #B56F14 !important;
+}
+
+body.light .bg-amber-950\/25,
+body.light .hover\:bg-amber-950\/40:hover {
+  background-color: #FFFBEB !important;
+  border-color: #FBBF24 !important;
+}
+body.light .bg-amber-950\/25,
+body.light .bg-amber-950\/25 * {
+  color: #92400E !important;
+}
+body.light .bg-amber-950\/25 .text-white,
+body.light .bg-amber-950\/25 span.text-white {
+  color: #78350F !important;
+}
+body.light .bg-amber-950\/25 .text-amber-300,
+body.light .bg-amber-950\/25 .text-saffron-400 {
+  color: #B56F14 !important;
+}
+
+/* Virtual Order Cards in Light Mode */
+body.light .bg-emerald-500\/10 {
+  background-color: #ECFDF5 !important;
+  border-color: #A7F3D0 !important;
+}
+body.light .bg-saffron-500\/10,
+body.light .bg-amber-500\/10,
+body.light .bg-amber-500\/15 {
+  background-color: #FFFBEB !important;
+  border-color: #FDE68A !important;
+}
+
+/* Dish image price badge in Light Mode */
+body.light .bg-lagoon-950\/90 {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border-color: #D98A1F !important;
+  box-shadow: 0 2px 8px rgba(10, 47, 47, 0.12) !important;
+}
+body.light .bg-lagoon-950\/90 .text-saffron-400,
+body.light .bg-lagoon-950\/90 * {
+  color: #B56F14 !important;
+  font-weight: 800 !important;
+}
+body.light .bg-lagoon-900\/80 {
+  background-color: #EAF3F1 !important;
+  border-color: #CFE3DF !important;
+  color: #B56F14 !important;
+}
+
 /* Table and interactive hover overrides in light mode */
 body.light .hover\:bg-slate-900\/30:hover,
 body.light .hover\:bg-slate-905\/40:hover,
@@ -267,26 +527,6 @@ body.light .hover\:bg-slate-850:hover {
 
 body.light .hover\:text-slate-200:hover {
   color: #0A2F2F !important;
-}
-
-/* Saffron & Lagoon status/accents in light mode */
-body.light .text-amber-500,
-body.light .text-saffron-500 {
-  color: #D98A1F !important; /* saffron-600 */
-}
-body.light .text-amber-400,
-body.light .text-saffron-400 {
-  color: #B56F14 !important; /* saffron-700 */
-}
-body.light .text-emerald-400 {
-  color: #1F6F6B !important; /* lagoon-500 */
-}
-body.light .bg-emerald-500\/10,
-body.light .bg-emerald-500\/20 {
-  background-color: rgba(31, 111, 107, 0.12) !important;
-}
-body.light .text-emerald-500 {
-  color: #0F4B4A !important;
 }
 
 /* ==========================================================================
@@ -393,4 +633,47 @@ body.light .hall-stage-ready {
   background-color: #059669 !important;
   color: #FFFFFF !important;
   font-weight: 700 !important;
+}
+
+/* Ensure crisp high-contrast fonts in light mode across all form elements */
+body.light label {
+  color: #0F4B4A !important;
+  font-weight: 700 !important;
+}
+
+body.light input::placeholder,
+body.light textarea::placeholder {
+  color: #799C96 !important;
+  opacity: 1 !important;
+}
+
+body.light .text-slate-200 {
+  color: #0A2F2F !important;
+}
+
+body.light .text-slate-300 {
+  color: #155B58 !important;
+}
+
+body.light .text-slate-400 {
+  color: #1F6F6B !important;
+}
+
+body.light .bg-\[\#061C1C\]\/90,
+body.light .bg-\[\#061C1C\]\/80,
+body.light .bg-\[\#061C1C\]\/70,
+body.light .bg-\[\#061C1C\]\/60 {
+  background-color: #FFFFFF !important;
+  border-color: #CFE3DF !important;
+  color: #0A2F2F !important;
+}
+
+body.light .bg-\[\#0A2F2F\] {
+  background-color: #FFFFFF !important;
+  color: #0A2F2F !important;
+}
+
+body.light option {
+  background-color: #FFFFFF !important;
+  color: #0A2F2F !important;
 }

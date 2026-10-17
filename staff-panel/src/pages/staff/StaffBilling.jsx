@@ -3,6 +3,7 @@ import api from "../../api";
 import PremiumInvoice from "../../components/PremiumInvoice";
 import { ShoppingBag, Search, ShoppingCart, UserCheck, Plus, Minus, Trash2, ArrowUpRight } from "lucide-react";
 import { showError } from "../../utils/alerts";
+import MagneticButton from "../../components/MagneticButton";
 
 export default function StaffBilling() {
   const [dishes, setDishes] = useState([]);
@@ -281,7 +282,7 @@ export default function StaffBilling() {
                     onClick={() => addToCart(dish)}
                     className="glass-card rounded-2xl overflow-hidden hover:border-saffron-500/40 transition-all duration-300 cursor-pointer flex flex-col group active:scale-[0.98] select-none hover:shadow-lg hover:shadow-saffron-500/5"
                   >
-                    <div className="h-32 w-full bg-slate-850 relative overflow-hidden">
+                    <div className="h-32 w-full bg-slate-100 dark:bg-slate-850 relative overflow-hidden">
                       <img
                         src={dish.image}
                         alt={dish.name}
@@ -289,23 +290,23 @@ export default function StaffBilling() {
                         onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&q=60"; }}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-60"></div>
-                      <span className="absolute bottom-2.5 right-2.5 bg-lagoon-950/90 text-saffron-400 border border-saffron-500/30 font-bold px-2 py-0.5 rounded-lg text-xs font-mono backdrop-blur-sm">
+                      <span className="absolute bottom-2.5 right-2.5 bg-white/95 dark:bg-lagoon-950/90 text-saffron-700 dark:text-saffron-400 border border-saffron-400/50 dark:border-saffron-500/30 font-black px-2 py-0.5 rounded-lg text-xs font-mono backdrop-blur-sm shadow-sm">
                         ₹{dish.price}
                       </span>
                     </div>
                     <div className="p-2.5 flex flex-col gap-1.5 flex-1">
                       <div>
                         <div className="flex items-start justify-between gap-2">
-                          <h3 className="font-bold text-sm text-slate-200 line-clamp-2 leading-snug break-words">
+                          <h3 className="font-bold text-sm text-slate-900 dark:text-slate-200 line-clamp-2 leading-snug break-words">
                             {dish.name}
                           </h3>
-                          {dish.dishId && <span className="shrink-0 text-[10px] bg-lagoon-900/80 text-saffron-400/90 px-1.5 py-0.5 rounded border border-saffron-500/20 whitespace-nowrap">{dish.dishId}</span>}
+                          {dish.dishId && <span className="shrink-0 text-[10px] bg-slate-100 dark:bg-lagoon-900/80 text-saffron-700 dark:text-saffron-400 font-bold px-1.5 py-0.5 rounded border border-saffron-500/20 whitespace-nowrap">{dish.dishId}</span>}
                         </div>
-                        <p className="text-[10px] text-slate-500 font-medium uppercase tracking-wider mt-1">
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider mt-1">
                           {dish.category}
                         </p>
                       </div>
-                      <button className="w-full mt-auto py-1.5 bg-slate-900/60 border border-slate-800 text-slate-300 hover:border-saffron-500/30 group-hover:bg-saffron-500/15 group-hover:text-saffron-400 rounded-lg text-[10px] font-bold uppercase tracking-wider flex items-center justify-center gap-1 transition-all">
+                      <button className="w-full mt-auto py-1.5 bg-slate-100 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-800 text-slate-800 dark:text-slate-300 hover:border-saffron-500/40 group-hover:bg-saffron-500/15 group-hover:text-saffron-700 dark:group-hover:text-saffron-400 rounded-lg text-[10px] font-bold uppercase tracking-wider flex items-center justify-center gap-1 transition-all">
                         <span>Add to Cart</span>
                         <ArrowUpRight className="w-3 h-3" />
                       </button>
@@ -579,13 +580,15 @@ export default function StaffBilling() {
               </>
             )}
 
-            <button
-              type="submit"
-              disabled={loading || cart.length === 0}
-              className="w-full py-3.5 bg-gradient-to-r from-saffron-500 to-saffron-600 hover:from-saffron-400 hover:to-saffron-500 text-lagoon-950 font-bold rounded-xl shadow-lg shadow-saffron-500/20 active:scale-[0.98] transition-all flex items-center justify-center text-xs disabled:opacity-50 mt-2"
-            >
-              {loading ? "Processing..." : (billType === "Room" ? "Add Bill to Room" : "Create Invoice & Print")}
-            </button>
+            <MagneticButton className="w-full">
+              <button
+                type="submit"
+                disabled={loading || cart.length === 0}
+                className="w-full py-3.5 bg-gradient-to-r from-saffron-500 to-saffron-600 hover:from-saffron-400 hover:to-saffron-500 text-lagoon-950 font-bold rounded-xl shadow-lg shadow-saffron-500/20 active:scale-[0.98] transition-all flex items-center justify-center text-xs disabled:opacity-50 mt-2 cursor-pointer"
+              >
+                {loading ? "Processing..." : (billType === "Room" ? "Add Bill to Room" : "Create Invoice & Print")}
+              </button>
+            </MagneticButton>
           </form>
         </div>
 

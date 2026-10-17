@@ -59,7 +59,7 @@
   background: rgba(242, 163, 58, 0.7);
 }
 
-/* Dark Mode Palette Harmonization (re-tints generic slate into rich deep lagoon) */
+/* Dark Mode Palette Harmonization (re-tints generic slate into rich deep lagoon & crisp typography) */
 body:not(.light) .bg-slate-950 {
   background-color: #061C1C !important;
 }
@@ -67,19 +67,93 @@ body:not(.light) .bg-slate-900,
 body:not(.light) .bg-slate-900\/80,
 body:not(.light) .bg-slate-900\/60,
 body:not(.light) .bg-slate-900\/50 {
-  background-color: rgba(10, 47, 47, 0.85) !important;
+  background-color: rgba(10, 47, 47, 0.88) !important;
 }
 body:not(.light) .bg-slate-850,
 body:not(.light) .bg-slate-800,
 body:not(.light) .bg-slate-800\/50,
 body:not(.light) .bg-slate-800\/30 {
-  background-color: rgba(15, 75, 74, 0.55) !important;
+  background-color: rgba(15, 75, 74, 0.6) !important;
 }
 body:not(.light) .border-slate-800,
 body:not(.light) .border-slate-800\/80,
 body:not(.light) .border-slate-700,
 body:not(.light) .border-slate-700\/50 {
-  border-color: rgba(207, 227, 223, 0.12) !important;
+  border-color: rgba(207, 227, 223, 0.15) !important;
+}
+
+/* Global High-Contrast Typography Improvements (Dark Mode Light Text) */
+body:not(.light),
+body:not(.light) p,
+body:not(.light) label,
+body:not(.light) .text-slate-400,
+body:not(.light) .text-gray-400,
+body:not(.light) .text-zinc-400 {
+  color: #E2EFEA !important; /* Crisp, readable, luminous light text */
+}
+body:not(.light) .text-slate-500,
+body:not(.light) .text-gray-500,
+body:not(.light) .text-zinc-500 {
+  color: #C3DAD3 !important; /* Brighter, high-contrast secondary text */
+}
+body:not(.light) .text-slate-300,
+body:not(.light) .text-gray-300,
+body:not(.light) .text-zinc-300,
+body:not(.light) .text-slate-200,
+body:not(.light) .text-gray-200,
+body:not(.light) .text-slate-100,
+body:not(.light) .text-gray-100,
+body:not(.light) .text-slate-50 {
+  color: #FFFFFF !important; /* Brightest pure white */
+}
+body:not(.light) .text-amber-500,
+body:not(.light) .text-saffron-500 {
+  color: #F6B445 !important;
+}
+body:not(.light) .text-amber-400,
+body:not(.light) .text-saffron-400 {
+  color: #FFC56B !important;
+}
+
+/* Dedicated Search Section Dark Theming */
+body:not(.light) .search-dark-container {
+  background: rgba(6, 28, 28, 0.95) !important;
+  backdrop-filter: blur(20px);
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+body:not(.light) .search-dark-input {
+  background: rgba(10, 47, 47, 0.85) !important;
+  color: #FFFFFF !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+body:not(.light) .search-dark-input::placeholder {
+  color: #A3C5BD !important;
+}
+
+/* Global Table & Card Polish */
+table tbody tr {
+  transition: background-color 0.2s ease, transform 0.15s ease;
+}
+body:not(.light) table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+}
+body:not(.light):not(.login-page) input:not([type="checkbox"]):not([type="radio"]):not(.text-slate-900),
+body:not(.light):not(.login-page) select,
+body:not(.light):not(.login-page) textarea {
+  color: #FFFFFF;
+}
+body:not(.light):not(.login-page) input:not(.text-slate-900)::placeholder,
+body:not(.light):not(.login-page) textarea::placeholder {
+  color: #799C96;
+}
+
+/* Explicit Login Page High-Contrast Input Styling */
+.login-input {
+  color: #0F172A !important; /* deep high-contrast slate-900 */
+  background-color: #FFFFFF !important;
+}
+.login-input::placeholder {
+  color: #64748B !important;
 }
 
 /* Print Invoice styling */
@@ -365,3 +439,72 @@ body.light .ifsc-verified-card .ifsc-rbi-badge {
   color: #047857 !important;
 }
 
+/* ==========================================================================
+   Lookup Modal Light Mode Styles & High-Contrast Font Enhancements
+   ========================================================================== */
+body.light .lookup-modal-card {
+  background: #FFFFFF !important;
+  border-color: rgba(15, 75, 74, 0.2) !important;
+  box-shadow: 0 25px 50px -12px rgba(10, 47, 47, 0.25) !important;
+}
+
+body.light .lookup-modal-header {
+  background: #F4F9F8 !important;
+  border-color: #E3EDE9 !important;
+}
+
+body.light .lookup-modal-card h2 {
+  color: #0A2F2F !important;
+}
+
+body.light .lookup-status-box {
+  background: #F4F9F8 !important;
+  border-color: #CFE3DF !important;
+}
+
+body.light .lookup-status-box label {
+  color: #0A2F2F !important;
+}
+
+/* Ensure crisp high-contrast fonts in light mode across all form elements */
+body.light label {
+  color: #0F4B4A !important;
+  font-weight: 700 !important;
+}
+
+body.light input::placeholder,
+body.light textarea::placeholder {
+  color: #799C96 !important;
+  opacity: 1 !important;
+}
+
+body.light .text-slate-200 {
+  color: #0A2F2F !important;
+}
+
+body.light .text-slate-300 {
+  color: #155B58 !important;
+}
+
+body.light .text-slate-400 {
+  color: #1F6F6B !important;
+}
+
+body.light .bg-\[\#061C1C\]\/90,
+body.light .bg-\[\#061C1C\]\/80,
+body.light .bg-\[\#061C1C\]\/70,
+body.light .bg-\[\#061C1C\]\/60 {
+  background-color: #FFFFFF !important;
+  border-color: #CFE3DF !important;
+  color: #0A2F2F !important;
+}
+
+body.light .bg-\[\#0A2F2F\] {
+  background-color: #FFFFFF !important;
+  color: #0A2F2F !important;
+}
+
+body.light option {
+  background-color: #FFFFFF !important;
+  color: #0A2F2F !important;
+}

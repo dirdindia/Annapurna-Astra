@@ -15,6 +15,19 @@
   .btn-primary { @apply bg-saffron-500 text-lagoon-900 hover:bg-saffron-400 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-saffron-500/30; }
   .btn-ghost { @apply border border-lagoon-900/20 hover:bg-lagoon-900 hover:text-white; }
   .input { @apply w-full rounded-xl border border-lagoon-900/15 bg-white px-4 py-3 text-sm outline-none transition focus:border-lagoon-500 focus:ring-4 focus:ring-lagoon-500/10; }
+  .glass-panel { @apply border border-white/10 bg-white/[0.05] backdrop-blur-xl shadow-2xl; }
+  .bg-radial-glow {
+    background: radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(246, 180, 69, 0.15), transparent 40%);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 8s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {

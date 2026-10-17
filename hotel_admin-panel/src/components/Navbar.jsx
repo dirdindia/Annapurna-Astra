@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { LogOut, User, Coffee, Sun, Moon, Menu, X, Utensils, BedDouble, FileText, CalendarClock, Building2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import MagneticButton from "./MagneticButton";
 
 export default function Navbar({ currentUser, onLogout, theme, toggleTheme, toggleSidebar }) {
   const navigate = useNavigate();
@@ -97,21 +98,25 @@ export default function Navbar({ currentUser, onLogout, theme, toggleTheme, togg
             </div>
           )}
 
-          <button
-            onClick={toggleTheme}
-            className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80 text-slate-300 hover:text-saffron-500 hover:bg-lagoon-800/40 transition-all flex items-center justify-center active:scale-95 no-print"
-            title={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
-          >
-            {theme === "light" ? <Moon className="w-4 h-4 text-lagoon-700" /> : <Sun className="w-4 h-4 text-saffron-400" />}
-          </button>
+          <MagneticButton>
+            <button
+              onClick={toggleTheme}
+              className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80 text-slate-300 hover:text-saffron-400 hover:bg-lagoon-800/40 transition-all flex items-center justify-center active:scale-95 no-print cursor-pointer shadow-sm"
+              title={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
+            >
+              {theme === "light" ? <Moon className="w-4 h-4 text-lagoon-700" /> : <Sun className="w-4 h-4 text-saffron-400" />}
+            </button>
+          </MagneticButton>
 
-          <button
-            onClick={onLogout}
-            className="flex items-center gap-2 px-3.5 py-2 bg-gradient-to-r from-red-950/80 to-red-900/80 border border-red-800/40 hover:from-red-900 hover:to-red-800 text-red-200 text-xs font-semibold rounded-xl transition-all duration-300 shadow-sm"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-            <span>Logout</span>
-          </button>
+          <MagneticButton>
+            <button
+              onClick={onLogout}
+              className="flex items-center gap-2 px-3.5 py-2 bg-gradient-to-r from-rose-950/80 to-rose-900/80 border border-rose-700/50 hover:from-rose-900 hover:to-rose-800 text-rose-100 text-xs font-bold rounded-xl transition-all duration-300 shadow-md cursor-pointer"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Logout</span>
+            </button>
+          </MagneticButton>
         </div>
 
         {/* Mobile Hamburger Menu Toggle */}

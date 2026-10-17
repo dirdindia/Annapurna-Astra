@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Receipt, Search, ChevronLeft, ChevronRight, Loader2, X, Building2, User, CreditCard, Clock, CheckCircle2, AlertCircle, Printer } from 'lucide-react';
 import api from '../api';
 import PremiumSubscriptionInvoice from '../components/PremiumSubscriptionInvoice';
+import MagneticButton from '../components/MagneticButton';
 
 export default function Invoices() {
   const [invoices, setInvoices] = useState([]);
@@ -296,18 +297,22 @@ export default function Invoices() {
 
               <div className="p-6 border-t border-slate-100 bg-slate-50 mt-auto flex justify-end">
                 <div className="flex gap-3">
-                  <button 
-                    onClick={() => { setPrintingInvoice(selectedInvoice); setSelectedInvoice(null); }}
-                    className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-saffron-500 to-amber-500 hover:brightness-105 text-slate-950 font-bold rounded-xl transition-all shadow-sm"
-                  >
-                    <Printer className="w-4 h-4" /> Print Invoice
-                  </button>
-                  <button 
-                    onClick={() => setSelectedInvoice(null)}
-                    className="px-6 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl transition-colors shadow-sm"
-                  >
-                    Close
-                  </button>
+                  <MagneticButton>
+                    <button 
+                      onClick={() => { setPrintingInvoice(selectedInvoice); setSelectedInvoice(null); }}
+                      className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-saffron-500 to-amber-500 hover:brightness-105 text-slate-950 font-bold rounded-xl transition-all shadow-sm cursor-pointer"
+                    >
+                      <Printer className="w-4 h-4" /> Print Invoice
+                    </button>
+                  </MagneticButton>
+                  <MagneticButton>
+                    <button 
+                      onClick={() => setSelectedInvoice(null)}
+                      className="px-6 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl transition-colors shadow-sm cursor-pointer"
+                    >
+                      Close
+                    </button>
+                  </MagneticButton>
                 </div>
               </div>
             </motion.div>

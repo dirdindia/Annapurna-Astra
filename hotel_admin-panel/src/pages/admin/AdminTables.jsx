@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { UtensilsCrossed, Plus, Trash2, Users, Edit } from "lucide-react";
 import { showSuccess, showError, showConfirm } from "../../utils/alerts";
 import { tableAPI } from "../../api";
+import MagneticButton from "../../components/MagneticButton";
 
 export default function AdminTables() {
   const [tables, setTables] = useState([]);
@@ -130,12 +131,16 @@ export default function AdminTables() {
                   onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
                 />
               </div>
-              <button
-                type="submit"
-                className="w-full bg-gradient-to-r from-amber-600 to-yellow-500 hover:from-amber-500 hover:to-yellow-400 text-slate-950 font-bold py-3 px-4 rounded-xl shadow-lg shadow-amber-500/20 transition-all transform hover:scale-[1.02] active:scale-95"
-              >
-                {editingTableId ? "Update Table" : "Save Table"}
-              </button>
+              <div className="pt-2 flex justify-center">
+                <MagneticButton className="w-full">
+                  <button
+                    type="submit"
+                    className="w-full bg-gradient-to-r from-saffron-400 to-saffron-500 hover:from-saffron-300 hover:to-saffron-400 text-slate-950 font-extrabold py-3.5 px-6 rounded-xl shadow-lg shadow-saffron-500/20 transition-all cursor-pointer"
+                  >
+                    {editingTableId ? "Update Table" : "Save Table"}
+                  </button>
+                </MagneticButton>
+              </div>
             </form>
           </div>
         </div>

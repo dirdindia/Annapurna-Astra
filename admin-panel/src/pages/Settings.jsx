@@ -18,6 +18,7 @@ import {
   Crown,
 } from 'lucide-react';
 import Swal from 'sweetalert2';
+import MagneticButton from '../components/MagneticButton';
 
 export default function Settings() {
   const [profile, setProfile] = useState({
@@ -193,14 +194,16 @@ export default function Settings() {
             </div>
 
             <div className="pt-4 flex justify-end">
-              <button
-                type="submit"
-                disabled={savingProfile}
-                className="px-6 py-2.5 rounded-xl text-xs font-bold bg-lagoon-900 text-white hover:bg-lagoon-800 transition-all shadow-sm flex items-center gap-2"
-              >
-                <Save className="w-4 h-4 text-saffron-400" />
-                {savingProfile ? 'Saving...' : 'Save Profile Details'}
-              </button>
+              <MagneticButton>
+                <button
+                  type="submit"
+                  disabled={savingProfile}
+                  className="px-6 py-2.5 rounded-xl text-xs font-bold bg-lagoon-900 text-white hover:bg-lagoon-800 transition-all shadow-sm flex items-center gap-2 cursor-pointer"
+                >
+                  <Save className="w-4 h-4 text-saffron-400" />
+                  {savingProfile ? 'Saving...' : 'Save Profile Details'}
+                </button>
+              </MagneticButton>
             </div>
           </form>
         </div>
@@ -270,14 +273,16 @@ export default function Settings() {
             </div>
 
             <div className="pt-4 flex justify-end">
-              <button
-                type="submit"
-                disabled={savingPassword}
-                className="px-6 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-saffron-500 to-amber-500 text-slate-950 hover:brightness-105 transition-all shadow-md shadow-saffron-500/20 flex items-center gap-2"
-              >
-                <Save className="w-4 h-4" />
-                {savingPassword ? 'Updating...' : 'Update Password'}
-              </button>
+              <MagneticButton>
+                <button
+                  type="submit"
+                  disabled={savingPassword}
+                  className="px-6 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-saffron-500 to-amber-500 text-slate-950 hover:brightness-105 transition-all shadow-md shadow-saffron-500/20 flex items-center gap-2 cursor-pointer"
+                >
+                  <Save className="w-4 h-4" />
+                  {savingPassword ? 'Updating...' : 'Update Password'}
+                </button>
+              </MagneticButton>
             </div>
           </form>
         </div>

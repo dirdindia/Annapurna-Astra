@@ -112,20 +112,25 @@ export default function Sidebar({ isOpen, closeSidebar }) {
       {/* Mobile Backdrop */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-40 md:hidden top-[73px]"
+          className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-40 md:hidden top-[73px]"
           onClick={closeSidebar}
         />
       )}
-      <aside className={`w-64 glass border-r border-lagoon-700/25 min-h-[calc(100vh-80px)] p-4 flex flex-col gap-2 no-print shrink-0 
+      <aside className={`w-64 glass border-r border-lagoon-700/30 min-h-[calc(100vh-80px)] p-4 flex flex-col gap-3 no-print shrink-0 
         fixed md:static top-[73px] md:top-0 bottom-0 left-0 z-50 md:z-0
         transform transition-transform duration-300 ease-in-out
         ${isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
-        bg-slate-950 md:bg-transparent overflow-y-auto custom-scrollbar
+        bg-[#061C1C]/95 md:bg-transparent overflow-y-auto custom-scrollbar
       `}>
-        <div className="px-3 py-2">
-          <p className="text-[10px] uppercase font-bold tracking-widest text-saffron-500/80">
-            Admin Control Center
+        {/* Navigation Category Label */}
+        <div className="px-3 py-1.5 flex items-center justify-between border-b border-white/[0.06] pb-2">
+          <p className="text-[11px] uppercase font-black tracking-widest text-saffron-400 drop-shadow-sm">
+            Menu Navigation
           </p>
+          <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/25 px-2 py-0.5 rounded-full">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            Live
+          </span>
         </div>
 
         <div className="flex flex-col gap-1.5">
@@ -139,45 +144,62 @@ export default function Sidebar({ isOpen, closeSidebar }) {
                 key={item.path}
                 to={item.path}
                 onClick={() => closeSidebar && closeSidebar()}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group text-sm ${
+                className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all duration-300 group text-sm font-semibold ${
                   isActive
-                    ? "bg-gradient-to-r from-saffron-500/20 via-saffron-500/10 to-transparent border border-saffron-500/35 text-saffron-400 font-bold shadow-sm shadow-saffron-500/5"
-                    : "hover:bg-lagoon-800/40 hover:text-lagoon-100 text-slate-400 border border-transparent"
+                    ? "bg-gradient-to-r from-saffron-500/25 via-saffron-500/15 to-transparent border border-saffron-400/50 text-white font-bold shadow-lg shadow-saffron-500/15 translate-x-1"
+                    : "text-slate-100 hover:text-white hover:bg-white/[0.07] border border-transparent hover:border-white/10"
                 }`}
               >
-                <Icon className={`w-4 h-4 transition-colors ${isActive ? "text-saffron-400" : "text-slate-400 group-hover:text-lagoon-200"}`} />
-                <span>{item.name}</span>
+                <div className="flex items-center gap-3">
+                  <div className={`p-1.5 rounded-lg transition-all duration-300 ${
+                    isActive 
+                      ? "bg-saffron-500 text-slate-950 font-black shadow-md shadow-saffron-500/30 ring-2 ring-saffron-400/30" 
+                      : "bg-white/[0.06] text-saffron-300 group-hover:bg-saffron-500/20 group-hover:text-saffron-300 group-hover:scale-105"
+                  }`}>
+                    <Icon className="w-4 h-4" />
+                  </div>
+                  <span className={`tracking-wide ${isActive ? "text-white drop-shadow-sm" : "text-slate-100 group-hover:text-white"}`}>
+                    {item.name}
+                  </span>
+                </div>
+                {isActive && (
+                  <span className="w-1.5 h-4 rounded-full bg-saffron-400 shadow-[0_0_8px_rgba(246,180,69,0.8)]" />
+                )}
               </Link>
             );
           })}
 
           {/* Collapsible MANAGE Menu with Submenu */}
-          <div className="flex flex-col mt-1">
+          <div className="flex flex-col mt-2 pt-2 border-t border-white/[0.06]">
             <button
               type="button"
               onClick={() => setIsManageOpen(!isManageOpen)}
-              className={`flex items-center justify-between w-full px-4 py-3 rounded-xl transition-all duration-300 group text-sm font-bold ${
+              className={`flex items-center justify-between w-full px-3.5 py-2.5 rounded-xl transition-all duration-300 group text-sm font-bold ${
                 isManageActive
-                  ? "bg-amber-500/20 border border-amber-500/40 text-amber-400 shadow-sm shadow-amber-500/10"
-                  : "bg-amber-500/5 hover:bg-amber-500/15 border border-amber-500/20 text-amber-300 hover:text-amber-200"
+                  ? "bg-gradient-to-r from-amber-500/25 to-amber-500/10 border border-amber-400/50 text-white shadow-md shadow-amber-500/15"
+                  : "bg-white/[0.03] hover:bg-white/[0.07] border border-white/[0.06] hover:border-amber-400/30 text-slate-100 hover:text-white"
               }`}
             >
               <div className="flex items-center gap-3">
-                <div className={`p-1 rounded-lg ${isManageActive ? "bg-amber-500/30 text-amber-300" : "bg-amber-500/15 text-amber-400 group-hover:bg-amber-500/25"}`}>
+                <div className={`p-1.5 rounded-lg transition-colors ${
+                  isManageActive 
+                    ? "bg-amber-400 text-slate-950 font-black shadow-md shadow-amber-400/30 ring-2 ring-amber-400/30" 
+                    : "bg-amber-500/15 text-amber-300 group-hover:bg-amber-500/25 group-hover:scale-105"
+                }`}>
                   <Layers className="w-4 h-4" />
                 </div>
-                <span className="tracking-wide">Manage</span>
+                <span className="tracking-wide text-white drop-shadow-sm">Manage Hotel</span>
               </div>
               <ChevronDown
-                className={`w-4 h-4 transition-transform duration-200 ${
-                  isManageOpen ? "rotate-180 text-amber-400" : "text-amber-400/70 group-hover:text-amber-300"
+                className={`w-4 h-4 transition-transform duration-300 ${
+                  isManageOpen ? "rotate-180 text-amber-300" : "text-slate-300 group-hover:text-amber-300"
                 }`}
               />
             </button>
 
             {/* Submenu Items */}
             {isManageOpen && (
-              <div className="flex flex-col gap-1 mt-1 ml-4 pl-3 border-l border-slate-800/80">
+              <div className="flex flex-col gap-1 mt-1.5 ml-3 pl-3 border-l-2 border-amber-400/30">
                 {manageSubItems.map((sub) => {
                   const SubIcon = sub.icon;
                   const isSubActive = location.pathname === sub.path;
@@ -187,19 +209,26 @@ export default function Sidebar({ isOpen, closeSidebar }) {
                       key={sub.path}
                       to={sub.path}
                       onClick={() => closeSidebar && closeSidebar()}
-                      className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all text-sm ${
+                      className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all text-xs font-semibold ${
                         isSubActive
-                          ? "bg-saffron-500/20 text-saffron-400 font-bold border border-saffron-500/30"
-                          : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
+                          ? "bg-saffron-500/20 text-white font-bold border border-saffron-400/40 shadow-sm shadow-saffron-500/10 translate-x-1"
+                          : "text-slate-200 hover:text-white hover:bg-white/[0.07]"
                       }`}
                     >
-                      <SubIcon className={`w-4 h-4 ${isSubActive ? "text-saffron-400" : "text-slate-400"}`} />
-                      <span>{sub.name}</span>
+                      <SubIcon className={`w-3.5 h-3.5 ${isSubActive ? "text-saffron-400" : "text-slate-300 group-hover:text-white"}`} />
+                      <span className={isSubActive ? "text-white" : "text-slate-200"}>{sub.name}</span>
                     </Link>
                   );
                 })}
               </div>
             )}
+          </div>
+
+          {/* Secondary Section Header */}
+          <div className="px-3 pt-3 pb-1 flex items-center justify-between border-t border-white/[0.06] mt-2">
+            <p className="text-[10px] uppercase font-bold tracking-widest text-slate-300">
+              Settings & Account
+            </p>
           </div>
 
           {/* Secondary Menus (Subscription, Settings) */}
@@ -212,14 +241,27 @@ export default function Sidebar({ isOpen, closeSidebar }) {
                 key={item.path}
                 to={item.path}
                 onClick={() => closeSidebar && closeSidebar()}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group text-sm ${
+                className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all duration-300 group text-sm font-semibold ${
                   isActive
-                    ? "bg-gradient-to-r from-saffron-500/20 via-saffron-500/10 to-transparent border border-saffron-500/35 text-saffron-400 font-bold shadow-sm shadow-saffron-500/5"
-                    : "hover:bg-lagoon-800/40 hover:text-lagoon-100 text-slate-400 border border-transparent"
+                    ? "bg-gradient-to-r from-saffron-500/25 via-saffron-500/15 to-transparent border border-saffron-400/50 text-white font-bold shadow-md shadow-saffron-500/15 translate-x-1"
+                    : "text-slate-100 hover:text-white hover:bg-white/[0.07] border border-transparent hover:border-white/10"
                 }`}
               >
-                <Icon className={`w-4 h-4 transition-colors ${isActive ? "text-saffron-400" : "text-slate-400 group-hover:text-lagoon-200"}`} />
-                <span>{item.name}</span>
+                <div className="flex items-center gap-3">
+                  <div className={`p-1.5 rounded-lg transition-all duration-300 ${
+                    isActive 
+                      ? "bg-saffron-500 text-slate-950 font-black shadow-md shadow-saffron-500/30" 
+                      : "bg-white/[0.06] text-saffron-300 group-hover:bg-saffron-500/20 group-hover:text-saffron-300 group-hover:scale-105"
+                  }`}>
+                    <Icon className="w-4 h-4" />
+                  </div>
+                  <span className={`tracking-wide ${isActive ? "text-white drop-shadow-sm" : "text-slate-100 group-hover:text-white"}`}>
+                    {item.name}
+                  </span>
+                </div>
+                {isActive && (
+                  <span className="w-1.5 h-4 rounded-full bg-saffron-400 shadow-[0_0_8px_rgba(246,180,69,0.8)]" />
+                )}
               </Link>
             );
           })}

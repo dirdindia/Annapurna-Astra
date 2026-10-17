@@ -3,6 +3,7 @@ import api, { tableAPI, orderAPI, tableBookingAPI } from "../../api";
 import { UtensilsCrossed, Users, Plus, Minus, Trash2, Search, ArrowUpRight, ArrowLeft, Bike, ShoppingBag, Truck, X, BedDouble, CalendarClock, Calendar, Clock, Phone, AlertCircle, CalendarDays, CheckCircle, Hotel } from "lucide-react";
 import { showError, showSuccess, showConfirm } from "../../utils/alerts";
 import ThermalReceipt from "../../components/ThermalReceipt";
+import MagneticButton from "../../components/MagneticButton";
 
 export default function StaffKotBilling() {
   const [tables, setTables] = useState([]);
@@ -485,67 +486,83 @@ export default function StaffKotBilling() {
       <div className="p-4 md:p-6 max-w-7xl mx-auto min-h-[calc(100vh-80px)]">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 no-print">
           <div>
-            <h1 className="text-2xl md:text-3xl font-extrabold font-display text-transparent bg-clip-text bg-gradient-to-r from-saffron-400 to-saffron-600 flex items-center gap-3">
-              <UtensilsCrossed className="w-7 h-7 text-saffron-500" /> KOT Dining & Delivery Tables
+            <h1 className="text-2xl md:text-3xl font-extrabold font-display text-white flex items-center gap-3">
+              <UtensilsCrossed className="w-7 h-7 text-saffron-400" /> 
+              <span>KOT Dining & Delivery Tables</span>
             </h1>
-            <p className="text-slate-400 mt-1 text-xs md:text-sm font-medium">
+            <p className="text-slate-300 mt-1 text-xs md:text-sm font-medium">
               Manage live table orders, Swiggy, Zomato and parcel tokens
             </p>
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-3 mb-6">
-          <button 
-            type="button"
-            onClick={() => {
-              fetchActiveBookings();
-              setShowRoomSelectModal(true);
-            }} 
-            className="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl flex items-center gap-2 font-bold shadow-md shadow-emerald-600/20 active:scale-95 transition-all text-xs"
-          >
-            <BedDouble className="w-4 h-4"/> New Room Guest KOT
-          </button>
-          <button 
-            type="button"
-            onClick={() => handleCreateNewVirtual('Parcel')} 
-            className="px-4 py-2.5 bg-gradient-to-r from-saffron-500 to-saffron-600 hover:from-saffron-400 hover:to-saffron-500 text-lagoon-950 rounded-xl flex items-center gap-2 font-bold shadow-md shadow-saffron-500/20 active:scale-95 transition-all text-xs"
-          >
-            <ShoppingBag className="w-4 h-4"/> New Parcel
-          </button>
-          <button 
-            type="button"
-            onClick={() => handleCreateNewVirtual('Swiggy')} 
-            className="px-4 py-2.5 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white rounded-xl flex items-center gap-2 font-bold shadow-md shadow-orange-600/20 active:scale-95 transition-all text-xs"
-          >
-            <Bike className="w-4 h-4"/> New Swiggy Order
-          </button>
-          <button 
-            type="button"
-            onClick={() => handleCreateNewVirtual('Zomato')} 
-            className="px-4 py-2.5 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white rounded-xl flex items-center gap-2 font-bold shadow-md shadow-red-600/20 active:scale-95 transition-all text-xs"
-          >
-            <Bike className="w-4 h-4"/> New Zomato Order
-          </button>
+          <MagneticButton>
+            <button 
+              type="button"
+              onClick={() => {
+                fetchActiveBookings();
+                setShowRoomSelectModal(true);
+              }} 
+              className="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl flex items-center gap-2 font-bold shadow-md shadow-emerald-600/20 active:scale-95 transition-all text-xs cursor-pointer"
+            >
+              <BedDouble className="w-4 h-4"/> New Room Guest KOT
+            </button>
+          </MagneticButton>
+
+          <MagneticButton>
+            <button 
+              type="button"
+              onClick={() => handleCreateNewVirtual('Parcel')} 
+              className="px-4 py-2.5 bg-gradient-to-r from-saffron-400 to-saffron-500 hover:from-saffron-300 hover:to-saffron-400 text-slate-950 rounded-xl flex items-center gap-2 font-extrabold shadow-md shadow-saffron-500/20 active:scale-95 transition-all text-xs cursor-pointer"
+            >
+              <ShoppingBag className="w-4 h-4"/> New Parcel
+            </button>
+          </MagneticButton>
+
+          <MagneticButton>
+            <button 
+              type="button"
+              onClick={() => handleCreateNewVirtual('Swiggy')} 
+              className="px-4 py-2.5 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white rounded-xl flex items-center gap-2 font-bold shadow-md shadow-orange-600/20 active:scale-95 transition-all text-xs cursor-pointer"
+            >
+              <Bike className="w-4 h-4"/> New Swiggy Order
+            </button>
+          </MagneticButton>
+
+          <MagneticButton>
+            <button 
+              type="button"
+              onClick={() => handleCreateNewVirtual('Zomato')} 
+              className="px-4 py-2.5 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white rounded-xl flex items-center gap-2 font-bold shadow-md shadow-red-600/20 active:scale-95 transition-all text-xs cursor-pointer"
+            >
+              <Bike className="w-4 h-4"/> New Zomato Order
+            </button>
+          </MagneticButton>
           
-          {/* Table Reservations Pill Button (Exact SecureBillPro Flow) */}
-          <button
-            type="button"
-            onClick={() => setShowBookingsModal(true)}
-            className="px-4 py-2.5 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-400 hover:text-amber-300 rounded-xl flex items-center gap-2 font-bold text-xs transition-all shadow-sm active:scale-95"
-          >
-            <CalendarDays className="w-4 h-4 text-amber-400" />
-            <span>Table Reservations</span>
-            {tableBookings.filter((b) => b.status === "confirmed").length > 0 && (
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500 text-slate-950">
-                {tableBookings.filter((b) => b.status === "confirmed").length} Active
-              </span>
-            )}
-          </button>
+          {/* Table Reservations Pill Button */}
+          <div className="ml-auto">
+            <MagneticButton>
+              <button
+                type="button"
+                onClick={() => setShowBookingsModal(true)}
+                className="px-4 py-2.5 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-800 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-200 rounded-xl flex items-center gap-2 font-bold text-xs transition-all shadow-sm active:scale-95 cursor-pointer"
+              >
+                <CalendarDays className="w-4 h-4 text-saffron-600 dark:text-amber-400" />
+                <span>Table Reservations</span>
+                {tableBookings.filter((b) => b.status === "confirmed").length > 0 && (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500 text-slate-950">
+                    {tableBookings.filter((b) => b.status === "confirmed").length} Active
+                  </span>
+                )}
+              </button>
+            </MagneticButton>
+          </div>
         </div>
 
         {virtualOrders.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-lg font-bold text-slate-200 mb-4 flex items-center gap-2 font-display">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2 font-display">
               <Truck className="w-5 h-5 text-saffron-500"/> Active Room, Delivery & Parcel Orders
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -555,25 +572,25 @@ export default function StaffKotBilling() {
                   <div 
                     key={order._id} 
                     onClick={() => handleVirtualOrderClick(order)} 
-                    className={`p-4 rounded-2xl border-2 shadow-lg cursor-pointer transition-all active:scale-95 flex flex-col justify-between h-32 ${
+                    className={`p-4 rounded-2xl border-2 shadow-md cursor-pointer transition-all active:scale-95 flex flex-col justify-between h-32 ${
                       isRoom 
-                        ? "border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20 hover:border-emerald-500/70"
-                        : "border-saffron-500/40 bg-saffron-500/10 hover:bg-saffron-500/20 hover:border-saffron-500/70"
+                        ? "border-emerald-400 dark:border-emerald-500/40 bg-emerald-50 dark:bg-emerald-500/10 hover:bg-emerald-100 dark:hover:bg-emerald-500/20"
+                        : "border-saffron-400 dark:border-saffron-500/40 bg-saffron-50 dark:bg-saffron-500/10 hover:bg-saffron-100 dark:hover:bg-saffron-500/20"
                     }`}
                   >
                     <div className="flex justify-between items-start">
-                      <span className="text-xl font-bold text-slate-200 font-mono">{order.orderDisplayId}</span>
+                      <span className="text-xl font-black text-slate-900 dark:text-white font-mono">{order.orderDisplayId}</span>
                       {isRoom ? (
-                        <BedDouble className="w-5 h-5 text-emerald-400" />
+                        <BedDouble className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                       ) : (
-                        <ShoppingBag className="w-5 h-5 text-saffron-400" />
+                        <ShoppingBag className="w-5 h-5 text-saffron-600 dark:text-saffron-400" />
                       )}
                     </div>
                     <div>
-                      <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${isRoom ? "text-emerald-400" : "text-saffron-400"}`}>
+                      <p className={`text-xs font-black uppercase tracking-wider mb-1 ${isRoom ? "text-emerald-700 dark:text-emerald-400" : "text-saffron-700 dark:text-saffron-400"}`}>
                         {order.orderType === "Room" ? "Room Guest" : order.orderType}
                       </p>
-                      <p className="text-xs text-slate-400">{order.items.length} Items</p>
+                      <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold">{order.items.length} Items</p>
                     </div>
                   </div>
                 );
@@ -583,8 +600,8 @@ export default function StaffKotBilling() {
         )}
 
         <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-          <h2 className="text-lg font-bold text-slate-200 font-display">Dine-in Tables</h2>
-          <div className="flex items-center gap-3 text-xs text-slate-400">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white font-display">Dine-in Tables</h2>
+          <div className="flex items-center gap-3 text-xs text-slate-700 dark:text-slate-300 font-semibold">
             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Available</span>
             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Reserved Today</span>
             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Occupied (KOT Active)</span>
@@ -597,33 +614,33 @@ export default function StaffKotBilling() {
 
             return (
               <div 
-                key={table._id}
-                onClick={() => handleTableClick(table)}
-                className={`p-4 rounded-2xl border-2 cursor-pointer transition-all transform active:scale-95 flex flex-col justify-between h-36 relative ${
+                key={table._id} 
+                onClick={() => handleTableClick(table)} 
+                className={`p-4 rounded-2xl border-2 cursor-pointer transition-all transform hover:-translate-y-1 active:scale-95 flex flex-col justify-between h-36 relative ${
                   table.status === 'Occupied' 
-                    ? 'border-red-500/50 bg-red-500/10 hover:bg-red-500/20 shadow-lg shadow-red-500/10' 
+                    ? 'border-rose-400 dark:border-red-500/60 bg-rose-50 dark:bg-red-950/25 hover:bg-rose-100 dark:hover:bg-red-950/40 shadow-md' 
                     : isReserved
-                    ? 'border-amber-500/60 bg-amber-500/10 hover:bg-amber-500/20 shadow-lg shadow-amber-500/10 ring-1 ring-amber-500/30'
-                    : 'border-emerald-500/50 bg-emerald-500/10 hover:bg-emerald-500/20 shadow-lg shadow-emerald-500/10' 
+                    ? 'border-amber-400 dark:border-amber-500/70 bg-amber-50 dark:bg-amber-950/25 hover:bg-amber-100 dark:hover:bg-amber-950/40 shadow-md ring-1 ring-amber-400/50'
+                    : 'border-emerald-400 dark:border-emerald-500/60 bg-emerald-50 dark:bg-emerald-950/25 hover:bg-emerald-100 dark:hover:bg-emerald-950/40 shadow-md' 
                 }`}
               >
                 <div className="flex justify-between items-start">
                   <div>
-                    <span className="text-2xl font-bold text-slate-200 font-mono">{table.tableNo}</span>
+                    <span className="text-2xl font-black text-slate-900 dark:text-white font-mono">{table.tableNo}</span>
                     {isReserved && table.status === "Available" && (
-                      <span className="block text-[10px] font-black text-amber-400 mt-0.5">
+                      <span className="block text-[10px] font-black text-amber-800 dark:text-amber-300 mt-0.5">
                         {reservation.bookingTime}
                       </span>
                     )}
                   </div>
                   <div className="flex items-center gap-1">
                     {isReserved && (
-                      <span title={`Reserved for ${reservation.customerName}`} className="p-1 rounded-lg bg-amber-500/20 text-amber-400">
+                      <span title={`Reserved for ${reservation.customerName}`} className="p-1 rounded-lg bg-amber-500/20 text-amber-700 dark:text-amber-400">
                         <Clock className="w-4 h-4" />
                       </span>
                     )}
                     <Users className={`w-5 h-5 ${
-                      table.status === 'Occupied' ? 'text-red-400' : isReserved ? 'text-amber-400' : 'text-emerald-400'
+                      table.status === 'Occupied' ? 'text-rose-600 dark:text-red-400' : isReserved ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'
                     }`} />
                   </div>
                 </div>
@@ -631,17 +648,20 @@ export default function StaffKotBilling() {
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <p
-                      className="text-xs font-black uppercase tracking-wider"
-                      style={{
-                        color: table.status === 'Occupied' ? '#f87171' : isReserved ? '#fbbf24' : '#34d399',
-                      }}
+                      className={`text-xs font-black uppercase tracking-wider ${
+                        table.status === 'Occupied' 
+                          ? 'text-rose-700 dark:text-rose-400' 
+                          : isReserved 
+                          ? 'text-amber-800 dark:text-amber-300' 
+                          : 'text-emerald-800 dark:text-emerald-400'
+                      }`}
                     >
                       {table.status === 'Occupied' ? 'Occupied' : isReserved ? 'Reserved' : 'Available'}
                     </p>
-                    <p className="text-[11px] text-slate-400">{table.capacity} Seater</p>
+                    <p className="text-[11px] text-slate-600 dark:text-slate-400 font-semibold">{table.capacity} Seater</p>
                   </div>
                   {isReserved && table.status === "Available" && (
-                    <p className="text-[10px] text-slate-300 truncate font-semibold">
+                    <p className="text-[10px] text-slate-800 dark:text-slate-300 truncate font-bold">
                       👤 {reservation.customerName}
                     </p>
                   )}
@@ -664,16 +684,16 @@ export default function StaffKotBilling() {
         {/* Room Guest Selection Modal */}
         {showRoomSelectModal && (
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
-            <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl w-full max-w-lg shadow-2xl relative animate-fade-in max-h-[85vh] flex flex-col">
-              <button onClick={() => setShowRoomSelectModal(false)} className="absolute top-4 right-4 text-slate-400 hover:text-white">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl w-full max-w-lg shadow-2xl relative animate-fade-in max-h-[85vh] flex flex-col text-slate-900 dark:text-white">
+              <button onClick={() => setShowRoomSelectModal(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 dark:hover:text-white">
                 <X className="w-5 h-5"/>
               </button>
-              <div className="flex items-center gap-2 mb-4 border-b border-slate-800 pb-3">
-                <BedDouble className="w-5 h-5 text-emerald-400" />
-                <h2 className="text-xl font-bold font-display text-slate-200">Select Active Room Guest</h2>
+              <div className="flex items-center gap-2 mb-4 border-b border-slate-200 dark:border-slate-800 pb-3">
+                <BedDouble className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                <h2 className="text-xl font-bold font-display text-slate-900 dark:text-slate-200">Select Active Room Guest</h2>
               </div>
               
-              <p className="text-xs text-slate-400 mb-4">
+              <p className="text-xs text-slate-600 dark:text-slate-400 mb-4 font-medium">
                 Select an occupied room below to create a KOT. When billed, this order will be automatically charged to the guest's room tab.
               </p>
 
@@ -687,22 +707,22 @@ export default function StaffKotBilling() {
                     <div
                       key={b._id}
                       onClick={() => handleSelectRoomForKot(b)}
-                      className="p-3.5 bg-slate-850/80 border border-slate-700/60 hover:border-emerald-500/60 hover:bg-emerald-500/10 rounded-xl cursor-pointer transition-all flex items-center justify-between group active:scale-[0.99]"
+                      className="p-3.5 bg-slate-50 dark:bg-slate-850/80 border border-slate-200 dark:border-slate-700/60 hover:border-emerald-500/60 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-xl cursor-pointer transition-all flex items-center justify-between group active:scale-[0.99]"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold font-mono text-sm">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-700 dark:text-emerald-400 font-bold font-mono text-sm">
                           {b.room?.roomNumber || "R"}
                         </div>
                         <div>
-                          <h4 className="font-bold text-slate-200 text-sm group-hover:text-emerald-300 transition-colors">
+                          <h4 className="font-bold text-slate-900 dark:text-slate-200 text-sm group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors">
                             Room {b.room?.roomNumber}
                           </h4>
-                          <p className="text-xs text-slate-400 mt-0.5">
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                             {b.guests?.[0]?.name || "Guest"} • {b.guests?.[0]?.phone || "No phone"}
                           </p>
                         </div>
                       </div>
-                      <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20 group-hover:bg-emerald-500/20">
+                      <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20 group-hover:bg-emerald-500/20">
                         Select Room →
                       </span>
                     </div>
@@ -716,23 +736,23 @@ export default function StaffKotBilling() {
         {/* Table Reservations Modal (Exact SecureBillPro Flow & Design) */}
         {showBookingsModal && (
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
-            <div className="bg-slate-900 border border-slate-800 p-6 rounded-3xl w-full max-w-2xl shadow-2xl relative animate-fade-in max-h-[85vh] flex flex-col">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl w-full max-w-2xl shadow-2xl relative animate-fade-in max-h-[85vh] flex flex-col text-slate-900 dark:text-white">
               <button
                 onClick={() => setShowBookingsModal(false)}
-                className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"
+                className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
 
-              <div className="flex items-center gap-3 mb-4 border-b border-slate-800 pb-4">
-                <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+              <div className="flex items-center gap-3 mb-4 border-b border-slate-200 dark:border-slate-800 pb-4">
+                <div className="p-2.5 rounded-xl bg-amber-500/10 text-saffron-600 dark:text-amber-400 border border-amber-500/20">
                   <CalendarDays className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold font-display text-slate-200">
+                  <h2 className="text-lg font-bold font-display text-slate-900 dark:text-slate-200">
                     Table Reservations & Bookings
                   </h2>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
                     View upcoming table reservations made by customers via QR standee
                   </p>
                 </div>
@@ -740,7 +760,7 @@ export default function StaffKotBilling() {
 
               {tableBookings.length === 0 ? (
                 <div className="py-12 text-center text-slate-400 text-sm">
-                  <CalendarDays className="w-10 h-10 text-slate-600 mx-auto mb-2" />
+                  <CalendarDays className="w-10 h-10 text-slate-400 mx-auto mb-2" />
                   No table bookings found.
                 </div>
               ) : (
@@ -748,35 +768,35 @@ export default function StaffKotBilling() {
                   {tableBookings.map((b) => (
                     <div
                       key={b._id}
-                      className="p-3.5 rounded-2xl bg-slate-800/40 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                      className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
                     >
                       <div className="flex items-start gap-3">
-                        <div className="w-12 h-12 rounded-xl bg-amber-500/15 border border-amber-500/30 flex flex-col items-center justify-center text-amber-400 font-mono font-bold shrink-0">
+                        <div className="w-12 h-12 rounded-xl bg-amber-500/15 border border-amber-500/30 flex flex-col items-center justify-center text-amber-800 dark:text-amber-400 font-mono font-bold shrink-0">
                           <span className="text-[9px] uppercase">Table</span>
                           <span className="text-sm">{b.tableNo || "Any"}</span>
                         </div>
                         <div>
-                          <p className="font-bold text-slate-200 text-sm flex items-center gap-2">
+                          <p className="font-bold text-slate-900 dark:text-slate-200 text-sm flex items-center gap-2">
                             <span>{b.customerName}</span>
                             <span
                               className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
                                 b.status === "confirmed"
-                                  ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                                  ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30"
                                   : b.status === "completed"
-                                  ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                                  ? "bg-blue-500/20 text-blue-700 dark:text-blue-400 border border-blue-500/30"
                                   : b.status === "cancelled"
-                                  ? "bg-rose-500/20 text-rose-400 border border-rose-500/30"
-                                  : "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                                  ? "bg-rose-500/20 text-rose-700 dark:text-rose-400 border border-rose-500/30"
+                                  : "bg-amber-500/20 text-amber-800 dark:text-amber-400 border border-amber-500/30"
                               }`}
                             >
                               {b.status}
                             </span>
                           </p>
-                          <p className="text-slate-400 text-[11px] mt-0.5">
-                            📞 {b.customerMobile} • 👥 {b.guestsCount} Guests • 📅 <span className="text-amber-400 font-semibold">{b.bookingDate} at {b.bookingTime}</span>
+                          <p className="text-slate-600 dark:text-slate-400 text-[11px] mt-0.5">
+                            📞 {b.customerMobile} • 👥 {b.guestsCount} Guests • 📅 <span className="text-amber-800 dark:text-amber-400 font-bold">{b.bookingDate} at {b.bookingTime}</span>
                           </p>
                           {b.specialRequests && (
-                            <p className="text-[11px] text-amber-300/80 mt-1 italic">
+                            <p className="text-[11px] text-amber-800/90 dark:text-amber-300/80 mt-1 italic font-medium">
                               "{b.specialRequests}"
                             </p>
                           )}
@@ -784,10 +804,10 @@ export default function StaffKotBilling() {
                       </div>
 
                       {/* Staff Actions: Allocate Table & Seat Guest / Complete */}
-                      <div className="flex flex-wrap sm:flex-col items-end gap-1.5 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-800">
+                      <div className="flex flex-wrap sm:flex-col items-end gap-1.5 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200 dark:border-slate-800">
                         {/* Table Selector Dropdown */}
                         <div className="flex items-center gap-1.5">
-                          <span className="text-[11px] text-slate-400">Assign:</span>
+                          <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400">Assign:</span>
                           <select
                             value={b.tableNo || ""}
                             onChange={async (e) => {
@@ -801,7 +821,7 @@ export default function StaffKotBilling() {
                                 showError("Failed", err.response?.data?.message || "Could not allocate table");
                               }
                             }}
-                            className="bg-slate-900 border border-slate-700 text-amber-400 text-xs font-bold rounded-lg px-2 py-1 focus:outline-none focus:border-amber-500"
+                            className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-saffron-700 dark:text-amber-400 text-xs font-bold rounded-lg px-2 py-1 focus:outline-none focus:border-amber-500"
                           >
                             <option value="">-- Table --</option>
                             {tables.map((tbl) => (
@@ -854,7 +874,7 @@ export default function StaffKotBilling() {
                                   showSuccess("Completed", "Reservation marked as completed/seated.");
                                 }}
                                 title="Mark Completed (Release Reserved Status)"
-                                className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-[11px] transition-all"
+                                className="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-transparent font-bold text-[11px] transition-all"
                               >
                                 Mark Done
                               </button>
@@ -923,22 +943,24 @@ export default function StaffKotBilling() {
         </div>
 
         {/* Table/Room Info & Back Button */}
-        <div className="flex items-center gap-4 border-b border-slate-800 pb-3 flex-wrap">
-          <button onClick={goBackToTables} className="p-2 bg-slate-800/80 border border-slate-700 rounded-xl text-slate-300 hover:text-white hover:border-saffron-500/40 transition-colors">
-            <ArrowLeft className="w-5 h-5" />
-          </button>
+        <div className="flex items-center gap-4 border-b border-slate-200 dark:border-slate-800 pb-3 flex-wrap">
+          <MagneticButton>
+            <button onClick={goBackToTables} className="p-2 bg-slate-100 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:border-saffron-500/40 transition-colors cursor-pointer">
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+          </MagneticButton>
           <div className="flex items-center gap-2">
-            <h2 className="text-xl font-bold font-display text-slate-200">
+            <h2 className="text-xl font-bold font-display text-slate-900 dark:text-slate-200">
               {selectedTable?.orderType === 'Table' ? 'Table ' : ''}
-              <span className="text-saffron-400 font-mono">{selectedTable?.tableNo}</span>
+              <span className="text-saffron-700 dark:text-saffron-400 font-mono font-black">{selectedTable?.tableNo}</span>
             </h2>
             {selectedTable?.guestName && (
-              <span className="text-xs bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-semibold px-2.5 py-1 rounded-lg">
+              <span className="text-xs bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 font-bold px-2.5 py-1 rounded-lg">
                 Guest: {selectedTable.guestName}
               </span>
             )}
           </div>
-          <span className={`px-2.5 py-1 text-xs rounded-lg font-bold uppercase ${selectedTable?.status === 'Available' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}`}>
+          <span className={`px-2.5 py-1 text-xs rounded-lg font-bold uppercase ${selectedTable?.status === 'Available' ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30' : 'bg-red-500/20 text-red-700 dark:text-red-400 border border-red-500/30'}`}>
             {selectedTable?.status}
           </span>
         </div>
@@ -946,13 +968,13 @@ export default function StaffKotBilling() {
         {/* Dish Grid & Pagination */}
         <div className="flex flex-col gap-2">
           <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4 content-start">
-            {currentDishes.map((dish) => (
+            {filteredDishes.map((dish) => (
               <div
                 key={dish._id}
                 onClick={() => addToCart(dish)}
                 className="glass-card rounded-2xl overflow-hidden hover:border-saffron-500/40 transition-all duration-300 cursor-pointer flex flex-col group active:scale-[0.98] select-none hover:shadow-lg hover:shadow-saffron-500/5"
               >
-                <div className="h-32 w-full bg-slate-850 relative overflow-hidden shrink-0">
+                <div className="h-32 w-full bg-slate-100 dark:bg-slate-850 relative overflow-hidden shrink-0">
                   <img
                     src={dish.image}
                     alt={dish.name}
@@ -960,21 +982,21 @@ export default function StaffKotBilling() {
                     onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&q=60"; }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-60"></div>
-                  <span className="absolute bottom-2.5 right-2.5 bg-lagoon-950/90 text-saffron-400 border border-saffron-500/30 font-bold px-2 py-0.5 rounded-lg text-xs font-mono backdrop-blur-sm">
+                  <span className="absolute bottom-2.5 right-2.5 bg-white/95 dark:bg-lagoon-950/90 text-saffron-700 dark:text-saffron-400 border border-saffron-400/50 dark:border-saffron-500/30 font-black px-2 py-0.5 rounded-lg text-xs font-mono backdrop-blur-sm shadow-sm">
                     ₹{dish.price}
                   </span>
                 </div>
                 <div className="p-2.5 flex flex-col gap-1.5 flex-1">
                   <div>
                     <div className="flex items-start justify-between gap-2">
-                      <h3 className="font-bold text-sm text-slate-200 line-clamp-2 leading-snug break-words">
+                      <h3 className="font-bold text-sm text-slate-900 dark:text-slate-200 line-clamp-2 leading-snug break-words">
                         {dish.name}
                       </h3>
-                      {dish.dishId && <span className="shrink-0 text-[10px] bg-lagoon-900/80 text-saffron-400/90 px-1.5 py-0.5 rounded border border-saffron-500/20 whitespace-nowrap">{dish.dishId}</span>}
+                      {dish.dishId && <span className="shrink-0 text-[10px] bg-slate-100 dark:bg-lagoon-900/80 text-saffron-700 dark:text-saffron-400 font-bold px-1.5 py-0.5 rounded border border-saffron-500/20 whitespace-nowrap">{dish.dishId}</span>}
                     </div>
-                    <p className="text-[10px] text-slate-500 uppercase tracking-widest mt-0.5">{dish.category}</p>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-widest mt-0.5 font-semibold">{dish.category}</p>
                   </div>
-                  <button className="w-full mt-auto py-1.5 bg-slate-900/60 border border-slate-800 text-slate-300 hover:border-saffron-500/30 group-hover:bg-saffron-500/15 group-hover:text-saffron-400 rounded-lg text-[10px] font-bold uppercase tracking-wider flex items-center justify-center gap-1 transition-all">
+                  <button className="w-full mt-auto py-1.5 bg-slate-100 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-800 text-slate-800 dark:text-slate-300 hover:border-saffron-500/40 group-hover:bg-saffron-500/15 group-hover:text-saffron-700 dark:group-hover:text-saffron-400 rounded-lg text-[10px] font-bold uppercase tracking-wider flex items-center justify-center gap-1 transition-all">
                     <span>Add to Cart</span>
                     <ArrowUpRight className="w-3 h-3" />
                   </button>
@@ -983,22 +1005,22 @@ export default function StaffKotBilling() {
             ))}
           </div>
           
-          {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-4 pt-2 border-t border-slate-800 no-print pb-2 mt-2">
+          {serverTotalPages > 1 && (
+            <div className="flex justify-center items-center gap-4 pt-2 border-t border-slate-200 dark:border-slate-800 no-print pb-2 mt-2">
               <button 
                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="px-4 py-1.5 bg-slate-800/80 border border-slate-700/60 text-slate-300 rounded-lg disabled:opacity-50 hover:bg-slate-700 hover:border-saffron-500/30 hover:text-saffron-400 transition-all text-sm font-semibold"
+                className="px-4 py-1.5 bg-slate-100 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700/60 text-slate-700 dark:text-slate-300 rounded-lg disabled:opacity-50 hover:bg-slate-200 dark:hover:bg-slate-700 hover:border-saffron-500/30 hover:text-saffron-700 dark:hover:text-saffron-400 transition-all text-sm font-semibold"
               >
                 Prev
               </button>
-              <span className="text-slate-400 text-sm font-semibold">
-                Page {currentPage} of {totalPages}
+              <span className="text-slate-600 dark:text-slate-400 text-sm font-semibold">
+                Page {currentPage} of {serverTotalPages}
               </span>
               <button 
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className="px-4 py-1.5 bg-slate-800/80 border border-slate-700/60 text-slate-300 rounded-lg disabled:opacity-50 hover:bg-slate-700 hover:border-saffron-500/30 hover:text-saffron-400 transition-all text-sm font-semibold"
+                onClick={() => setCurrentPage(p => Math.min(serverTotalPages, p + 1))}
+                disabled={currentPage === serverTotalPages}
+                className="px-4 py-1.5 bg-slate-100 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700/60 text-slate-700 dark:text-slate-300 rounded-lg disabled:opacity-50 hover:bg-slate-200 dark:hover:bg-slate-700 hover:border-saffron-500/30 hover:text-saffron-700 dark:hover:text-saffron-400 transition-all text-sm font-semibold"
               >
                 Next
               </button>
@@ -1010,24 +1032,24 @@ export default function StaffKotBilling() {
       {/* RIGHT: CART / KOT */}
       <div className="w-full lg:w-96 flex flex-col gap-4 no-print shrink-0">
         <div className="glass-card rounded-2xl flex flex-col flex-1 min-h-[400px]">
-          <div className="p-4 border-b border-slate-800 bg-slate-900/40 flex justify-between items-center rounded-t-2xl">
-            <h3 className="font-bold text-slate-200">Current KOT</h3>
-            <span className="bg-saffron-500/15 text-saffron-400 border border-saffron-500/20 px-2.5 py-0.5 rounded-md text-xs font-bold font-mono">{cart.length} Items</span>
+          <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/40 flex justify-between items-center rounded-t-2xl">
+            <h3 className="font-bold text-slate-900 dark:text-slate-200">Current KOT</h3>
+            <span className="bg-saffron-500/15 text-saffron-700 dark:text-saffron-400 border border-saffron-500/30 px-2.5 py-0.5 rounded-md text-xs font-black font-mono">{cart.length} Items</span>
           </div>
 
-          <div className="flex-1 p-3 overflow-y-auto divide-y divide-slate-800/50">
+          <div className="flex-1 p-3 overflow-y-auto divide-y divide-slate-200 dark:divide-slate-800/50">
             {cart.length > 0 ? (
               cart.map((item) => (
                 <div key={item.dishId} className="py-2.5 flex justify-between items-center gap-2">
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-slate-200 line-clamp-2">{item.name}</p>
-                    <p className="text-[10px] text-saffron-400 font-mono font-bold">₹{item.price}</p>
+                    <p className="text-xs font-bold text-slate-900 dark:text-slate-200 line-clamp-2">{item.name}</p>
+                    <p className="text-[10px] text-saffron-700 dark:text-saffron-400 font-mono font-black">₹{item.price}</p>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <button onClick={() => updateQuantity(item.dishId, -1)} className="p-1 bg-slate-800 border border-slate-700 text-slate-300 rounded hover:border-saffron-500/40"><Minus className="w-3 h-3" /></button>
-                    <span className="text-xs font-bold font-mono w-4 text-center text-slate-200">{item.quantity}</span>
-                    <button onClick={() => updateQuantity(item.dishId, 1)} className="p-1 bg-slate-800 border border-slate-700 text-slate-300 rounded hover:border-saffron-500/40"><Plus className="w-3 h-3" /></button>
-                    <button onClick={() => removeFromCart(item.dishId)} className="p-1 text-red-400 hover:bg-red-500/20 rounded ml-1"><Trash2 className="w-3 h-3" /></button>
+                    <button onClick={() => updateQuantity(item.dishId, -1)} className="p-1 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded hover:border-saffron-500/40"><Minus className="w-3 h-3" /></button>
+                    <span className="text-xs font-bold font-mono w-4 text-center text-slate-900 dark:text-slate-200">{item.quantity}</span>
+                    <button onClick={() => updateQuantity(item.dishId, 1)} className="p-1 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded hover:border-saffron-500/40"><Plus className="w-3 h-3" /></button>
+                    <button onClick={() => removeFromCart(item.dishId)} className="p-1 text-rose-600 dark:text-red-400 hover:bg-red-500/20 rounded ml-1"><Trash2 className="w-3 h-3" /></button>
                   </div>
                 </div>
               ))
@@ -1036,62 +1058,70 @@ export default function StaffKotBilling() {
             )}
           </div>
 
-          <div className="p-4 bg-slate-900/40 border-t border-slate-800 rounded-b-2xl">
+          <div className="p-4 bg-slate-50/80 dark:bg-slate-900/40 border-t border-slate-200 dark:border-slate-800 rounded-b-2xl">
             <div className="flex justify-between items-center mb-2">
-              <label className="text-xs text-slate-300 flex items-center gap-2 cursor-pointer font-medium">
+              <label className="text-xs text-slate-700 dark:text-slate-300 flex items-center gap-2 cursor-pointer font-bold">
                 <input type="checkbox" checked={applyGST} onChange={(e) => setApplyGST(e.target.checked)} className="accent-saffron-500" />
                 Apply 5% GST
               </label>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-400 font-medium">Discount %</span>
+                <span className="text-xs text-slate-600 dark:text-slate-400 font-semibold">Discount %</span>
                 <input 
                   type="number" 
                   min="0"
                   max="100"
                   value={discountPercentage}
                   onChange={e => setDiscountPercentage(Number(e.target.value) || 0)}
-                  className="w-16 bg-slate-800 border border-slate-700 text-white rounded-lg px-2 py-1 text-xs outline-none focus:border-saffron-500 text-right"
+                  className="w-16 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-lg px-2 py-1 text-xs outline-none focus:border-saffron-500 text-right font-bold"
                   placeholder="0"
                 />
               </div>
             </div>
-            <div className="flex justify-between text-xs py-1 text-slate-400"><span>Subtotal</span><span className="font-mono">₹{subTotal.toFixed(2)}</span></div>
-            {discountAmount > 0 && <div className="flex justify-between text-xs py-1 text-saffron-400 font-medium"><span>Discount ({discountPercentage}%)</span><span className="font-mono">-₹{discountAmount.toFixed(2)}</span></div>}
-            {applyGST && <div className="flex justify-between text-xs py-1 text-slate-400"><span>GST (5%)</span><span className="font-mono">₹{tax.toFixed(2)}</span></div>}
-            <div className="flex justify-between font-bold text-slate-200 py-1.5 border-t border-slate-800 mt-1"><span>Grand Total</span><span className="text-saffron-400 font-mono">₹{grandTotal.toFixed(2)}</span></div>
+            <div className="flex justify-between text-xs py-1 text-slate-600 dark:text-slate-400 font-semibold"><span>Subtotal</span><span className="font-mono">₹{subTotal.toFixed(2)}</span></div>
+            {discountAmount > 0 && <div className="flex justify-between text-xs py-1 text-saffron-700 dark:text-saffron-400 font-bold"><span>Discount ({discountPercentage}%)</span><span className="font-mono">-₹{discountAmount.toFixed(2)}</span></div>}
+            {applyGST && <div className="flex justify-between text-xs py-1 text-slate-600 dark:text-slate-400 font-semibold"><span>GST (5%)</span><span className="font-mono">₹{tax.toFixed(2)}</span></div>}
+            <div className="flex justify-between font-bold text-slate-900 dark:text-slate-200 py-1.5 border-t border-slate-200 dark:border-slate-800 mt-1"><span>Grand Total</span><span className="text-saffron-700 dark:text-saffron-400 font-mono font-black text-lg">₹{grandTotal.toFixed(2)}</span></div>
             
             <div className="mt-4 flex flex-col gap-2">
-              <button 
-                onClick={handleSaveOrder}
-                disabled={loading || cart.length === 0}
-                className="w-full py-2.5 bg-gradient-to-r from-saffron-500 to-saffron-600 hover:from-saffron-400 hover:to-saffron-500 text-lagoon-950 font-bold rounded-xl shadow-lg shadow-saffron-500/20 active:scale-[0.98] transition-all flex justify-center items-center gap-2 text-sm disabled:opacity-50"
-              >
-                Save / Send to Kitchen
-              </button>
+              <MagneticButton className="w-full">
+                <button 
+                  onClick={handleSaveOrder}
+                  disabled={loading || cart.length === 0}
+                  className="w-full py-2.5 bg-gradient-to-r from-saffron-500 to-saffron-600 hover:from-saffron-400 hover:to-saffron-500 text-lagoon-950 font-black rounded-xl shadow-lg shadow-saffron-500/20 active:scale-[0.98] transition-all flex justify-center items-center gap-2 text-sm disabled:opacity-50 cursor-pointer"
+                >
+                  Save / Send to Kitchen
+                </button>
+              </MagneticButton>
               
               {selectedTable?.status === "Occupied" && (
                 <>
-                  <button 
-                    onClick={handlePrintProforma}
-                    disabled={loading}
-                    className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all shadow-md shadow-blue-600/20 flex justify-center items-center gap-2 mt-1 text-sm disabled:opacity-50"
-                  >
-                    Print Proforma Bill
-                  </button>
-                  <button 
-                    onClick={promptCheckout}
-                    disabled={loading}
-                    className="w-full mt-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition-all shadow-md shadow-emerald-600/20 flex justify-center items-center gap-2 text-sm disabled:opacity-50"
-                  >
-                    Generate Final Bill & Pay
-                  </button>
-                  <button 
-                    onClick={handleCancelKOT}
-                    disabled={loading}
-                    className="w-full mt-1 py-2.5 bg-red-500/10 border border-red-500/20 text-red-400 font-bold rounded-xl hover:bg-red-500/20 transition-all flex justify-center items-center text-xs disabled:opacity-50"
-                  >
-                    Cancel KOT
-                  </button>
+                  <MagneticButton className="w-full">
+                    <button 
+                      onClick={handlePrintProforma}
+                      disabled={loading}
+                      className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all shadow-md shadow-blue-600/20 flex justify-center items-center gap-2 mt-1 text-sm disabled:opacity-50 cursor-pointer"
+                    >
+                      Print Proforma Bill
+                    </button>
+                  </MagneticButton>
+                  <MagneticButton className="w-full">
+                    <button 
+                      onClick={promptCheckout}
+                      disabled={loading}
+                      className="w-full mt-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition-all shadow-md shadow-emerald-600/20 flex justify-center items-center gap-2 text-sm disabled:opacity-50 cursor-pointer"
+                    >
+                      Generate Final Bill & Pay
+                    </button>
+                  </MagneticButton>
+                  <MagneticButton className="w-full">
+                    <button 
+                      onClick={handleCancelKOT}
+                      disabled={loading}
+                      className="w-full mt-1 py-2.5 bg-rose-50 dark:bg-red-500/10 border border-rose-200 dark:border-red-500/20 text-rose-700 dark:text-red-400 font-bold rounded-xl hover:bg-rose-100 dark:hover:bg-red-500/20 transition-all flex justify-center items-center text-xs disabled:opacity-50 cursor-pointer"
+                    >
+                      Cancel KOT
+                    </button>
+                  </MagneticButton>
                 </>
               )}
             </div>
@@ -1112,18 +1142,18 @@ export default function StaffKotBilling() {
       {/* Checkout Modal */}
       {showCheckoutModal && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl w-full max-w-md shadow-2xl relative animate-fade-in">
-            <button onClick={() => setShowCheckoutModal(false)} className="absolute top-4 right-4 text-slate-400 hover:text-white">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl w-full max-w-md shadow-2xl relative animate-fade-in text-slate-900 dark:text-white">
+            <button onClick={() => setShowCheckoutModal(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 dark:hover:text-white">
               <X className="w-5 h-5"/>
             </button>
-            <h2 className="text-xl font-bold font-display text-slate-200 mb-6 border-b border-slate-800 pb-2">Final Checkout</h2>
+            <h2 className="text-xl font-bold font-display text-slate-900 dark:text-slate-200 mb-6 border-b border-slate-200 dark:border-slate-800 pb-2">Final Checkout</h2>
             <form onSubmit={handleCheckout} className="flex flex-col gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1">Payment Mode *</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-400 mb-1">Payment Mode *</label>
                 <select 
                   value={checkoutData.paymentMode} 
                   onChange={e => setCheckoutData({...checkoutData, paymentMode: e.target.value})}
-                  className="w-full bg-slate-800/80 border border-slate-700 text-white rounded-xl px-3 py-2 text-sm outline-none focus:border-saffron-500"
+                  className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3 py-2 text-sm outline-none focus:border-saffron-500 font-semibold"
                 >
                   {selectedTable?.orderType === "Room" ? (
                     <>
@@ -1144,46 +1174,48 @@ export default function StaffKotBilling() {
                 </select>
               </div>
               {checkoutData.paymentMode === "Added to Room" && (
-                <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-300 text-xs">
+                <div className="p-3 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-300 dark:border-emerald-500/20 rounded-xl text-emerald-800 dark:text-emerald-300 text-xs">
                   <p className="font-bold">✓ Direct Room Folio Post</p>
-                  <p className="mt-0.5 text-emerald-400/80">
+                  <p className="mt-0.5 text-emerald-700 dark:text-emerald-400/80">
                     {selectedTable?.tableNo ? `This bill (₹${grandTotal.toFixed(2)}) will be added directly to ${selectedTable.tableNo} final checkout balance.` : "Will be linked to the room folio."}
                   </p>
                 </div>
               )}
               <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1">Customer Name {['NC Bill', 'Credit Bill'].includes(checkoutData.paymentMode) ? '*' : ''}</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-400 mb-1">Customer Name {['NC Bill', 'Credit Bill'].includes(checkoutData.paymentMode) ? '*' : ''}</label>
                 <input 
                   type="text" 
                   value={checkoutData.customerName}
                   onChange={e => setCheckoutData({...checkoutData, customerName: e.target.value})}
-                  className="w-full bg-slate-800/80 border border-slate-700 text-white rounded-xl px-3 py-2 text-sm outline-none focus:border-saffron-500"
+                  className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3 py-2 text-sm outline-none focus:border-saffron-500"
                   placeholder="John Doe"
                   required={['NC Bill', 'Credit Bill'].includes(checkoutData.paymentMode)}
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1">Mobile Number</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-400 mb-1">Mobile Number</label>
                 <input 
                   type="tel" 
                   value={checkoutData.customerMobile}
                   onChange={e => setCheckoutData({...checkoutData, customerMobile: e.target.value})}
-                  className="w-full bg-slate-800/80 border border-slate-700 text-white rounded-xl px-3 py-2 text-sm outline-none focus:border-saffron-500"
+                  className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3 py-2 text-sm outline-none focus:border-saffron-500"
                   placeholder="10-digit mobile"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1">Email (Optional)</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-400 mb-1">Email (Optional)</label>
                 <input 
                   type="email" 
                   value={checkoutData.customerEmail}
                   onChange={e => setCheckoutData({...checkoutData, customerEmail: e.target.value})}
-                  className="w-full bg-slate-800/80 border border-slate-700 text-white rounded-xl px-3 py-2 text-sm outline-none focus:border-saffron-500"
+                  className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3 py-2 text-sm outline-none focus:border-saffron-500"
                 />
               </div>
-              <button type="submit" disabled={loading} className="mt-4 w-full py-3 bg-gradient-to-r from-saffron-500 to-saffron-600 hover:from-saffron-400 hover:to-saffron-500 text-lagoon-950 font-bold rounded-xl shadow-lg shadow-saffron-500/20 text-sm transition-all active:scale-[0.98]">
-                {loading ? 'Processing...' : (checkoutData.paymentMode === 'Added to Room' ? 'Post to Room & Complete' : 'Complete Checkout & Print')}
-              </button>
+              <MagneticButton className="w-full">
+                <button type="submit" disabled={loading} className="mt-4 w-full py-3 bg-gradient-to-r from-saffron-500 to-saffron-600 hover:from-saffron-400 hover:to-saffron-500 text-lagoon-950 font-black rounded-xl shadow-lg shadow-saffron-500/20 text-sm transition-all active:scale-[0.98] cursor-pointer">
+                  {loading ? 'Processing...' : (checkoutData.paymentMode === 'Added to Room' ? 'Post to Room & Complete' : 'Complete Checkout & Print')}
+                </button>
+              </MagneticButton>
             </form>
           </div>
         </div>

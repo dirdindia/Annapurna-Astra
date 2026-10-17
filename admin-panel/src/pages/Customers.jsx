@@ -37,6 +37,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../api';
 import Swal from 'sweetalert2';
+import MagneticButton from '../components/MagneticButton';
 
 const InstagramIcon = ({ className = "w-4 h-4" }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -355,29 +356,35 @@ Registered On: ${new Date(h.createdAt).toLocaleDateString()}
                       </span>
                     </td>
                     <td className="px-6 py-5 sm:px-8 text-right flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
-                      <button 
-                        onClick={() => handleView(hotel)} 
-                        className="p-2.5 text-lagoon-600 hover:text-lagoon-950 hover:bg-lagoon-100/60 rounded-xl transition-all border border-transparent hover:border-lagoon-200" 
-                        title="View Full Details"
-                      >
-                        <Eye className="w-5 h-5" />
-                      </button>
+                      <MagneticButton>
+                        <button 
+                          onClick={() => handleView(hotel)} 
+                          className="p-2.5 text-lagoon-600 hover:text-lagoon-950 hover:bg-lagoon-100/60 rounded-xl transition-all border border-transparent hover:border-lagoon-200 cursor-pointer" 
+                          title="View Full Details"
+                        >
+                          <Eye className="w-5 h-5" />
+                        </button>
+                      </MagneticButton>
                       
-                      <button 
-                        onClick={() => handleToggleSubscription(hotel)} 
-                        className="p-2.5 text-lagoon-600 hover:text-saffron-700 hover:bg-saffron-50 rounded-xl transition-all border border-transparent hover:border-saffron-200" 
-                        title="Toggle Subscription"
-                      >
-                        <Power className="w-5 h-5" />
-                      </button>
+                      <MagneticButton>
+                        <button 
+                          onClick={() => handleToggleSubscription(hotel)} 
+                          className="p-2.5 text-lagoon-600 hover:text-saffron-700 hover:bg-saffron-50 rounded-xl transition-all border border-transparent hover:border-saffron-200 cursor-pointer" 
+                          title="Toggle Subscription"
+                        >
+                          <Power className="w-5 h-5" />
+                        </button>
+                      </MagneticButton>
                       
-                      <button 
-                        onClick={() => handleDelete(hotel)} 
-                        className="p-2.5 text-lagoon-600 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all border border-transparent hover:border-rose-200" 
-                        title="Delete Hotel"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
+                      <MagneticButton>
+                        <button 
+                          onClick={() => handleDelete(hotel)} 
+                          className="p-2.5 text-lagoon-600 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all border border-transparent hover:border-rose-200 cursor-pointer" 
+                          title="Delete Hotel"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </MagneticButton>
                     </td>
                   </motion.tr>
                 ))
@@ -453,13 +460,15 @@ Registered On: ${new Date(h.createdAt).toLocaleDateString()}
                     </div>
                   </div>
 
-                  <button
-                    onClick={() => setSelectedHotel(null)}
-                    className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-colors shrink-0"
-                    title="Close"
-                  >
-                    <X className="w-6 h-6" />
-                  </button>
+                  <MagneticButton>
+                    <button
+                      onClick={() => setSelectedHotel(null)}
+                      className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-colors shrink-0 cursor-pointer"
+                      title="Close"
+                    >
+                      <X className="w-6 h-6" />
+                    </button>
+                  </MagneticButton>
                 </div>
               </div>
 
@@ -1043,33 +1052,39 @@ Registered On: ${new Date(h.createdAt).toLocaleDateString()}
 
               {/* Modal Footer Actions */}
               <div className="p-4 sm:p-5 border-t border-lagoon-100 bg-white flex flex-wrap items-center justify-between gap-3 shrink-0">
-                <button
-                  onClick={() => handleToggleSubscription(selectedHotel)}
-                  className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-xs ${
-                    selectedHotel.subscriptionStatus === 'active'
-                      ? 'bg-amber-50 text-amber-800 border border-amber-300 hover:bg-amber-100'
-                      : 'bg-emerald-50 text-emerald-800 border border-emerald-300 hover:bg-emerald-100'
-                  }`}
-                >
-                  <Power className="w-4 h-4" />
-                  {selectedHotel.subscriptionStatus === 'active' ? 'Deactivate Subscription' : 'Activate Subscription'}
-                </button>
+                <MagneticButton>
+                  <button
+                    onClick={() => handleToggleSubscription(selectedHotel)}
+                    className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer ${
+                      selectedHotel.subscriptionStatus === 'active'
+                        ? 'bg-amber-50 text-amber-800 border border-amber-300 hover:bg-amber-100'
+                        : 'bg-emerald-50 text-emerald-800 border border-emerald-300 hover:bg-emerald-100'
+                    }`}
+                  >
+                    <Power className="w-4 h-4" />
+                    {selectedHotel.subscriptionStatus === 'active' ? 'Deactivate Subscription' : 'Activate Subscription'}
+                  </button>
+                </MagneticButton>
 
                 <div className="flex items-center gap-2 ml-auto">
-                  <button
-                    onClick={() => handleCopySummary(selectedHotel)}
-                    className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-lagoon-200 text-xs font-bold text-lagoon-800 hover:bg-lagoon-50 transition-colors"
-                  >
-                    <Copy className="w-4 h-4 text-lagoon-600" />
-                    Copy Summary
-                  </button>
+                  <MagneticButton>
+                    <button
+                      onClick={() => handleCopySummary(selectedHotel)}
+                      className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-lagoon-200 text-xs font-bold text-lagoon-800 hover:bg-lagoon-50 transition-colors cursor-pointer"
+                    >
+                      <Copy className="w-4 h-4 text-lagoon-600" />
+                      Copy Summary
+                    </button>
+                  </MagneticButton>
 
-                  <button
-                    onClick={() => setSelectedHotel(null)}
-                    className="px-5 py-2.5 rounded-xl bg-lagoon-900 hover:bg-lagoon-950 text-white text-xs font-bold transition-all shadow-sm"
-                  >
-                    Close
-                  </button>
+                  <MagneticButton>
+                    <button
+                      onClick={() => setSelectedHotel(null)}
+                      className="px-5 py-2.5 rounded-xl bg-lagoon-900 hover:bg-lagoon-950 text-white text-xs font-bold transition-all shadow-sm cursor-pointer"
+                    >
+                      Close
+                    </button>
+                  </MagneticButton>
                 </div>
               </div>
 

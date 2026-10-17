@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import api from "../../api";
 import { UserPlus, Users, Trash2, Mail, Phone, MapPin, User, ShieldAlert } from "lucide-react";
 import { showError, showConfirm } from "../../utils/alerts";
+import MagneticButton from "../../components/MagneticButton";
 
 export default function AdminStaff() {
   const [staffList, setStaffList] = useState([]);
@@ -276,13 +277,17 @@ export default function AdminStaff() {
               </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 bg-gradient-to-r from-amber-600 to-yellow-500 hover:from-amber-500 hover:to-yellow-400 text-slate-950 font-bold rounded-xl shadow-lg shadow-amber-600/15 active:scale-[0.98] transition-all flex items-center justify-center text-xs disabled:opacity-50"
-            >
-              {loading ? "Creating Account..." : "Register Staff"}
-            </button>
+            <div className="pt-2 flex justify-center">
+              <MagneticButton className="w-full">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3.5 px-6 bg-gradient-to-r from-saffron-400 to-saffron-500 hover:from-saffron-300 hover:to-saffron-400 text-slate-950 font-extrabold rounded-xl shadow-lg shadow-saffron-500/20 active:scale-[0.98] transition-all flex items-center justify-center text-xs disabled:opacity-50 cursor-pointer"
+                >
+                  {loading ? "Creating Account..." : "Register Staff"}
+                </button>
+              </MagneticButton>
+            </div>
           </form>
         </div>
       </div>

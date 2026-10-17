@@ -8,6 +8,7 @@ import AdminLookups from "./AdminLookups";
 import { authAPI, uploadAPI } from "../../api";
 import Swal from "sweetalert2";
 import { State, City } from "country-state-city";
+import MagneticButton from "../../components/MagneticButton";
 
 const indianStates = State.getStatesOfCountry("IN");
 
@@ -406,68 +407,103 @@ export default function AdminSettings() {
   };
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 max-w-5xl mx-auto min-h-full">
+    <div className="p-4 md:p-6 lg:p-8 max-w-6xl mx-auto min-h-full">
+      {/* Header Banner */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-amber-500 flex items-center gap-3">
-            <Settings className="w-8 h-8" />
-            Settings
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-saffron-500/10 border border-saffron-500/25 text-saffron-400 text-xs font-bold uppercase tracking-wider mb-2">
+            <Settings className="w-3.5 h-3.5 animate-[spin_6s_linear_infinite]" />
+            Hotel Configuration Center
+          </div>
+          <h1 className="text-3xl md:text-4xl font-extrabold text-white font-display tracking-tight flex items-center gap-3">
+            Settings & Preferences
           </h1>
-          <p className="text-slate-400 mt-1">Manage security and panel preferences</p>
+          <p className="text-slate-300 text-sm mt-1">
+            Manage your hotel branding, billing compliance, banking details & staff permissions.
+          </p>
         </div>
+
+        {currentUser?.hotelName && (
+          <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl glass border border-white/10 shadow-lg">
+            {currentUser.hotelLogo ? (
+              <img src={currentUser.hotelLogo} alt="Logo" className="w-8 h-8 rounded-lg object-contain bg-white/10 p-0.5" />
+            ) : (
+              <div className="w-8 h-8 rounded-lg bg-saffron-500/20 text-saffron-400 font-bold flex items-center justify-center text-xs">
+                {currentUser.hotelName.charAt(0)}
+              </div>
+            )}
+            <div>
+              <p className="text-xs font-bold text-white leading-tight">{currentUser.hotelName}</p>
+              <p className="text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Active Property
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
-      <div className="glass border border-gold-800/20 rounded-2xl overflow-hidden flex flex-col md:flex-row min-h-[500px]">
+      <div className="glass border border-white/10 rounded-2xl overflow-hidden flex flex-col md:flex-row shadow-2xl backdrop-blur-xl">
         {/* Tabs Sidebar */}
-        <div className="w-full md:w-64 border-b md:border-b-0 md:border-r border-amber-500/10 bg-slate-800/30 p-4 flex flex-row md:flex-col gap-2 overflow-x-auto">
+        <div className="w-full md:w-64 border-b md:border-b-0 md:border-r border-white/10 bg-slate-950/40 p-3 md:p-4 flex flex-row md:flex-col gap-2 overflow-x-auto shrink-0 custom-scrollbar">
+          <p className="text-[10px] uppercase font-black tracking-widest text-saffron-400 px-3 py-1 hidden md:block">
+            Preferences Menu
+          </p>
           <button
             onClick={() => setActiveTab("profile")}
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all whitespace-nowrap ${
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all whitespace-nowrap text-sm font-semibold cursor-pointer ${
               activeTab === "profile"
-                ? "bg-amber-500/20 text-amber-400 border border-amber-500/30 font-semibold shadow-lg shadow-amber-500/10"
-                : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+                ? "bg-gradient-to-r from-saffron-500/25 to-saffron-500/10 text-white border border-saffron-400/50 shadow-md shadow-saffron-500/15"
+                : "text-slate-200 hover:text-white hover:bg-white/[0.06] border border-transparent"
             }`}
           >
-            <User className="w-5 h-5" />
-            Profile
+            <div className={`p-1.5 rounded-lg ${activeTab === "profile" ? "bg-saffron-500 text-slate-950 font-bold" : "bg-white/[0.06] text-saffron-300"}`}>
+              <User className="w-4 h-4" />
+            </div>
+            <span>Profile & Hotel</span>
           </button>
           <button
             onClick={() => setActiveTab("security")}
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all whitespace-nowrap ${
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all whitespace-nowrap text-sm font-semibold cursor-pointer ${
               activeTab === "security"
-                ? "bg-amber-500/20 text-amber-400 border border-amber-500/30 font-semibold shadow-lg shadow-amber-500/10"
-                : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+                ? "bg-gradient-to-r from-saffron-500/25 to-saffron-500/10 text-white border border-saffron-400/50 shadow-md shadow-saffron-500/15"
+                : "text-slate-200 hover:text-white hover:bg-white/[0.06] border border-transparent"
             }`}
           >
-            <Shield className="w-5 h-5" />
-            Security
+            <div className={`p-1.5 rounded-lg ${activeTab === "security" ? "bg-saffron-500 text-slate-950 font-bold" : "bg-white/[0.06] text-saffron-300"}`}>
+              <Shield className="w-4 h-4" />
+            </div>
+            <span>Security</span>
           </button>
           <button
             onClick={() => setActiveTab("staff")}
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all whitespace-nowrap ${
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all whitespace-nowrap text-sm font-semibold cursor-pointer ${
               activeTab === "staff"
-                ? "bg-amber-500/20 text-amber-400 border border-amber-500/30 font-semibold shadow-lg shadow-amber-500/10"
-                : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+                ? "bg-gradient-to-r from-saffron-500/25 to-saffron-500/10 text-white border border-saffron-400/50 shadow-md shadow-saffron-500/15"
+                : "text-slate-200 hover:text-white hover:bg-white/[0.06] border border-transparent"
             }`}
           >
-            <LayoutGrid className="w-5 h-5" />
-            Staff Panel
+            <div className={`p-1.5 rounded-lg ${activeTab === "staff" ? "bg-saffron-500 text-slate-950 font-bold" : "bg-white/[0.06] text-saffron-300"}`}>
+              <LayoutGrid className="w-4 h-4" />
+            </div>
+            <span>Staff Panel</span>
           </button>
           <button
             onClick={() => setActiveTab("lookups")}
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all whitespace-nowrap ${
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all whitespace-nowrap text-sm font-semibold cursor-pointer ${
               activeTab === "lookups"
-                ? "bg-amber-500/20 text-amber-400 border border-amber-500/30 font-semibold shadow-lg shadow-amber-500/10"
-                : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+                ? "bg-gradient-to-r from-saffron-500/25 to-saffron-500/10 text-white border border-saffron-400/50 shadow-md shadow-saffron-500/15"
+                : "text-slate-200 hover:text-white hover:bg-white/[0.06] border border-transparent"
             }`}
           >
-            <Database className="w-5 h-5" />
-            Lookups Master
+            <div className={`p-1.5 rounded-lg ${activeTab === "lookups" ? "bg-saffron-500 text-slate-950 font-bold" : "bg-white/[0.06] text-saffron-300"}`}>
+              <Database className="w-4 h-4" />
+            </div>
+            <span>Lookups Master</span>
           </button>
         </div>
 
         {/* Tab Content */}
-        <div className="flex-1 p-6 md:p-8 overflow-y-auto">
+        <div className="flex-1 p-6 md:p-8 overflow-y-auto custom-scrollbar">
           {activeTab === "profile" && (
             <div className="animate-fade-in max-w-4xl">
               <h2 className="text-2xl font-bold font-display text-saffron-500 mb-6 flex items-center gap-2.5 border-b border-saffron-500/20 pb-3">
@@ -484,55 +520,55 @@ export default function AdminSettings() {
                   <p className="text-xs text-slate-400">Admin personal profile & contact information.</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Name</label>
+                  <label className="block text-sm font-semibold text-slate-200 mb-2">Name</label>
                   <input
                     type="text"
                     required
                     value={profileData.name || ""}
                     onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-amber-500/50 transition-colors"
+                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all shadow-inner"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Email</label>
+                  <label className="block text-sm font-semibold text-slate-200 mb-2">Email</label>
                   <input
                     type="email"
                     required
                     value={profileData.email || ""}
                     onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-amber-500/50 transition-colors"
+                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all shadow-inner"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Mobile</label>
+                  <label className="block text-sm font-semibold text-slate-200 mb-2">Mobile</label>
                   <input
                     type="text"
                     required
                     value={profileData.mobile || ""}
                     onChange={(e) => setProfileData({ ...profileData, mobile: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-amber-500/50 transition-colors"
+                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all shadow-inner"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Age</label>
+                  <label className="block text-sm font-semibold text-slate-200 mb-2">Age</label>
                   <input
                     type="number"
                     value={profileData.age ?? ""}
                     onChange={(e) => setProfileData({ ...profileData, age: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-amber-500/50 transition-colors"
+                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all shadow-inner"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Address</label>
+                  <label className="block text-sm font-semibold text-slate-200 mb-2">Address</label>
                   <input
                     type="text"
                     value={profileData.address || ""}
                     onChange={(e) => setProfileData({ ...profileData, address: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-amber-500/50 transition-colors"
+                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all shadow-inner"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">State</label>
+                  <label className="block text-sm font-semibold text-slate-200 mb-2">State</label>
                   <select
                     value={personalState}
                     onChange={(e) => {
@@ -540,7 +576,7 @@ export default function AdminSettings() {
                       setProfileData((prev) => ({ ...prev, city: "" }));
                       setCustomPersonalCity(false);
                     }}
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-500/50 transition-colors"
+                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all shadow-inner"
                   >
                     <option value="">Select State</option>
                     {indianStates.map((s) => (
@@ -552,11 +588,11 @@ export default function AdminSettings() {
                 </div>
                 <div>
                   <div className="flex justify-between items-center mb-2">
-                    <label className="block text-sm font-medium text-slate-300">City</label>
+                    <label className="block text-sm font-semibold text-slate-200">City</label>
                     <button
                       type="button"
                       onClick={() => setCustomPersonalCity(!customPersonalCity)}
-                      className="text-[11px] text-saffron-500 hover:underline"
+                      className="text-[11px] font-bold text-saffron-400 hover:text-saffron-300 underline cursor-pointer"
                     >
                       {customPersonalCity ? "Select from list" : "Type manually"}
                     </button>
@@ -567,7 +603,7 @@ export default function AdminSettings() {
                       placeholder={personalState ? "Enter city name" : "Select state first, or type city name"}
                       value={profileData.city || ""}
                       onChange={(e) => setProfileData({ ...profileData, city: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-500/50 transition-colors"
+                      className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all shadow-inner"
                     />
                   ) : (
                     <select
@@ -580,7 +616,7 @@ export default function AdminSettings() {
                           setProfileData({ ...profileData, city: e.target.value });
                         }
                       }}
-                      className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-500/50 transition-colors"
+                      className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all shadow-inner"
                     >
                       <option value="">Select City ({personalCities.length} available)</option>
                       {profileData.city && !personalCities.some(c => c.name.toLowerCase() === profileData.city.toLowerCase()) && (
@@ -598,41 +634,41 @@ export default function AdminSettings() {
                 
                 {/* Hotel Details */}
                 <div className="md:col-span-2 mt-6">
-                  <h3 className="text-lg font-bold font-display text-saffron-500 mb-1 border-b border-saffron-500/20 pb-2 flex items-center gap-2">
+                  <h3 className="text-lg font-bold font-display text-saffron-400 mb-1 border-b border-saffron-500/20 pb-2 flex items-center gap-2">
                     <Building2 className="w-5 h-5 text-saffron-400" />
                     Hotel Details & Identity
                   </h3>
-                  <p className="text-xs text-slate-400">Primary hotel identity, brand logo, contact numbers and location.</p>
+                  <p className="text-xs text-slate-300">Primary hotel identity, brand logo, contact numbers and location.</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Hotel Name</label>
+                  <label className="block text-sm font-semibold text-slate-200 mb-2">Hotel Name</label>
                   <input
                     type="text"
                     value={profileData.hotelName || ""}
                     onChange={(e) => setProfileData({ ...profileData, hotelName: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-amber-500/50 transition-colors"
+                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all shadow-inner"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Hotel Email</label>
+                  <label className="block text-sm font-semibold text-slate-200 mb-2">Hotel Email</label>
                   <input
                     type="email"
                     value={profileData.hotelEmail || ""}
                     onChange={(e) => setProfileData({ ...profileData, hotelEmail: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-amber-500/50 transition-colors"
+                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all shadow-inner"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Hotel Phone</label>
+                  <label className="block text-sm font-semibold text-slate-200 mb-2">Hotel Phone</label>
                   <input
                     type="text"
                     value={profileData.hotelPhone || ""}
                     onChange={(e) => setProfileData({ ...profileData, hotelPhone: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-amber-500/50 transition-colors"
+                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all shadow-inner"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Hotel State</label>
+                  <label className="block text-sm font-semibold text-slate-200 mb-2">Hotel State</label>
                   <select
                     value={profileData.hotelState}
                     onChange={(e) => {
@@ -644,7 +680,7 @@ export default function AdminSettings() {
                       }));
                       setCustomHotelCity(false);
                     }}
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-500/50 transition-colors"
+                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all shadow-inner"
                   >
                     <option value="">Select State</option>
                     {indianStates.map((s) => (
@@ -656,11 +692,11 @@ export default function AdminSettings() {
                 </div>
                 <div>
                   <div className="flex justify-between items-center mb-2">
-                    <label className="block text-sm font-medium text-slate-300">Hotel City</label>
+                    <label className="block text-sm font-semibold text-slate-200">Hotel City</label>
                     <button
                       type="button"
                       onClick={() => setCustomHotelCity(!customHotelCity)}
-                      className="text-[11px] text-saffron-500 hover:underline"
+                      className="text-[11px] font-bold text-saffron-400 hover:text-saffron-300 underline cursor-pointer"
                     >
                       {customHotelCity ? "Select from list" : "Type manually"}
                     </button>
@@ -671,7 +707,7 @@ export default function AdminSettings() {
                       placeholder={profileData.hotelState ? "Enter city name" : "Select state first, or type city name"}
                       value={profileData.hotelCity}
                       onChange={(e) => setProfileData({ ...profileData, hotelCity: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-500/50 transition-colors"
+                      className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all shadow-inner"
                     />
                   ) : (
                     <select
@@ -684,7 +720,7 @@ export default function AdminSettings() {
                           setProfileData({ ...profileData, hotelCity: e.target.value });
                         }
                       }}
-                      className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-500/50 transition-colors"
+                      className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all shadow-inner"
                     >
                       <option value="">Select City ({hotelCities.length} available)</option>
                       {profileData.hotelCity && !hotelCities.some(c => c.name.toLowerCase() === profileData.hotelCity.toLowerCase()) && (
@@ -700,11 +736,11 @@ export default function AdminSettings() {
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Hotel Type</label>
+                  <label className="block text-sm font-semibold text-slate-200 mb-2">Hotel Type</label>
                   <select
                     value={profileData.hotelType || "Hotel"}
                     onChange={(e) => setProfileData({ ...profileData, hotelType: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-500/50 transition-colors"
+                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all shadow-inner"
                   >
                     <option value="Hotel">Hotel</option>
                     <option value="Resort">Resort</option>
@@ -713,11 +749,11 @@ export default function AdminSettings() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Hotel Star Category</label>
+                  <label className="block text-sm font-semibold text-slate-200 mb-2">Hotel Star Category</label>
                   <select
                     value={profileData.starRating || "3-Star"}
                     onChange={(e) => setProfileData({ ...profileData, starRating: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-500/50 transition-colors"
+                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all shadow-inner"
                   >
                     <option value="Budget">Budget / Standard</option>
                     <option value="1-Star">1-Star</option>
@@ -730,222 +766,230 @@ export default function AdminSettings() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Hotel Pincode</label>
+                  <label className="block text-sm font-semibold text-slate-200 mb-2">Hotel Pincode</label>
                   <input
                     type="text"
                     placeholder="e.g. 110001"
                     value={profileData.hotelPincode || ""}
                     onChange={(e) => setProfileData({ ...profileData, hotelPincode: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-500/50 transition-colors"
+                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all shadow-inner"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Reception / Desk Phone</label>
+                  <label className="block text-sm font-semibold text-slate-200 mb-2">Reception / Desk Phone</label>
                   <input
                     type="text"
                     placeholder="e.g. 011-23456789 or 9876543210"
                     value={profileData.receptionPhone || ""}
                     onChange={(e) => setProfileData({ ...profileData, receptionPhone: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-500/50 transition-colors"
+                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all shadow-inner"
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Logo (Upload File)</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleLogoChange}
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-2 focus:outline-none focus:border-saffron-500/50 transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-saffron-500/20 file:text-saffron-500 hover:file:bg-saffron-500/30"
-                  />
-                  {profileData.hotelLogo && (
-                    <div className="mt-2 text-xs text-saffron-500 truncate" title={profileData.hotelLogo}>
-                      Current: {profileData.hotelLogo.substring(0, 40)}...
-                    </div>
-                  )}
+                  <label className="block text-sm font-semibold text-slate-200 mb-2">Logo (Upload Brand Logo)</label>
+                  <div className="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-xl bg-[#061C1C]/60 border border-white/10">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLogoChange}
+                      className="w-full text-slate-200 text-sm file:mr-4 file:py-2.5 file:px-5 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-saffron-500 file:text-slate-950 hover:file:bg-saffron-400 cursor-pointer"
+                    />
+                    {profileData.hotelLogo && (
+                      <div className="flex items-center gap-3 shrink-0 p-2 bg-white/5 border border-white/10 rounded-xl">
+                        <img src={profileData.hotelLogo} alt="Logo Preview" className="w-12 h-12 object-contain rounded-lg bg-white/10 p-1" />
+                        <div className="text-left">
+                          <span className="text-[11px] font-bold text-emerald-400 flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3" /> Uploaded
+                          </span>
+                          <p className="text-[10px] text-slate-400">Applied to Invoices</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Hotel Full Address</label>
+                  <label className="block text-sm font-semibold text-slate-200 mb-2">Hotel Full Address</label>
                   <textarea
                     rows="2"
                     placeholder="Street, Landmark, Area..."
                     value={profileData.hotelAddress || ""}
                     onChange={(e) => setProfileData({ ...profileData, hotelAddress: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-500/50 transition-colors"
+                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all shadow-inner"
                   />
                 </div>
 
                 {/* 1. Legal & Tax Compliance */}
                 <div className="md:col-span-2 mt-6">
-                  <h3 className="text-lg font-bold font-display text-saffron-500 mb-1 border-b border-saffron-500/20 pb-2 flex items-center gap-2">
+                  <h3 className="text-lg font-bold font-display text-saffron-400 mb-1 border-b border-saffron-500/20 pb-2 flex items-center gap-2">
                     <ShieldCheck className="w-5 h-5 text-saffron-400" />
                     Legal & Tax Compliance
                   </h3>
-                  <p className="text-xs text-slate-400">Printed on official invoices and used for tax filing compliance.</p>
+                  <p className="text-xs text-slate-300">Printed on official invoices and used for tax filing compliance.</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">GSTIN (GST Number)</label>
+                  <label className="block text-sm font-semibold text-slate-200 mb-2">GSTIN (GST Number)</label>
                   <input
                     type="text"
                     placeholder="e.g. 07AAAAA0000A1Z5"
                     value={profileData.gstin || ""}
                     onChange={(e) => setProfileData({ ...profileData, gstin: e.target.value.toUpperCase() })}
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-500/50 transition-colors uppercase font-mono text-xs"
+                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all uppercase font-mono text-xs shadow-inner"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">FSSAI License No.</label>
+                  <label className="block text-sm font-semibold text-slate-200 mb-2">FSSAI License No.</label>
                   <input
                     type="text"
                     placeholder="e.g. 10012345678901 (14 digits)"
                     value={profileData.fssaiNumber || ""}
                     onChange={(e) => setProfileData({ ...profileData, fssaiNumber: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-500/50 transition-colors font-mono text-xs"
+                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all font-mono text-xs shadow-inner"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Business PAN Number</label>
+                  <label className="block text-sm font-semibold text-slate-200 mb-2">Business PAN Number</label>
                   <input
                     type="text"
                     placeholder="e.g. ABCDE1234F"
                     value={profileData.panNumber || ""}
                     onChange={(e) => setProfileData({ ...profileData, panNumber: e.target.value.toUpperCase() })}
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-500/50 transition-colors uppercase font-mono text-xs"
+                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all uppercase font-mono text-xs shadow-inner"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Trade / Sarai Act License No.</label>
+                  <label className="block text-sm font-semibold text-slate-200 mb-2">Trade / Sarai Act License No.</label>
                   <input
                     type="text"
                     placeholder="Municipal or Police license no."
                     value={profileData.tradeLicenseNumber || ""}
                     onChange={(e) => setProfileData({ ...profileData, tradeLicenseNumber: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-500/50 transition-colors text-xs"
+                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all text-xs shadow-inner"
                   />
                 </div>
 
                 {/* 2. Timings & Invoicing Configuration */}
                 <div className="md:col-span-2 mt-6">
-                  <h3 className="text-lg font-bold font-display text-saffron-500 mb-1 border-b border-saffron-500/20 pb-2 flex items-center gap-2">
+                  <h3 className="text-lg font-bold font-display text-saffron-400 mb-1 border-b border-saffron-500/20 pb-2 flex items-center gap-2">
                     <Clock className="w-5 h-5 text-saffron-400" />
                     Timings, Tax Rates & Invoicing Rules
                   </h3>
-                  <p className="text-xs text-slate-400">Controls default booking check-in/out policies, tax slabs and invoice series.</p>
+                  <p className="text-xs text-slate-300">Controls default booking check-in/out policies, tax slabs and invoice series.</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Default Check-In Time</label>
+                  <label className="block text-sm font-semibold text-slate-200 mb-2">Default Check-In Time</label>
                   <input
                     type="text"
                     placeholder="e.g. 12:00 PM"
                     value={profileData.checkInTime || ""}
                     onChange={(e) => setProfileData({ ...profileData, checkInTime: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-500/50 transition-colors"
+                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all shadow-inner"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Default Check-Out Time</label>
+                  <label className="block text-sm font-semibold text-slate-200 mb-2">Default Check-Out Time</label>
                   <input
                     type="text"
                     placeholder="e.g. 11:00 AM"
                     value={profileData.checkOutTime || ""}
                     onChange={(e) => setProfileData({ ...profileData, checkOutTime: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-500/50 transition-colors"
+                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all shadow-inner"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Restaurant Bill Prefix</label>
+                  <label className="block text-sm font-semibold text-slate-200 mb-2">Restaurant Bill Prefix</label>
                   <input
                     type="text"
                     placeholder="e.g. REST- or BILL-"
                     value={profileData.invoicePrefixRestaurant || ""}
                     onChange={(e) => setProfileData({ ...profileData, invoicePrefixRestaurant: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-500/50 transition-colors font-mono text-xs"
+                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all font-mono text-xs shadow-inner"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Room Bill Prefix</label>
+                  <label className="block text-sm font-semibold text-slate-200 mb-2">Room Bill Prefix</label>
                   <input
                     type="text"
                     placeholder="e.g. ROOM- or ST-"
                     value={profileData.invoicePrefixRoom || ""}
                     onChange={(e) => setProfileData({ ...profileData, invoicePrefixRoom: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-500/50 transition-colors font-mono text-xs"
+                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all font-mono text-xs shadow-inner"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Food / Restaurant GST Rate (%)</label>
+                  <label className="block text-sm font-semibold text-slate-200 mb-2">Food / Restaurant GST Rate (%)</label>
                   <input
                     type="number"
                     step="0.01"
                     placeholder="e.g. 5"
                     value={profileData.foodGstRate ?? 5}
                     onChange={(e) => setProfileData({ ...profileData, foodGstRate: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-500/50 transition-colors"
+                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all shadow-inner"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Room Booking GST Rate (%)</label>
+                  <label className="block text-sm font-semibold text-slate-200 mb-2">Room Booking GST Rate (%)</label>
                   <input
                     type="number"
                     step="0.01"
                     placeholder="e.g. 12"
                     value={profileData.roomGstRate ?? 12}
                     onChange={(e) => setProfileData({ ...profileData, roomGstRate: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-500/50 transition-colors"
+                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all shadow-inner"
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Invoice Terms & Policy (Footer Note)</label>
+                  <label className="block text-sm font-semibold text-slate-200 mb-2">Invoice Terms & Policy (Footer Note)</label>
                   <textarea
                     rows="2"
                     placeholder="e.g. 1. Valid ID required at check-in. 2. Cancellation subject to hotel policy."
                     value={profileData.invoiceTerms || ""}
                     onChange={(e) => setProfileData({ ...profileData, invoiceTerms: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-500/50 transition-colors text-xs"
+                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all text-xs shadow-inner"
                   />
                 </div>
 
                 {/* 3. Guest Policy & Operations */}
                 <div className="md:col-span-2 mt-6">
-                  <h3 className="text-lg font-bold font-display text-saffron-500 mb-1 border-b border-saffron-500/20 pb-2 flex items-center gap-2">
+                  <h3 className="text-lg font-bold font-display text-saffron-400 mb-1 border-b border-saffron-500/20 pb-2 flex items-center gap-2">
                     <FileText className="w-5 h-5 text-saffron-400" />
                     Guest Policy & Operations
                   </h3>
-                  <p className="text-xs text-slate-400">Official check-in requirements and policies printed on GRC and receipts.</p>
+                  <p className="text-xs text-slate-300">Official check-in requirements and policies printed on GRC and receipts.</p>
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Accepted ID Proof Policy & Guidelines</label>
+                  <label className="block text-sm font-semibold text-slate-200 mb-2">Accepted ID Proof Policy & Guidelines</label>
                   <textarea
                     rows="2"
                     placeholder="e.g. Aadhaar Card, Passport, Driving License, or Voter ID required at check-in"
                     value={profileData.idProofPolicy || ""}
                     onChange={(e) => setProfileData({ ...profileData, idProofPolicy: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-500/50 transition-colors text-xs"
+                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all text-xs shadow-inner"
                   />
                 </div>
 
                 {/* 4. Bank & UPI Payment Details */}
                 <div className="md:col-span-2 mt-6">
-                  <h3 className="text-lg font-bold font-display text-saffron-500 mb-1 border-b border-saffron-500/20 pb-2 flex items-center gap-2">
+                  <h3 className="text-lg font-bold font-display text-saffron-400 mb-1 border-b border-saffron-500/20 pb-2 flex items-center gap-2">
                     <CreditCard className="w-5 h-5 text-saffron-400" />
                     Bank & UPI Payment Details
                   </h3>
-                  <p className="text-xs text-slate-400">Used for direct UPI QR code generation on guest invoices and B2B settlements.</p>
+                  <p className="text-xs text-slate-300">Used for direct UPI QR code generation on guest invoices and B2B settlements.</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">UPI ID (For Bill QR Code)</label>
+                  <label className="block text-sm font-semibold text-slate-200 mb-2">UPI ID (For Bill QR Code)</label>
                   <input
                     type="text"
                     placeholder="e.g. hotel@okhdfcbank"
                     value={profileData.upiId || ""}
                     onChange={(e) => setProfileData({ ...profileData, upiId: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-500/50 transition-colors font-mono text-xs"
+                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all font-mono text-xs shadow-inner"
                   />
                 </div>
 
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className="block text-sm font-medium text-slate-300">Bank IFSC Code</label>
-                    <span className="text-[10px] text-slate-500 font-mono">
+                    <label className="block text-sm font-semibold text-slate-200">Bank IFSC Code</label>
+                    <span className="text-[10px] text-saffron-400 font-mono font-bold">
                       {(profileData.bankIfscCode || "").length}/11
                     </span>
                   </div>
@@ -956,13 +1000,13 @@ export default function AdminSettings() {
                       placeholder="e.g. SBIN0000691 or HDFC0000001"
                       value={profileData.bankIfscCode || ""}
                       onChange={handleIfscChange}
-                      className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl pl-4 pr-24 py-3 focus:outline-none focus:border-saffron-500/50 transition-colors uppercase font-mono text-xs tracking-wider"
+                      className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl pl-4 pr-24 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all uppercase font-mono text-xs tracking-wider shadow-inner"
                     />
                     <button
                       type="button"
                       onClick={() => fetchIfscDetails(profileData.bankIfscCode)}
                       disabled={ifscLoading || (profileData.bankIfscCode || "").length !== 11}
-                      className="absolute right-1.5 top-1.5 bottom-1.5 px-3 rounded-lg bg-saffron-500/10 hover:bg-saffron-500/20 text-saffron-400 border border-saffron-500/30 text-xs font-semibold flex items-center gap-1.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                      className="absolute right-1.5 top-1.5 bottom-1.5 px-3 rounded-lg bg-saffron-500/20 hover:bg-saffron-500/30 text-saffron-300 border border-saffron-400/40 text-xs font-bold flex items-center gap-1.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-sm"
                     >
                       {ifscLoading ? (
                         <>
@@ -972,7 +1016,7 @@ export default function AdminSettings() {
                       ) : ifscDetails ? (
                         <>
                           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                          <span className="text-emerald-400">Verified</span>
+                          <span className="text-emerald-400 font-bold">Verified</span>
                         </>
                       ) : (
                         <span>Verify</span>
@@ -980,12 +1024,12 @@ export default function AdminSettings() {
                     </button>
                   </div>
                   {ifscError && (
-                    <p className="text-xs text-rose-400 mt-1.5 flex items-center gap-1">
+                    <p className="text-xs text-rose-400 mt-1.5 flex items-center gap-1 font-semibold">
                       <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {ifscError}
                     </p>
                   )}
                   {!ifscError && !ifscDetails && (
-                    <p className="text-[11px] text-slate-500 mt-1">
+                    <p className="text-[11px] text-slate-300 mt-1">
                       Enter 11-digit IFSC code to auto-fetch official bank name & branch
                     </p>
                   )}
@@ -1036,97 +1080,98 @@ export default function AdminSettings() {
                 )}
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Bank Name</label>
+                  <label className="block text-sm font-semibold text-slate-200 mb-2">Bank Name</label>
                   <input
                     type="text"
                     placeholder="e.g. HDFC Bank, SBI, ICICI"
                     value={profileData.bankName || ""}
                     onChange={(e) => setProfileData({ ...profileData, bankName: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-500/50 transition-colors"
+                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all shadow-inner"
                   />
                   {ifscDetails && (
-                    <p className="text-[10px] text-emerald-400 mt-1">Auto-filled: {ifscDetails.BANK}</p>
+                    <p className="text-[10px] text-emerald-400 font-semibold mt-1">Auto-filled: {ifscDetails.BANK}</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Account Holder Name</label>
+                  <label className="block text-sm font-semibold text-slate-200 mb-2">Account Holder Name</label>
                   <input
                     type="text"
                     placeholder="Beneficiary name as in bank"
                     value={profileData.bankAccountName || ""}
                     onChange={(e) => setProfileData({ ...profileData, bankAccountName: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-500/50 transition-colors"
+                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all shadow-inner"
                   />
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Bank Account Number</label>
+                  <label className="block text-sm font-semibold text-slate-200 mb-2">Bank Account Number</label>
                   <input
                     type="text"
                     placeholder="e.g. 50100234567890"
                     value={profileData.bankAccountNumber || ""}
                     onChange={(e) => setProfileData({ ...profileData, bankAccountNumber: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-500/50 transition-colors font-mono text-xs"
+                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all font-mono text-xs shadow-inner"
                   />
                 </div>
 
                 {/* 5. Digital, Location & Social Presence */}
                 <div className="md:col-span-2 mt-6">
-                  <h3 className="text-lg font-bold font-display text-saffron-500 mb-1 border-b border-saffron-500/20 pb-2 flex items-center gap-2">
+                  <h3 className="text-lg font-bold font-display text-saffron-400 mb-1 border-b border-saffron-500/20 pb-2 flex items-center gap-2">
                     <Globe className="w-5 h-5 text-saffron-400" />
                     Digital, Location & Social Presence
                   </h3>
-                  <p className="text-xs text-slate-400">Used for WhatsApp booking confirmations, guest navigation links and social branding.</p>
+                  <p className="text-xs text-slate-300">Used for WhatsApp booking confirmations, guest navigation links and social branding.</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Website URL</label>
+                  <label className="block text-sm font-semibold text-slate-200 mb-2">Website URL</label>
                   <input
                     type="url"
                     placeholder="https://www.yourhotel.com"
                     value={profileData.websiteUrl || ""}
                     onChange={(e) => setProfileData({ ...profileData, websiteUrl: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-500/50 transition-colors"
+                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all shadow-inner"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Google Maps Location Link</label>
+                  <label className="block text-sm font-semibold text-slate-200 mb-2">Google Maps Location Link</label>
                   <input
                     type="url"
                     placeholder="https://maps.app.goo.gl/..."
                     value={profileData.googleMapsUrl || ""}
                     onChange={(e) => setProfileData({ ...profileData, googleMapsUrl: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-500/50 transition-colors"
+                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all shadow-inner"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Instagram Handle / URL</label>
+                  <label className="block text-sm font-semibold text-slate-200 mb-2">Instagram Handle / URL</label>
                   <input
                     type="text"
                     placeholder="e.g. @yourhotel or https://instagram.com/yourhotel"
                     value={profileData.instagramUrl || ""}
                     onChange={(e) => setProfileData({ ...profileData, instagramUrl: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-500/50 transition-colors"
+                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all shadow-inner"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Facebook Page URL</label>
+                  <label className="block text-sm font-semibold text-slate-200 mb-2">Facebook Page URL</label>
                   <input
                     type="url"
                     placeholder="https://facebook.com/yourhotel"
                     value={profileData.facebookUrl || ""}
                     onChange={(e) => setProfileData({ ...profileData, facebookUrl: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-500/50 transition-colors"
+                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all shadow-inner"
                   />
                 </div>
                 
-                <div className="md:col-span-2 mt-6">
-                  <button
+                <div className="md:col-span-2 mt-8 pt-4 border-t border-white/10 flex justify-center">
+                  <MagneticButton
                     type="submit"
-                    className="bg-gradient-to-r from-saffron-500 to-saffron-600 hover:from-saffron-400 hover:to-saffron-500 text-lagoon-950 font-bold py-3.5 px-8 rounded-xl transition-all active:scale-95 shadow-lg shadow-saffron-500/20 text-sm"
+                    className="w-full sm:w-auto min-w-[260px] bg-gradient-to-r from-saffron-400 to-saffron-500 hover:from-saffron-300 hover:to-saffron-400 text-slate-950 font-extrabold py-3.5 px-10 rounded-xl transition-all active:scale-95 shadow-xl shadow-saffron-500/25 text-sm cursor-pointer flex items-center justify-center gap-2.5 mx-auto"
                   >
+                    <CheckCircle2 className="w-4 h-4" />
                     Save All Hotel Details
-                  </button>
+                  </MagneticButton>
                 </div>
               </form>
             </div>
@@ -1134,63 +1179,66 @@ export default function AdminSettings() {
 
           {activeTab === "security" && (
             <div className="animate-fade-in max-w-md">
-              <h2 className="text-xl font-bold font-display text-saffron-500 mb-6 flex items-center gap-2 border-b border-saffron-500/20 pb-3">
+              <h2 className="text-xl font-bold font-display text-saffron-400 mb-6 flex items-center gap-2 border-b border-saffron-500/20 pb-3">
                 <Shield className="w-5 h-5 text-saffron-400" />
                 Change Password
               </h2>
               <form onSubmit={handlePasswordUpdate} className="flex flex-col gap-5">
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Current Password</label>
+                  <label className="block text-sm font-semibold text-slate-200 mb-2">Current Password</label>
                   <input
                     type="password"
                     required
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-amber-500/50 transition-colors"
+                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all shadow-inner"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">New Password</label>
+                  <label className="block text-sm font-semibold text-slate-200 mb-2">New Password</label>
                   <input
                     type="password"
                     required
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-amber-500/50 transition-colors"
+                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all shadow-inner"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Confirm New Password</label>
+                  <label className="block text-sm font-semibold text-slate-200 mb-2">Confirm New Password</label>
                   <input
                     type="password"
                     required
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-amber-500/50 transition-colors"
+                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all shadow-inner"
                   />
                 </div>
-                <button
-                  type="submit"
-                  className="mt-2 bg-gradient-to-r from-saffron-500 to-saffron-600 hover:from-saffron-400 hover:to-saffron-500 text-lagoon-950 font-bold py-3.5 px-6 rounded-xl transition-all active:scale-95 shadow-md shadow-saffron-500/20 text-sm"
-                >
-                  Update Password
-                </button>
+                <div className="pt-2 flex justify-center">
+                  <MagneticButton
+                    type="submit"
+                    className="w-full sm:w-auto min-w-[220px] bg-gradient-to-r from-saffron-400 to-saffron-500 hover:from-saffron-300 hover:to-saffron-400 text-slate-950 font-extrabold py-3.5 px-8 rounded-xl transition-all active:scale-95 shadow-xl shadow-saffron-500/25 text-sm cursor-pointer flex items-center justify-center gap-2 mx-auto"
+                  >
+                    <ShieldCheck className="w-4 h-4" />
+                    Update Password
+                  </MagneticButton>
+                </div>
               </form>
             </div>
           )}
 
           {activeTab === "staff" && (
             <div className="animate-fade-in max-w-2xl">
-              <h2 className="text-xl font-bold font-display text-saffron-500 mb-2 flex items-center gap-2 border-b border-saffron-500/20 pb-3">
+              <h2 className="text-xl font-bold font-display text-saffron-400 mb-2 flex items-center gap-2 border-b border-saffron-500/20 pb-3">
                 <LayoutGrid className="w-5 h-5 text-saffron-400" />
                 Staff Panel Modules
               </h2>
-              <p className="text-sm text-slate-400 mb-6 flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-amber-500" />
-                Select which menus should be visible to staff members.
+              <p className="text-sm text-slate-300 mb-6 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-amber-400" />
+                Toggle which operational modules are accessible to staff members.
               </p>
 
-              <div className="flex flex-col gap-4 mb-8">
+              <div className="flex flex-col gap-3.5 mb-8">
                 {[
                   { key: "restaurant", label: "Restaurant Billing" },
                   { key: "roomBooking", label: "Room Booking" },
@@ -1198,23 +1246,24 @@ export default function AdminSettings() {
                   { key: "advanceBooking", label: "Advance Bookings" },
                   { key: "grc", label: "Print GRC" },
                 ].map((mod) => (
-                  <div key={mod.key} className="flex items-center justify-between p-4 rounded-xl bg-slate-900/60 border border-slate-800/80">
-                    <span className="font-medium text-slate-200">{mod.label}</span>
+                  <div key={mod.key} className="flex items-center justify-between p-4 rounded-xl bg-[#061C1C]/80 border border-white/10 hover:border-white/20 transition-all shadow-inner">
+                    <span className="font-semibold text-slate-100 text-sm tracking-wide">{mod.label}</span>
                     <button
+                      type="button"
                       onClick={() => handlePermissionToggle(mod.key)}
-                      className={`relative w-14 h-7 rounded-full transition-colors ${
-                        permissions[mod.key] ? "bg-amber-500" : "bg-slate-700"
+                      className={`relative w-14 h-7 rounded-full transition-colors cursor-pointer ${
+                        permissions[mod.key] ? "bg-gradient-to-r from-saffron-500 to-amber-500 shadow-[0_0_12px_rgba(246,180,69,0.4)]" : "bg-slate-800 border border-white/10"
                       }`}
                     >
                       <div
-                        className={`absolute top-1 flex items-center justify-center w-5 h-5 rounded-full bg-white transition-transform ${
+                        className={`absolute top-1 flex items-center justify-center w-5 h-5 rounded-full bg-white shadow-md transition-transform ${
                           permissions[mod.key] ? "translate-x-8" : "translate-x-1"
                         }`}
                       >
                         {permissions[mod.key] ? (
-                          <Check className="w-3 h-3 text-amber-500" />
+                          <Check className="w-3 h-3 text-slate-950 font-bold" />
                         ) : (
-                          <X className="w-3 h-3 text-slate-400" />
+                          <X className="w-3 h-3 text-slate-600" />
                         )}
                       </div>
                     </button>
@@ -1222,12 +1271,16 @@ export default function AdminSettings() {
                 ))}
               </div>
 
-              <button
-                onClick={savePermissions}
-                className="bg-gradient-to-r from-saffron-500 to-saffron-600 hover:from-saffron-400 hover:to-saffron-500 text-lagoon-950 font-bold py-3.5 px-8 rounded-xl transition-all active:scale-95 shadow-md shadow-saffron-500/20 text-sm"
-              >
-                Save Preferences
-              </button>
+              <div className="pt-2 flex justify-center">
+                <MagneticButton
+                  type="button"
+                  onClick={savePermissions}
+                  className="w-full sm:w-auto min-w-[240px] bg-gradient-to-r from-saffron-400 to-saffron-500 hover:from-saffron-300 hover:to-saffron-400 text-slate-950 font-extrabold py-3.5 px-10 rounded-xl transition-all active:scale-95 shadow-xl shadow-saffron-500/25 text-sm cursor-pointer flex items-center justify-center gap-2 mx-auto"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  Save Preferences
+                </MagneticButton>
+              </div>
             </div>
           )}
 
