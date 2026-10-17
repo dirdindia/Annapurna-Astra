@@ -1,12 +1,12 @@
-# Node modules across all workspaces
+# Dependencies (all levels)
 node_modules/
-*/node_modules/
+**/node_modules/
 
-# Build outputs
+# Build outputs (all levels)
 dist/
 build/
-*/dist/
-*/build/
+**/dist/
+**/build/
 
 # Logs
 logs
@@ -20,6 +20,8 @@ lerna-debug.log*
 # Environment files
 .env
 .env.*
+**/.env
+**/.env.*
 !.env.example
 
 # OS / Editor files
