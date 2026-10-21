@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="hi">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>E-Annapurna â€” Single Page Marketing Pamphlet</title>
+  <title>E-Annapurna — Restaurant POS & Kitchen KOT Special Pamphlet</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;0,9..144,800;1,9..144,600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -62,7 +62,7 @@
       padding: 8px 18px;
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
       box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
       margin-bottom: 16px;
     }
@@ -86,6 +86,30 @@
       font-weight: 700;
     }
 
+    .toolbar-nav {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .toolbar-link {
+      background: rgba(255, 255, 255, 0.08);
+      color: #D1E5E2;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 6px 12px;
+      font-size: 11.5px;
+      font-weight: 600;
+      border-radius: 999px;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .toolbar-link.active, .toolbar-link:hover {
+      background: rgba(242, 163, 58, 0.25);
+      color: #FFF;
+      border-color: var(--saffron-400);
+    }
+
     .toolbar-btn {
       display: inline-flex;
       align-items: center;
@@ -94,9 +118,9 @@
       color: var(--lagoon-950);
       font-family: var(--font-sans);
       font-weight: 800;
-      font-size: 13px;
+      font-size: 12.5px;
       border: none;
-      padding: 8px 18px;
+      padding: 7px 16px;
       border-radius: 999px;
       cursor: pointer;
       box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
@@ -106,23 +130,6 @@
     .toolbar-btn:hover {
       transform: translateY(-1px);
       box-shadow: 0 6px 20px rgba(245, 158, 11, 0.5);
-    }
-
-    .toolbar-secondary {
-      background: rgba(255, 255, 255, 0.1);
-      color: #fff;
-      border: 1px solid rgba(255, 255, 255, 0.25);
-      padding: 7px 14px;
-      font-size: 12px;
-      font-weight: 600;
-      border-radius: 999px;
-      cursor: pointer;
-      text-decoration: none;
-      transition: all 0.2s ease;
-    }
-
-    .toolbar-secondary:hover {
-      background: rgba(255, 255, 255, 0.2);
     }
 
     /* THE A4 PRINT SHEET CONTAINER */
@@ -162,8 +169,9 @@
     }
 
     .brand-logo-img {
-      height: 44px;
-      width: auto;
+      height: 46px;
+      width: 46px;
+      object-fit: contain;
       border-radius: 8px;
       background: #fff;
       padding: 2px;
@@ -251,7 +259,7 @@
 
     .hero-content h1 {
       font-family: var(--font-display);
-      font-size: 25px;
+      font-size: 24.5px;
       font-weight: 800;
       line-height: 1.14;
       color: var(--lagoon-950);
@@ -367,9 +375,7 @@
       z-index: 4;
     }
 
-    /* =========================================================
-       SUPER ATTRACTIVE PRICING & LAUNCH OFFER BANNER (USER FOCUS)
-       ========================================================= */
+    /* PRICING BANNER */
     .pricing-banner {
       margin: 4px 18px 8px 18px;
       background: linear-gradient(135deg, #072626 0%, #0B3535 50%, #0F4242 100%);
@@ -484,9 +490,7 @@
       letter-spacing: 0.3px;
     }
 
-    /* =========================================================
-       6 CORE MODULES (BENTO FEATURE GRID)
-       ========================================================= */
+    /* 6 CORE MODULES (BENTO FEATURE GRID) */
     .features-section {
       padding: 0 18px 6px 18px;
       display: flex;
@@ -572,12 +576,11 @@
       height: 14.5px;
     }
 
-    .icon-pms  { background: #E6F4EA; color: #137333; }
     .icon-pos  { background: #FEF3C7; color: #B45309; }
     .icon-kot  { background: #FEE2E2; color: #B91C1C; }
     .icon-qr   { background: #EDE9FE; color: #6D28D9; }
     .icon-gst  { background: #E0F2FE; color: #0369A1; }
-    .icon-app  { background: #FCE7F3; color: #BE185D; }
+    .icon-pms  { background: #E6F4EA; color: #137333; }
     .icon-wait { background: #FFEDD5; color: #C2410C; }
 
     .card-tag {
@@ -618,7 +621,7 @@
     }
 
     .card-bullets li::before {
-      content: "â€¢";
+      content: "•";
       color: var(--saffron-500);
       font-size: 12px;
       font-weight: bold;
@@ -630,9 +633,7 @@
       font-weight: 700;
     }
 
-    /* =========================================================
-       WHY E-ANNAPURNA VS OLD SOFTWARE (COMPARISON STRIP)
-       ========================================================= */
+    /* COMPARISON STRIP */
     .comparison-strip {
       background: var(--lagoon-50);
       border: 1px dashed #B8D0CC;
@@ -676,9 +677,7 @@
       flex-shrink: 0;
     }
 
-    /* =========================================================
-       NEW: 3-STEP SETUP STRIP (FILLS EMPTY SPACE)
-       ========================================================= */
+    /* 3-STEP SETUP STRIP */
     .steps-section {
       padding: 0 18px 7px 18px;
     }
@@ -732,9 +731,7 @@
       margin-top: 1.5px;
     }
 
-    /* =========================================================
-       NEW: HARDWARE & TRUST BANNER (FILLS EMPTY SPACE)
-       ========================================================= */
+    /* HARDWARE & TRUST BANNER */
     .hardware-strip {
       margin: 0 18px 8px 18px;
       background: var(--lagoon-900);
@@ -778,7 +775,7 @@
       color: var(--saffron-400);
     }
 
-    /* HOTELIER TESTIMONIAL & PROOF STRIP */
+    /* RESTAURATEUR TESTIMONIAL */
     .testimonial-strip {
       margin: 0 18px 8px 18px;
       background: linear-gradient(135deg, rgba(246, 180, 69, 0.12) 0%, rgba(31, 111, 107, 0.08) 100%);
@@ -814,9 +811,7 @@
       font-size: 8.2px;
     }
 
-    /* =========================================================
-       RICH FOOTER CTA & CONTACT SECTION (HIGH CONVERTING)
-       ========================================================= */
+    /* FOOTER CTA & CONTACT */
     .footer-cta {
       background: linear-gradient(135deg, var(--lagoon-950) 0%, var(--lagoon-900) 60%, #0c3333 100%);
       color: #FFFFFF;
@@ -830,7 +825,6 @@
       gap: 8px;
     }
 
-    /* Footer Top Ticker */
     .footer-ticker {
       display: flex;
       align-items: center;
@@ -857,7 +851,6 @@
       background: var(--saffron-500);
     }
 
-    /* Footer Main Grid */
     .footer-main-row {
       display: grid;
       grid-template-columns: 88px 1fr 145px;
@@ -865,7 +858,6 @@
       align-items: center;
     }
 
-    /* Left QR Box */
     .qr-box {
       background: #FFFFFF;
       padding: 4px;
@@ -892,7 +884,6 @@
       text-align: center;
     }
 
-    /* Center Contact Details */
     .contact-details {
       display: flex;
       flex-direction: column;
@@ -967,7 +958,6 @@
       gap: 4px;
     }
 
-    /* Right Action Button Column */
     .cta-action-col {
       display: flex;
       flex-direction: column;
@@ -1008,7 +998,6 @@
       margin-top: 1px;
     }
 
-    /* Footer Bottom Security Badges */
     .footer-bottom-trust {
       border-top: 1px solid rgba(255, 255, 255, 0.1);
       padding-top: 5px;
@@ -1037,9 +1026,7 @@
       color: #34D399;
     }
 
-    /* =========================================================
-       EXACT PRINT STYLES
-       ========================================================= */
+    /* EXACT PRINT STYLES */
     @page {
       size: A4 portrait;
       margin: 0;
@@ -1078,40 +1065,42 @@
   <!-- FLOATING SCREEN CONTROLS (HIDDEN DURING PRINT) -->
   <div class="toolbar no-print">
     <div class="toolbar-title">
-      <span>ðŸ“„ Single Page Marketing Pamphlet</span>
+      <span>🍽️ Restaurant POS & KOT Special</span>
       <span class="badge">A4 Print Ready</span>
+    </div>
+    <div class="toolbar-nav">
+      <a href="index.html" class="toolbar-link">Combo Edition</a>
+      <a href="hotel-pamphlet.html" class="toolbar-link">Hotel PMS (₹2,499)</a>
+      <a href="restaurant-pamphlet.html" class="toolbar-link active">Restaurant (₹2,499)</a>
     </div>
     <button class="toolbar-btn" onclick="window.print()">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
       Print / Save as PDF
     </button>
-    <a href="https://www.e-annapurna.com" target="_blank" class="toolbar-secondary">
-      Visit Website
-    </a>
   </div>
 
   <!-- A4 SINGLE PAGE PAMPHLET CONTAINER -->
   <div class="sheet" id="pamphlet">
     
-    <!-- TOP HEADER BRANDING (STRICTLY E-ANNAPURNA, NO ASTRA) -->
+    <!-- TOP HEADER BRANDING -->
     <header class="header">
       <div class="header-top">
         <div class="brand-group">
-          <img src="pamphlet-assets/logo.jpeg" alt="E-Annapurna Logo" class="brand-logo-img">
+          <img src="assets/logo.jpeg" alt="E-Annapurna Logo" class="brand-logo-img">
           <div>
             <div class="brand-title">E-<span>ANNAPURNA</span></div>
-            <div class="brand-subtitle">Smart Cloud Hotel & Restaurant Operating System</div>
+            <div class="brand-subtitle">Smart Cloud Restaurant POS, Automated KOT & Kitchen Display System</div>
           </div>
         </div>
 
         <div class="header-badges">
           <div class="trust-pill">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-            10,000+ Hoteliers Trust
+            8,000+ Restaurants Trust
           </div>
           <div class="dird-powered">
             <span>Powered By</span>
-            <img src="pamphlet-assets/dird-logo.webp" alt="DIRD Logo" class="dird-logo-img">
+            <img src="assets/dird-logo.webp" alt="DIRD Logo" class="dird-logo-img">
           </div>
         </div>
       </div>
@@ -1121,401 +1110,343 @@
     <section class="hero-section">
       <div class="hero-content">
         <h1>
-          Reception se rasoi tak, <br>
-          <span class="highlight">poora hotel ek screen par!</span>
+          Order lene se rasoi tak, <br>
+          <span class="highlight">restaurant chalao superfast!</span>
         </h1>
         <p class="hero-tagline">
-          Room booking, automated KOT, restaurant POS billing, live kitchen display (KDS), aur live waiting queue â€” bina kisi complex hardware ya alag alag software ke jhanjhat ke!
+          KOT ghumna aur billing delay ab itihaas! Touch POS, Live Kitchen Display (KDS), Table QR Self-Ordering aur accurate recipe inventory control ek jagah.
         </p>
-
         <div class="hero-perks">
-          <span class="perk-chip">
+          <div class="perk-chip">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            Zero Setup Cost
-          </span>
-          <span class="perk-chip">
+            5-Second KOT Printing
+          </div>
+          <div class="perk-chip">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            2-Minute Onboarding
-          </span>
-          <span class="perk-chip">
+            Live Kitchen Display (KDS)
+          </div>
+          <div class="perk-chip">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            Cloud Real-Time Sync
-          </span>
-          <span class="perk-chip">
+            Table QR Scan & Self-Order
+          </div>
+          <div class="perk-chip">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            GST & GRC Compliant
-          </span>
+            Split Bill & GST Invoice
+          </div>
         </div>
       </div>
 
-      <!-- LIVE SYSTEM MOCKUPS -->
+      <!-- VISUAL MOCKUPS -->
       <div class="hero-visuals">
         <div class="mockup-stack">
-          <div class="mockup-badge">LIVE CLOUD PLATFORM</div>
+          <div class="mockup-badge">RESTAURANT POS SPECIAL</div>
           <div class="mockup-main">
-            <img src="pamphlet-assets/dashboard.png" alt="E-Annapurna PMS Dashboard">
+            <img src="assets/pos.png" alt="Touch Restaurant POS & Table Layout">
           </div>
           <div class="mockup-secondary">
-            <img src="pamphlet-assets/pos.png" alt="E-Annapurna POS & Table Management">
+            <img src="assets/dashboard.png" alt="Live Kitchen KDS & Sales Dashboard">
           </div>
         </div>
       </div>
     </section>
 
-    <!-- =========================================================
-         ATTRACTIVE PRICING & SPECIAL OFFER STRIP (â‚¹1,499/MO)
-         ========================================================= -->
+    <!-- ATTRACTIVE PRICING & SPECIAL OFFER STRIP (₹2,499/MO) -->
     <section class="pricing-banner">
       <div class="price-hook">
         <div class="price-tag-bubble">
           <span class="starting-from">Starts At Just</span>
-          <span class="price-amount">â‚¹1,499</span>
+          <span class="price-amount">₹2,499</span>
           <span class="per-month">/ Month</span>
         </div>
         <div class="price-hook-text">
-          <h3>Dhamaka Launch Offer: <span>Pehle 7 Din FREE Chalao!</span></h3>
-          <p>Chhote hotel se lekar multi-property resort tak â€” Sabhi features unlocked. Fir pasand aaye to continue karo.</p>
+          <h3>Special Restaurant Offer: <span>Pehle 7 Din FREE Chalao!</span></h3>
+          <p>Cafe, QSR, Bar se lekar Fine-Dine Restaurant tak — Sabhi POS & KOT features unlocked. 100% risk-free trial.</p>
         </div>
       </div>
 
       <div class="pricing-pills-row">
-        <span class="trial-badge">â˜… 7 DAYS FREE TRIAL</span>
-        <span class="zero-fee-text">âœ“ No Credit Card Required</span>
+        <span class="trial-badge">★ 7 DAYS FREE TRIAL</span>
+        <span class="zero-fee-text">✓ No Credit Card Required</span>
       </div>
     </section>
 
-    <!-- =========================================================
-       6 POWERFUL MODULES (ALL FEATURES IN DETAIL)
-       ========================================================= -->
+    <!-- 6 RESTAURANT SPECIFIC MODULES -->
     <section class="features-section">
       <div class="section-headline">
-        <div class="section-title">Aapke Hotel Ke Liye All-in-One Complete Powerhouse</div>
-        <div class="section-subtitle">Phone, Tablet, Laptop ya POS Machine â€” Har device par superfast chalta hai</div>
+        <div class="section-title">Restaurant Operations Ke 6 Powerful Modules</div>
+        <div class="section-subtitle">Food order se lekar final checkout tak ka high-speed cloud system</div>
       </div>
 
       <div class="feature-grid">
-        
-        <!-- MODULE 1: ROOM BOOKING & PMS -->
+        <!-- 1. Touch POS & Visual Tables -->
         <div class="feature-card">
-          <div class="feature-card-header">
-            <div class="header-left">
-              <div class="card-icon-wrap icon-pms">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M2 4v16M2 8h18a2 2 0 0 1 2 2v10M2 17h20M6 8v9"></path></svg>
+          <div>
+            <div class="feature-card-header">
+              <div class="header-left">
+                <div class="card-icon-wrap icon-pos">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
+                </div>
+                <div class="card-title">Lightning Touch POS</div>
               </div>
-              <div class="card-title">Room Booking & Front Desk PMS</div>
+              <span class="card-tag">Table Map</span>
             </div>
-            <span class="card-tag">Core PMS</span>
+            <ul class="card-bullets">
+              <li><strong>Table Matrix:</strong> Occupied (Red), Vacant (Green), Billed (Blue).</li>
+              <li><strong>Dine-In & Takeaway:</strong> Ek hi screen se Dine-In, Delivery & Parcel billing.</li>
+              <li><strong>Table Merge & Shift:</strong> Grahak table badle to 1-click me order transfer.</li>
+            </ul>
           </div>
-          <ul class="card-bullets">
-            <li><strong>Live Room Color Grid:</strong> Green (Available), Red (Occupied), Yellow (Booked).</li>
-            <li><strong>Instant Guest Check-in:</strong> Web camera se live photo & ID card capture.</li>
-            <li><strong>GRC Card Generation:</strong> Police verification format 1-click print.</li>
-            <li><strong>Advance Reservation:</strong> Advance token deposit aur checkout calculation.</li>
-          </ul>
         </div>
 
-        <!-- MODULE 2: RESTAURANT POS -->
+        <!-- 2. Auto KOT & Multi-Kitchen Routing -->
         <div class="feature-card">
-          <div class="feature-card-header">
-            <div class="header-left">
-              <div class="card-icon-wrap icon-pos">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8zM6 1v3M10 1v3M14 1v3"></path></svg>
+          <div>
+            <div class="feature-card-header">
+              <div class="header-left">
+                <div class="card-icon-wrap icon-kot">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"></path><line x1="6" y1="17" x2="18" y2="17"></line></svg>
+                </div>
+                <div class="card-title">Automated KOT System</div>
               </div>
-              <div class="card-title">Restaurant POS & Dining Floor</div>
+              <span class="card-tag">Zero Delay</span>
             </div>
-            <span class="card-tag">Quick POS</span>
+            <ul class="card-bullets">
+              <li><strong>5-Sec KOT Print:</strong> Waiter ke click karte hi rasoi me KOT print out.</li>
+              <li><strong>Multi-Kitchen Routing:</strong> Bar, Tandoor & Chinese station ke KOT alag.</li>
+              <li><strong>Special Cooking Note:</strong> "Less spicy / No onion" seedha chef ko pass.</li>
+            </ul>
           </div>
-          <ul class="card-bullets">
-            <li><strong>Interactive Table Map:</strong> Table status, running orders & elapsed timer.</li>
-            <li><strong>Rapid Dish Catalog:</strong> Millisecond category search & shortcuts.</li>
-            <li><strong>Running Table Add-ons:</strong> Purane items disturb kiye bina add-on KOT.</li>
-            <li><strong>Dine-In & Takeaway:</strong> Direct parcel, delivery aur table billing.</li>
-          </ul>
         </div>
 
-        <!-- MODULE 3: AUTOMATED KOT & KDS -->
+        <!-- 3. Live Kitchen Display (KDS) -->
         <div class="feature-card">
-          <div class="feature-card-header">
-            <div class="header-left">
-              <div class="card-icon-wrap icon-kot">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"></path><line x1="6" y1="17" x2="18" y2="17"></line></svg>
+          <div>
+            <div class="feature-card-header">
+              <div class="header-left">
+                <div class="card-icon-wrap icon-pms">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                </div>
+                <div class="card-title">Kitchen Display (KDS)</div>
               </div>
-              <div class="card-title">Automated KOT & Live KDS Screen</div>
+              <span class="card-tag">Paperless Chef</span>
             </div>
-            <span class="card-tag">Live KDS</span>
+            <ul class="card-bullets">
+              <li><strong>Digital Order Screen:</strong> Rasoi me tablet par New, Cooking & Ready status.</li>
+              <li><strong>Live Order Timer:</strong> Khana banne me der hone par red warning buzzer.</li>
+              <li><strong>Paper Cost Zero:</strong> KOT paper roll ka mahine ka ₹1,500+ kharcha bachega.</li>
+            </ul>
           </div>
-          <ul class="card-bullets">
-            <li><strong>Kitchen Order Tickets:</strong> Order punch hote hi kitchen thermal print.</li>
-            <li><strong>Smart KDS Pipeline:</strong> Rasoi screen par New âž” Cooking âž” Ready.</li>
-            <li><strong>Cooking Alert Timers:</strong> Delay roko green, yellow aur red alert se.</li>
-            <li><strong>Dining Hall LED Display:</strong> Waiters ke liye instant order ready chime.</li>
-          </ul>
         </div>
 
-        <!-- MODULE 4: QR SCAN & ORDER -->
+        <!-- 4. Table QR Menu & Self-Order -->
         <div class="feature-card">
-          <div class="feature-card-header">
-            <div class="header-left">
-              <div class="card-icon-wrap icon-qr">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+          <div>
+            <div class="feature-card-header">
+              <div class="header-left">
+                <div class="card-icon-wrap icon-qr">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                </div>
+                <div class="card-title">Table QR Self-Order</div>
               </div>
-              <div class="card-title">QR Standee & Self-Ordering Menu</div>
+              <span class="card-tag">25% Sales Boost</span>
             </div>
-            <span class="card-tag">QR Menu</span>
+            <ul class="card-bullets">
+              <li><strong>Scan & Order:</strong> Grahak table par QR scan karke bina waiter ke order kare.</li>
+              <li><strong>Digital Photo Menu:</strong> Sundar food photos dekh kar customer zyada order kare.</li>
+              <li><strong>Fast Turnover:</strong> Waiter ka wait time zero, tables 30% jaldi khali hongi.</li>
+            </ul>
           </div>
-          <ul class="card-bullets">
-            <li><strong>Contactless Table QR:</strong> Guest apne mobile camera se scan karega.</li>
-            <li><strong>Photo Digital Menu:</strong> HD photos, dish descriptions & customizable rates.</li>
-            <li><strong>Zero App Download:</strong> Direct browser par 2 second mein open hota hai.</li>
-            <li><strong>Admin Approval:</strong> Fake orders se bachne ke liye cashier verification.</li>
-          </ul>
         </div>
 
-        <!-- MODULE 5: GST BILLING & PAYMENTS -->
+        <!-- 5. GST Invoicing & Split Bill -->
         <div class="feature-card">
-          <div class="feature-card-header">
-            <div class="header-left">
-              <div class="card-icon-wrap icon-gst">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          <div>
+            <div class="feature-card-header">
+              <div class="header-left">
+                <div class="card-icon-wrap icon-gst">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                </div>
+                <div class="card-title">Smart Split & GST Bill</div>
               </div>
-              <div class="card-title">GST Tax Invoices & Thermal Print</div>
+              <span class="card-tag">Fast Checkout</span>
             </div>
-            <span class="card-tag">GST POS</span>
+            <ul class="card-bullets">
+              <li><strong>Split Bill:</strong> Doston ka bill per-item ya equally 1-click me split karein.</li>
+              <li><strong>Thermal 58/80mm:</strong> Restaurant logo, UPI QR aur GST rate ke sath bill.</li>
+              <li><strong>Payment Modes:</strong> Cash, UPI QR code, Card, Swiggy/Zomato entry.</li>
+            </ul>
           </div>
-          <ul class="card-bullets">
-            <li><strong>3-Inch Thermal & A4 Print:</strong> High-speed bill print with QR payment.</li>
-            <li><strong>Multi-Mode Split Pay:</strong> Cash, UPI QR, Card & Room charge post.</li>
-            <li><strong>Corporate GSTIN:</strong> Company GST number auto-check & invoice.</li>
-            <li><strong>Discounts & Service Charges:</strong> Custom tax rates aur split bills.</li>
-          </ul>
         </div>
 
-        <!-- MODULE 6: LIVE WAITING QUEUE & TOKEN -->
+        <!-- 6. Recipe & Stock Inventory -->
         <div class="feature-card">
-          <div class="feature-card-header">
-            <div class="header-left">
-              <div class="card-icon-wrap icon-wait">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          <div>
+            <div class="feature-card-header">
+              <div class="header-left">
+                <div class="card-icon-wrap icon-wait">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                </div>
+                <div class="card-title">Recipe & Stock Control</div>
               </div>
-              <div class="card-title">Live Waiting Queue & Smart Token</div>
+              <span class="card-tag">Zero Theft</span>
             </div>
-            <span class="card-tag">Live Queue</span>
+            <ul class="card-bullets">
+              <li><strong>Raw Material Cut:</strong> Paneer Butter Masala order hote hi paneer auto deduct.</li>
+              <li><strong>Low Stock Alert:</strong> Tel, masala ya cold drink khatam hone se pehle alert.</li>
+              <li><strong>Best-Selling Dishes:</strong> Pata lagayein kaun si dish sabse zyada munafa deti hai.</li>
+            </ul>
           </div>
-          <ul class="card-bullets">
-            <li><strong>Digital Queue Token:</strong> Table full hone par customer QR scan karke digital token le.</li>
-            <li><strong>Live Wait Tracking:</strong> Guest mobile par live dekhe aage kitne log hain aur wait time.</li>
-            <li><strong>1-Click Table Call (ðŸ“£):</strong> Table khali hote hi cashier 1-click se guest ko alert kare.</li>
-            <li><strong>Stop Rush Walk-Outs:</strong> Peak lunch/dinner rush me bheed, jhagda aur customer loss khatam.</li>
-          </ul>
         </div>
-
       </div>
 
-      <!-- COMPARISON WITH OLD TRADITIONAL SOFTWARE -->
+      <!-- COMPARISON STRIP -->
       <div class="comparison-strip">
         <div class="comp-item">
-          <span class="comp-old">âœ• Heavy Desktop Hardware</span>
+          <span class="comp-old">✕ Waiter se KOT ghum jana ya galat order</span>
           <span class="comp-new">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            100% Cloud Phone/Laptop
+            5-Sec Auto KOT Print & KDS Screen
           </span>
         </div>
         <div class="comp-item">
-          <span class="comp-old">âœ• 3-4 Alag Alag Softwares</span>
+          <span class="comp-old">✕ Rush hour me bill lene ke liye lambi line</span>
           <span class="comp-new">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            PMS + POS + KOT Ek Jagah
+            1-Click Split Bill & Dynamic UPI QR
           </span>
         </div>
         <div class="comp-item">
-          <span class="comp-old">âœ• Lost Paper Kitchen Slips</span>
+          <span class="comp-old">✕ Rasoi me raw material chori & wastage</span>
           <span class="comp-new">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            Auto KOT & Live KDS Screen
+            Recipe-Based Auto Stock Deduction
           </span>
         </div>
         <div class="comp-item">
-          <span class="comp-old">âœ• â‚¹40,000+ Huge Upfront Fee</span>
+          <span class="comp-old">✕ ₹40,000+ Heavy POS Hardware Cost</span>
           <span class="comp-new">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            Only â‚¹1,499/mo + 7-Day Trial
+            Only ₹2,499/mo + 7-Day Free Trial
           </span>
         </div>
       </div>
     </section>
 
-    <!-- =========================================================
-         NEW SECTION 1: SHURU KARNA BILKUL AASAAN (3-STEP ONBOARDING)
-         ========================================================= -->
+    <!-- 3-STEP ONBOARDING -->
     <section class="steps-section">
       <div class="steps-strip">
         <div class="step-item">
-          <div class="step-num">01</div>
+          <div class="step-num">1</div>
           <div class="step-content">
-            <h4>Property Register Karein</h4>
-            <p>Sirf 2 minute ka aasaan form â€” property ka naam, city aur room numbers bhar kar shuru karein.</p>
+            <h4>Menu & Dishes Add Karein</h4>
+            <p>Excel sheet se 1-click import karein ya direct form se food items, rate aur tax load karein.</p>
           </div>
         </div>
-
         <div class="step-item">
-          <div class="step-num">02</div>
+          <div class="step-num">2</div>
           <div class="step-content">
-            <h4>Rooms & Menu Setup</h4>
-            <p>Excel sheet se 1-click import karein ya direct form se food items aur tariff pricing load karein.</p>
+            <h4>Tables & KOT Printer Link</h4>
+            <p>Tables create karein aur reception laptop ya phone ko kitchen thermal printer se connect karein.</p>
           </div>
         </div>
-
         <div class="step-item">
-          <div class="step-num">03</div>
+          <div class="step-num">3</div>
           <div class="step-content">
-            <h4>Staff Add & Live Billing</h4>
-            <p>Front desk, waiter aur kitchen staff logins create karein aur 7 din risk-free chalao.</p>
+            <h4>Superfast Billing Chalu</h4>
+            <p>Captain phone se order le ya counter se direct punch karein — rasoi me KOT aur bill ekdum tayyar.</p>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- =========================================================
-         NEW SECTION 2: HARDWARE FREEDOM & PRINTER SUPPORT BANNER
-         ========================================================= -->
+    <!-- HARDWARE COMPATIBILITY STRIP -->
     <div class="hardware-strip">
       <div class="hw-title">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
-        100% Device & Hardware Freedom:
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+        HARDWARE READY
       </div>
       <div class="hw-items">
         <div class="hw-item">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
-          Android Mobiles & Tablets
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          Thermal 58mm / 80mm Bill & KOT Printers
         </div>
         <div class="hw-item">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
-          Windows PC & Laptops
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          Touch POS, Laptop, iPad & Android Tablet
         </div>
         <div class="hw-item">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
-          Thermal Printers (USB / Bluetooth / LAN)
-        </div>
-        <div class="hw-item">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
-          POS Touch Terminals
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          Table Acrylic QR Standees Compatible
         </div>
       </div>
     </div>
 
-    <!-- HOTELIER SOCIAL PROOF STRIP -->
+    <!-- TESTIMONIAL STRIP -->
     <div class="testimonial-strip">
-      <div class="testi-stars">â˜…â˜…â˜…â˜…â˜…</div>
-      <div class="testi-text">
-        â€œE-Annapurna lagane ke baad reception aur rasoi ka jhanjhat 100% khatam ho gaya. Waiting queue token se lunch rush mein ek bhi customer walk-out nahi hota!â€
-      </div>
-      <div class="testi-author">â€” Hotel Green Park & Grand Dine, Delhi NCR</div>
+      <div class="testi-stars">★★★★★</div>
+      <div class="testi-text">"Rush hour me jo orders miss hote the wo bilkul band ho gaye. Kitchen KDS aur QR ordering se humara table turnover 30% fast ho gaya!"</div>
+      <div class="testi-author">— Chef Vikram Singh, Owner, The Royal Spice Restaurant</div>
     </div>
 
-    <!-- =========================================================
-         ENRICHED FOOTER CTA & CONTACT (WITH WEBSITE QR & ALL INFO)
-         ========================================================= -->
+    <!-- FOOTER CTA & CONTACT -->
     <footer class="footer-cta">
-      <!-- Footer Top Ticker -->
       <div class="footer-ticker">
-        <div class="ticker-item">ðŸ¨ Hotel PMS & Room Inventory</div>
-        <div class="ticker-dot"></div>
-        <div class="ticker-item">ðŸ½ï¸ Touch POS & Table Management</div>
-        <div class="ticker-dot"></div>
-        <div class="ticker-item">ðŸ‘¨â€ðŸ³ Kitchen Order Ticket (KOT) & KDS</div>
-        <div class="ticker-dot"></div>
-        <div class="ticker-item">ðŸ“± Table QR Scan & Self-Order</div>
-        <div class="ticker-dot"></div>
-        <div class="ticker-item">â³ Live Waiting Queue & Token</div>
-        <div class="ticker-dot"></div>
-        <div class="ticker-item">ðŸ§¾ GST Thermal Billing</div>
+        <div class="ticker-item"><span class="ticker-dot"></span> 7-Day Risk-Free Trial</div>
+        <div class="ticker-item"><span class="ticker-dot"></span> Free Remote Staff Training</div>
+        <div class="ticker-item"><span class="ticker-dot"></span> 24/7 Dedicated Call & WhatsApp Help</div>
+        <div class="ticker-item"><span class="ticker-dot"></span> 100% Cloud Data Auto-Backup</div>
       </div>
 
-      <!-- Main Footer Row -->
       <div class="footer-main-row">
-        <!-- QR CODE CONTAINER -->
         <div class="qr-box">
-          <img src="pamphlet-assets/website-qr.png" alt="Scan QR For Website & Demo" class="qr-img">
-          <span class="qr-label">Scan For Website</span>
+          <img src="assets/website-qr.png" alt="Scan QR For Demo" class="qr-img">
+          <div class="qr-label">Scan For Demo</div>
         </div>
 
-        <!-- CONTACT INFO & WEBSITE LINK -->
         <div class="contact-details">
-          <div class="cta-heading">
-            Aaj Hi Free Demo Book Karein â€” <span>7 Din Ka Free Trial!</span>
-          </div>
-          <div class="cta-subtext">Hamari hospitality expert team aapke hotel par aakar ya online complete setup aur live demo karegi.</div>
-
+          <div class="cta-heading">Apne Restaurant Ko Banayein <span>Superfast & Smart</span>!</div>
+          <div class="cta-subtext">Free trial shuru karein • 10 minute me POS live • Zero setup charges</div>
           <div class="contact-grid">
             <div class="contact-item">
-              <div class="contact-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-              </div>
-              <span>Official Website: <a href="https://www.e-annapurna.com" target="_blank">www.e-annapurna.com</a></span>
+              <div class="contact-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg></div>
+              <a href="tel:+919589911153">+91 95899 11153</a>
             </div>
-
             <div class="contact-item">
-              <div class="contact-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-              </div>
-              <span>Call & WhatsApp: <strong>+91 98765 43210</strong></span>
+              <div class="contact-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg></div>
+              <a href="https://www.e-annapurna.co.in" target="_blank">www.e-annapurna.co.in</a>
             </div>
-
             <div class="contact-item">
-              <div class="contact-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-              </div>
-              <span>Email: <a href="mailto:contact@e-annapurna.com">contact@e-annapurna.com</a></span>
+              <div class="contact-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></div>
+              <a href="mailto:support@e-annapurna.co.in">support@e-annapurna.co.in</a>
             </div>
-
             <div class="contact-item">
-              <div class="contact-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-              </div>
-              <span>Support: <strong>24/7 Priority Indian Helpdesk</strong></span>
+              <div class="contact-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg></div>
+              <span>WhatsApp: +91 95899 11153</span>
             </div>
           </div>
-
           <div class="contact-address">
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-            Head Office: Connaught Place, New Delhi - 110001 | Technology Partner: DIRD (dird.co.in)
+            DIRD INDIA TECHNOLOGIES PVT. LTD. • Serving Restaurants Nationwide
           </div>
         </div>
 
-        <!-- ACTION BUTTON & GUARANTEE -->
         <div class="cta-action-col">
-          <a href="https://www.e-annapurna.com" target="_blank" class="cta-btn-gold">
-            Book Free Demo
-          </a>
+          <a href="https://www.e-annapurna.co.in/register" target="_blank" class="cta-btn-gold">Book Free Demo</a>
           <div class="cta-guarantee">
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            7 Din Free Guarantee
+            7 Days Free • Zero Advance
           </div>
-          <div class="bottom-copyright">
-            Â© 2026 E-Annapurna. All rights reserved.
-          </div>
+          <div class="bottom-copyright">© 2026 E-Annapurna. All rights reserved.</div>
         </div>
       </div>
 
-      <!-- Footer Bottom Security & Trust Badges -->
       <div class="footer-bottom-trust">
         <div class="trust-bullets">
-          <div class="trust-bullet-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            256-Bit SSL Encrypted Cloud Data
-          </div>
-          <div class="trust-bullet-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            99.9% Cloud Uptime Guarantee
-          </div>
-          <div class="trust-bullet-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            Free Onboarding & Staff Training
-          </div>
+          <div class="trust-bullet-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg> 256-Bit SSL Encrypted</div>
+          <div class="trust-bullet-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg> Daily Automated Cloud Backup</div>
+          <div class="trust-bullet-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg> 99.9% High Availability Uptime</div>
         </div>
-        <div class="trust-bullet-item">
-          ðŸ‡®ðŸ‡³ Proudly Built for Indian Hospitality
-        </div>
+        <div>Designed for Dine-In, Cafes, Bars & Quick Service Restaurants</div>
       </div>
     </footer>
 
@@ -1523,4 +1454,3 @@
 
 </body>
 </html>
-

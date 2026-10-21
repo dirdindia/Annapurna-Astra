@@ -86,6 +86,30 @@
       font-weight: 700;
     }
 
+    .toolbar-nav {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .toolbar-link {
+      background: rgba(255, 255, 255, 0.08);
+      color: #D1E5E2;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 6px 12px;
+      font-size: 11.5px;
+      font-weight: 600;
+      border-radius: 999px;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .toolbar-link.active, .toolbar-link:hover {
+      background: rgba(242, 163, 58, 0.25);
+      color: #FFF;
+      border-color: var(--saffron-400);
+    }
+
     .toolbar-btn {
       display: inline-flex;
       align-items: center;
@@ -162,8 +186,9 @@
     }
 
     .brand-logo-img {
-      height: 44px;
-      width: auto;
+      height: 46px;
+      width: 46px;
+      object-fit: contain;
       border-radius: 8px;
       background: #fff;
       padding: 2px;
@@ -1081,13 +1106,15 @@
       <span>📄 Single Page Marketing Pamphlet</span>
       <span class="badge">A4 Print Ready</span>
     </div>
+    <div class="toolbar-nav">
+      <a href="index.html" class="toolbar-link active">Combo Edition (₹3,499)</a>
+      <a href="hotel-pamphlet.html" class="toolbar-link">🏨 Hotel PMS (₹2,499)</a>
+      <a href="restaurant-pamphlet.html" class="toolbar-link">🍽️ Restaurant (₹2,499)</a>
+    </div>
     <button class="toolbar-btn" onclick="window.print()">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
       Print / Save as PDF
     </button>
-    <a href="https://www.e-annapurna.com" target="_blank" class="toolbar-secondary">
-      Visit Website
-    </a>
   </div>
 
   <!-- A4 SINGLE PAGE PAMPHLET CONTAINER -->
@@ -1163,13 +1190,13 @@
     </section>
 
     <!-- =========================================================
-         ATTRACTIVE PRICING & SPECIAL OFFER STRIP (₹1,499/MO)
+         ATTRACTIVE PRICING & SPECIAL OFFER STRIP (₹3,499/MO)
          ========================================================= -->
     <section class="pricing-banner">
       <div class="price-hook">
         <div class="price-tag-bubble">
           <span class="starting-from">Starts At Just</span>
-          <span class="price-amount">₹1,499</span>
+          <span class="price-amount">₹3,499</span>
           <span class="per-month">/ Month</span>
         </div>
         <div class="price-hook-text">
@@ -1338,7 +1365,7 @@
           <span class="comp-old">✕ ₹40,000+ Huge Upfront Fee</span>
           <span class="comp-new">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            Only ₹1,499/mo + 7-Day Trial
+            Only ₹3,499/mo + 7-Day Trial
           </span>
         </div>
       </div>
@@ -1352,8 +1379,8 @@
         <div class="step-item">
           <div class="step-num">01</div>
           <div class="step-content">
-            <h4>Property Register Karein</h4>
-            <p>Sirf 2 minute ka aasaan form — property ka naam, city aur room numbers bhar kar shuru karein.</p>
+            <h4>Hotel Register Karein</h4>
+            <p>Sirf 2 minute ka aasaan form — hotel ka naam, city aur room numbers bhar kar shuru karein.</p>
           </div>
         </div>
 
@@ -1451,40 +1478,40 @@
               <div class="contact-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
               </div>
-              <span>Official Website: <a href="https://www.e-annapurna.com" target="_blank">www.e-annapurna.com</a></span>
+              <span>Official Website: <a href="https://www.e-annapurna.co.in" target="_blank">www.e-annapurna.co.in</a></span>
             </div>
 
             <div class="contact-item">
               <div class="contact-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
               </div>
-              <span>Call & WhatsApp: <strong>+91 98765 43210</strong></span>
+              <span>Call & WhatsApp: <strong>+91 95899 11153</strong></span>
             </div>
 
             <div class="contact-item">
               <div class="contact-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
               </div>
-              <span>Email: <a href="mailto:contact@e-annapurna.com">contact@e-annapurna.com</a></span>
+              <span>Email: <a href="mailto:contact@e-annapurna.co.in">contact@e-annapurna.co.in</a></span>
             </div>
 
             <div class="contact-item">
               <div class="contact-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
               </div>
-              <span>Support: <strong>24/7 Priority Indian Helpdesk</strong></span>
+              <span>Support: <strong>24/7 Dedicated Indian Helpdesk</strong></span>
             </div>
           </div>
 
           <div class="contact-address">
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-            Head Office: Connaught Place, New Delhi - 110001 | Technology Partner: DIRD (dird.co.in)
+            DIRD INDIA TECHNOLOGIES PVT. LTD. • Serving Hoteliers & Restaurants Nationwide
           </div>
         </div>
 
         <!-- ACTION BUTTON & GUARANTEE -->
         <div class="cta-action-col">
-          <a href="https://www.e-annapurna.com" target="_blank" class="cta-btn-gold">
+          <a href="https://www.e-annapurna.co.in" target="_blank" class="cta-btn-gold">
             Book Free Demo
           </a>
           <div class="cta-guarantee">

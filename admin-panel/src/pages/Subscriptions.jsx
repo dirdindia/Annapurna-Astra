@@ -373,7 +373,7 @@ export default function Subscriptions() {
                       )}
                       {hotel.plan === 'Starter' && (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-lagoon-50 text-lagoon-800 border border-lagoon-200 shadow-sm">
-                          <ShieldCheck className="w-3.5 h-3.5 text-lagoon-600" /> Starter (₹1,499)
+                          <ShieldCheck className="w-3.5 h-3.5 text-lagoon-600" /> Starter (₹3,499)
                         </span>
                       )}
                       {(hotel.plan === 'none' || !hotel.plan) && (
@@ -507,7 +507,7 @@ export default function Subscriptions() {
                   </label>
                   <div className="grid grid-cols-3 gap-3">
                     {[
-                      { id: 'Starter', label: 'Starter', price: '₹1,499' },
+                      { id: 'Starter', label: 'Starter', price: '₹3,499' },
                       { id: 'Growth', label: 'Growth', price: '₹3,999' },
                       { id: 'Enterprise', label: 'Enterprise', price: '₹9,999' },
                     ].map((p) => (

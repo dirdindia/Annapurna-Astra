@@ -63,7 +63,7 @@ export default function Contact() {
               </div>
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-lagoon-100/60">Call Directly</p>
-                <p className="text-base font-semibold text-white">+91 98765 43210</p>
+                <p className="text-base font-semibold text-white">+91 95899 11153</p>
               </div>
             </motion.div>
             
@@ -76,7 +76,7 @@ export default function Contact() {
               </div>
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-lagoon-100/60">Email Support</p>
-                <p className="text-base font-semibold text-white">contact@e-annapurna.com</p>
+                <p className="text-base font-semibold text-white">contact@e-annapurna.co.in</p>
               </div>
             </motion.div>
 

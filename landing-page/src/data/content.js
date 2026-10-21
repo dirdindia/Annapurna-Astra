@@ -22,7 +22,7 @@ export const features = [
 ]
 
 export const plans = [
-  { name: 'Starter', monthly: 1499, desc: '10 rooms tak ke chhote hotel/guest house ke liye', perks: ['Room booking', 'Billing & GST invoice', '2 staff logins', 'Email support'] },
+  { name: 'Starter', monthly: 3499, desc: '10 rooms tak ke chhote hotel/guest house ke liye', perks: ['Room booking', 'Billing & GST invoice', '2 staff logins', 'Email support'] },
   { name: 'Growth', monthly: 3999, popular: true, desc: 'Restaurant wale hotels ke liye poora setup', perks: ['Starter ka sab kuch', 'Restaurant POS + KOT', 'KDS aur QR scan & order', 'Staff app (10 logins)', 'WhatsApp support'] },
   { name: 'Enterprise', monthly: 9999, desc: 'Chain aur bade resorts ke liye', perks: ['Growth ka sab kuch', 'Multi-property', 'Unlimited staff', 'Custom reports & API', 'Dedicated manager'] },
 ]

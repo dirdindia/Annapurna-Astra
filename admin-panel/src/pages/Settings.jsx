@@ -24,7 +24,7 @@ export default function Settings() {
   const [profile, setProfile] = useState({
     name: 'Super Admin',
     email: 'admin@gmail.com',
-    phone: '+91 98765 43210',
+    phone: '+91 95899 11153',
     role: 'Root Super Administrator',
   });
 

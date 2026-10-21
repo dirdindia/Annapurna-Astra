@@ -24,8 +24,8 @@ const PLANS = {
   Starter: {
     id: "Starter",
     name: "Starter",
-    monthlyPrice: 1499,
-    yearlyPrice: 14990,
+    monthlyPrice: 3499,
+    yearlyPrice: 34990,
     durationDays: { monthly: 30, yearly: 365 },
     description: "10 rooms tak ke chhote hotel/guest house ke liye",
     features: [
