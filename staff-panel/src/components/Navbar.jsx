@@ -40,15 +40,17 @@ export default function Navbar({ currentUser, onLogout, theme, toggleTheme, togg
               <img src={currentUser.hotelLogo} alt={currentUser?.hotelName || "Hotel Logo"} className="w-full h-full object-contain rounded-lg" />
             </div>
           ) : (
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400/20 to-saffron-500/20 border border-saffron-500/40 flex items-center justify-center shadow-md shrink-0">
-              <img src="/favicon.svg" alt="Annapurna Astra Logo" className="w-6 h-6 rounded-lg" />
+            <div className={`w-10 h-10 rounded-xl border overflow-hidden flex items-center justify-center p-1 shadow-md shrink-0 ${
+              theme === "light" ? "bg-white border-slate-200" : "bg-slate-900 border-slate-700/60"
+            }`}>
+              <img src="/e-annapurna-logo.jpeg" alt="E-Annapurna Logo" className="w-full h-full object-contain rounded-lg" />
             </div>
           )}
           <div>
             <h1 className={`text-xl font-bold font-display tracking-tight leading-none uppercase group-hover:text-amber-500 transition-colors ${
               theme === "light" ? "text-slate-900" : "text-white"
             }`}>
-              {currentUser?.hotelName || "Annapurna Astra"}
+              {currentUser?.hotelName || "E-Annapurna"}
             </h1>
             <p className={`text-[10px] font-bold tracking-widest uppercase hidden sm:block mt-1 ${
               theme === "light" ? "text-saffron-700" : "text-saffron-400"

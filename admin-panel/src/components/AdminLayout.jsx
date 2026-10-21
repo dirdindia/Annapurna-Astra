@@ -63,8 +63,8 @@ export default function AdminLayout() {
     <>
       <div className={`p-5 flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} border-b border-white/10`}>
         <div className="flex items-center gap-3 overflow-hidden cursor-pointer" onClick={() => navigate('/dashboard')}>
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400/20 to-saffron-500/20 border border-saffron-500/40 flex items-center justify-center p-1 shadow-md shrink-0">
-            <img src="/favicon.svg" alt="Annapurna Astra Logo" className="w-6 h-6 rounded-lg" />
+          <div className="w-10 h-10 rounded-xl bg-white/10 border border-saffron-500/40 flex items-center justify-center p-1 shadow-md shrink-0 overflow-hidden">
+            <img src="/e-annapurna-logo.jpeg" alt="E-Annapurna Logo" className="w-full h-full object-contain rounded-lg" />
           </div>
           {!isCollapsed && (
             <motion.div 
@@ -74,7 +74,7 @@ export default function AdminLayout() {
               className="flex flex-col"
             >
               <h1 className="text-xl font-black text-white tracking-tight whitespace-nowrap font-display leading-tight">
-                Annapurna <span className="text-saffron-400">Astra</span>
+                E-<span className="text-saffron-400">Annapurna</span>
               </h1>
               <p className="text-[11px] uppercase tracking-widest text-saffron-400 font-extrabold mt-0.5">
                 Super Admin Cloud
@@ -201,7 +201,7 @@ export default function AdminLayout() {
             <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-lagoon-50/80 border border-lagoon-200/60">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               <span className="text-[11px] font-bold text-lagoon-800 uppercase tracking-wider">
-                Annapurna Astra Cloud Architecture Control
+                E-Annapurna Cloud Architecture Control
               </span>
             </div>
           </div>

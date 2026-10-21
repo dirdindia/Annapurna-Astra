@@ -19,6 +19,18 @@ const {
   getOrdersByMobile,
 } = require("../controllers/publicOrderController");
 
+const {
+  joinPublicWaitlist,
+  getPublicWaitlistStatus,
+  getHotelPublicQueueSummary,
+  cancelPublicWaitlist,
+  getAdminWaitlist,
+  callWaitlistGuest,
+  seatWaitlistGuest,
+  addManualWaitlist,
+  updateWaitlistStatus,
+} = require("../controllers/waitlistController");
+
 // ===================================
 // PUBLIC GUEST ROUTES (NO AUTH REQUIRED)
 // ===================================
@@ -31,6 +43,12 @@ router.post("/payment/create-order", createPublicRazorpayOrder);
 router.post("/payment/verify", verifyPublicRazorpayPayment);
 router.post("/table-booking", createPublicTableBooking);
 
+// Public Live Waitlist Queue
+router.post("/waitlist/join", joinPublicWaitlist);
+router.get("/waitlist/status/:id", getPublicWaitlistStatus);
+router.get("/waitlist/summary/:hotelId", getHotelPublicQueueSummary);
+router.post("/waitlist/:id/cancel", cancelPublicWaitlist);
+
 // ===================================
 // HOTEL ADMIN/STAFF PROTECTED ROUTES
 // ===================================
@@ -41,5 +59,12 @@ router.put("/admin/qr-orders/:orderId/addons/:addonIndex/approve", protect, appr
 router.put("/admin/qr-orders/:orderId/addons/:addonIndex/reject", protect, rejectAddonOrder);
 router.get("/admin/table-bookings", protect, getHotelTableBookings);
 router.put("/admin/table-bookings/:bookingId", protect, updateTableBookingStatus);
+
+// Admin / Staff Waitlist Controls
+router.get("/admin/waitlist", protect, getAdminWaitlist);
+router.post("/admin/waitlist/manual", protect, addManualWaitlist);
+router.put("/admin/waitlist/:id/call", protect, callWaitlistGuest);
+router.put("/admin/waitlist/:id/seat", protect, seatWaitlistGuest);
+router.put("/admin/waitlist/:id/status", protect, updateWaitlistStatus);
 
 module.exports = router;

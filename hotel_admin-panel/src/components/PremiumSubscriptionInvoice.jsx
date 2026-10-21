@@ -70,13 +70,13 @@ export default function PremiumSubscriptionInvoice({ invoice, onClose }) {
         {/* Header */}
         <div className="flex items-start justify-between mb-4 border-b-2 border-black pb-4">
           <div className="w-1/4">
-            <h1 className="text-2xl font-black text-amber-600 uppercase tracking-tight">Annapurna Astra</h1>
+            <h1 className="text-2xl font-black text-amber-600 uppercase tracking-tight">E-Annapurna</h1>
             <p className="text-xs mt-1 font-bold text-gray-700">Hospitality SaaS Solutions</p>
           </div>
           <div className="w-2/4 text-center">
             <h1 className="text-xl font-bold tracking-wide uppercase underline">Tax Invoice (Subscription)</h1>
-            <p className="text-xs font-semibold mt-2">www.annapurnaastra.com</p>
-            <p className="text-xs font-semibold">billing@annapurnaastra.com</p>
+            <p className="text-xs font-semibold mt-2">www.e-annapurna.com</p>
+            <p className="text-xs font-semibold">billing@e-annapurna.com</p>
           </div>
           <div className="w-1/4 text-right text-xs font-bold space-y-1">
             <p>Invoice No: {invoice.txnid}</p>

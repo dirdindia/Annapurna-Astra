@@ -67,9 +67,9 @@ export default function Navbar() {
         
         {/* Brand Logo */}
         <Link to="/" className="flex items-center gap-2.5 group">
-          <img src="/dird-logo.webp" alt="DIRD Logo" className="h-9 w-auto transition-transform duration-300 group-hover:scale-105" />
+          <img src="/e-annapurna-logo.jpeg" alt="E-Annapurna Logo" className="h-10 w-auto object-contain rounded-lg transition-transform duration-300 group-hover:scale-105" />
           <span className="font-display text-2xl font-bold tracking-tight">
-            Annapurna <span className="text-saffron-600">Astra</span>
+            E-<span className="text-saffron-600">Annapurna</span>
           </span>
         </Link>
 

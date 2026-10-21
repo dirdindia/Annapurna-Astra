@@ -79,9 +79,9 @@ export default function App() {
 
   useEffect(() => {
     if (currentUser && currentUser.hotelName) {
-      document.title = `${currentUser.hotelName} - Annapurna Astra Staff`;
+      document.title = `${currentUser.hotelName} - E-Annapurna Staff`;
     } else {
-      document.title = "Annapurna Astra - Staff Desk";
+      document.title = "E-Annapurna - Staff Desk";
     }
   }, [currentUser]);
 

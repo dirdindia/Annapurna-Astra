@@ -130,7 +130,7 @@ export default function Settings() {
             </div>
 
             <span className="text-xs font-mono font-bold text-lagoon-200 bg-white/10 border border-white/10 px-3 py-1.5 rounded-xl">
-              Annapurna Astra Core Engine v2.4.0
+              E-Annapurna Core Engine v2.4.0
             </span>
           </div>
         </div>
@@ -292,7 +292,7 @@ export default function Settings() {
       <div className="stayflow-card rounded-3xl p-6 sm:p-8">
         <h3 className="text-lg font-bold text-lagoon-950 font-display mb-2 flex items-center gap-2">
           <Server className="w-5 h-5 text-saffron-600" />
-          Annapurna Astra Platform & Gateway Status
+          E-Annapurna Platform & Gateway Status
         </h3>
         <p className="text-xs text-lagoon-600 mb-6 font-medium">
           Global architecture health, payment gateway integration, and business rule enforcement.

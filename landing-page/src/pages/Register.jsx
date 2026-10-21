@@ -72,9 +72,9 @@ export default function Register() {
         {/* Brand Header */}
         <div className="relative z-10">
           <Link to="/" className="inline-flex items-center gap-2 group">
-            <img src="/dird-logo.webp" alt="DIRD Logo" className="h-8 w-auto transition-transform group-hover:scale-105" />
+            <img src="/e-annapurna-logo.jpeg" alt="E-Annapurna Logo" className="h-9 w-auto object-contain rounded-lg transition-transform group-hover:scale-105" />
             <span className="font-display text-2xl font-bold tracking-tight">
-              Annapurna <span className="text-saffron-500">Astra</span>
+              E-<span className="text-saffron-500">Annapurna</span>
             </span>
           </Link>
         </div>
@@ -131,7 +131,7 @@ export default function Register() {
           </div>
         </div>
 
-        <p className="relative z-10 text-xs text-lagoon-100/50">© Annapurna Astra · All rights reserved</p>
+        <p className="relative z-10 text-xs text-lagoon-100/50">© E-Annapurna · All rights reserved</p>
       </aside>
 
       {/* RIGHT SECTION: MODERN INTERACTIVE FORM WITH MICRO-EFFECTS */}

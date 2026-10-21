@@ -20,7 +20,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Default route
 app.get("/", (req, res) => {
-  res.send("Zoox is running...");
+  res.send("E-Annapurna API is running...");
 });
 
 // Routes

@@ -1,0 +1,2084 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>E-Annapurna — 10-Page Enterprise Marketing Brochure</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;0,9..144,800;1,9..144,600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* =========================================================
+       GLOBAL PRINT & MULTI-PAGE A4 ARCHITECTURE
+       ========================================================= */
+    :root {
+      --lagoon-950: #051A1A;
+      --lagoon-900: #0A2F2F;
+      --lagoon-850: #0D3737;
+      --lagoon-800: #0F4242;
+      --lagoon-700: #145555;
+      --lagoon-500: #1F6F6B;
+      --lagoon-100: #E2ECE9;
+      --lagoon-50:  #F2F7F6;
+      --saffron-400: #F6B445;
+      --saffron-500: #F2A33A;
+      --saffron-600: #D98A1F;
+      --gold-gradient: linear-gradient(135deg, #FFE58F 0%, #F59E0B 50%, #D97706 100%);
+      --emerald: #10B981;
+      --emerald-dark: #065F46;
+      --linen: #FBFBFA;
+      --slate-900: #0F172A;
+      --slate-800: #1E293B;
+      --slate-700: #334155;
+      --slate-600: #475569;
+      --font-display: 'Fraunces', Georgia, serif;
+      --font-sans: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: #CBD5E1;
+      color: var(--slate-800);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 0;
+      gap: 24px;
+    }
+
+    /* Floating action toolbar (hidden in print) */
+    .toolbar {
+      position: sticky;
+      top: 12px;
+      z-index: 99999;
+      background: rgba(10, 47, 47, 0.95);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 999px;
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 12px 30px -5px rgba(0, 0, 0, 0.35);
+    }
+
+    .toolbar-info {
+      color: #fff;
+      font-size: 13.5px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .toolbar-badge {
+      background: rgba(242, 163, 58, 0.2);
+      color: var(--saffron-400);
+      border: 1px solid var(--saffron-400);
+      border-radius: 20px;
+      padding: 3px 10px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+    }
+
+    .btn-print {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--gold-gradient);
+      color: var(--lagoon-950);
+      font-family: var(--font-sans);
+      font-weight: 800;
+      font-size: 13.5px;
+      border: none;
+      padding: 9px 22px;
+      border-radius: 999px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.45);
+      transition: all 0.2s ease;
+    }
+
+    .btn-print:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.6);
+    }
+
+    .btn-web {
+      background: rgba(255, 255, 255, 0.12);
+      color: #FFFFFF;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      padding: 8px 16px;
+      font-size: 12.5px;
+      font-weight: 600;
+      border-radius: 999px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .btn-web:hover {
+      background: rgba(255, 255, 255, 0.22);
+    }
+
+    /* =========================================================
+       STANDARD A4 PAGE SPECIFICATIONS (EXACT MULTI-PAGE SHEETS)
+       ========================================================= */
+    .page {
+      width: 210mm;
+      height: 297mm;
+      max-height: 297mm;
+      background: #FFFFFF;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.18);
+      page-break-after: always;
+      page-break-inside: avoid;
+    }
+
+    /* INNER PAGE HEADER & FOOTER RUNNERS */
+    .page-header-runner {
+      height: 22px;
+      padding: 4px 20px;
+      background: #F4F7F6;
+      border-bottom: 1px solid #D5E2DF;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 8px;
+      color: var(--lagoon-800);
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      z-index: 10;
+      flex-shrink: 0;
+    }
+
+    .page-header-runner .runner-brand {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--lagoon-900);
+    }
+
+    .page-header-runner .runner-dot {
+      width: 4px;
+      height: 4px;
+      background: var(--saffron-500);
+      border-radius: 50%;
+    }
+
+    .page-footer-runner {
+      height: 22px;
+      padding: 3px 20px;
+      background: #FFFFFF;
+      border-top: 1px solid #E2E8F0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 7.8px;
+      color: var(--slate-600);
+      font-weight: 600;
+      margin-top: auto;
+      z-index: 10;
+      flex-shrink: 0;
+    }
+
+    .page-footer-runner .page-num {
+      background: var(--lagoon-900);
+      color: #FFFFFF;
+      padding: 1.5px 7px;
+      border-radius: 3px;
+      font-weight: 800;
+      font-size: 7.8px;
+      letter-spacing: 0.5px;
+    }
+
+    /* REUSABLE HERO BANNER FOR INNER PAGES */
+    .module-hero-banner {
+      background: linear-gradient(135deg, var(--lagoon-950) 0%, var(--lagoon-900) 65%, #0e3b3b 100%);
+      color: #FFFFFF;
+      padding: 11px 20px;
+      position: relative;
+      border-bottom: 2.5px solid var(--saffron-500);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      flex-shrink: 0;
+    }
+
+    .module-hero-content {
+      flex: 1;
+    }
+
+    .module-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(246, 180, 69, 0.15);
+      border: 1px solid rgba(246, 180, 69, 0.4);
+      color: var(--saffron-400);
+      font-size: 8px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      margin-bottom: 3px;
+    }
+
+    .module-hero-title {
+      font-family: var(--font-display);
+      font-size: 18.5px;
+      font-weight: 800;
+      color: #FFFFFF;
+      line-height: 1.15;
+      letter-spacing: -0.3px;
+    }
+
+    .module-hero-title span {
+      color: var(--saffron-400);
+    }
+
+    .module-hero-desc {
+      font-size: 9.2px;
+      color: #D1E5E2;
+      line-height: 1.35;
+      margin-top: 2px;
+      max-width: 530px;
+    }
+
+    .module-hero-badges {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .badge-roi {
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid rgba(16, 185, 129, 0.5);
+      color: #34D399;
+      font-size: 8.5px;
+      font-weight: 800;
+      padding: 2.5px 9px;
+      border-radius: 999px;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+    }
+
+    /* COMMON PAGE PADDING & BALANCED VERTICAL SPREAD */
+    .page-body {
+      padding: 10px 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 8px;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* SECTION TITLE CARDS */
+    .card-block {
+      background: #FFFFFF;
+      border: 1px solid #D1DFDB;
+      border-radius: 8px;
+      padding: 9px 12px;
+      box-shadow: 0 1px 4px rgba(10, 47, 47, 0.04);
+      position: relative;
+    }
+
+    .card-block-title {
+      font-family: var(--font-display);
+      font-size: 12.5px;
+      font-weight: 800;
+      color: var(--lagoon-950);
+      margin-bottom: 5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .card-block-title::before {
+      content: "";
+      width: 3.5px;
+      height: 12px;
+      background: var(--saffron-500);
+      border-radius: 2px;
+      display: inline-block;
+    }
+
+    /* GRID COLUMNS */
+    .grid-2col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+    }
+
+    .grid-3col {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .grid-4col {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 7px;
+    }
+
+    /* BULLET LISTS */
+    .feature-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .feature-list li {
+      font-size: 8.8px;
+      line-height: 1.32;
+      color: var(--slate-700);
+      display: flex;
+      align-items: flex-start;
+      gap: 5px;
+    }
+
+    .feature-list li::before {
+      content: "✔";
+      color: var(--emerald);
+      font-weight: 800;
+      font-size: 9px;
+      line-height: 1.3;
+      flex-shrink: 0;
+    }
+
+    .feature-list li strong {
+      color: var(--lagoon-950);
+      font-weight: 700;
+    }
+
+    /* VISUAL PREVIEW FRAMES */
+    .preview-frame {
+      border: 1.5px solid var(--lagoon-900);
+      border-radius: 7px;
+      overflow: hidden;
+      box-shadow: 0 4px 14px rgba(10, 47, 47, 0.12);
+      background: #000;
+      position: relative;
+    }
+
+    .preview-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .preview-caption {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(10, 47, 47, 0.90);
+      backdrop-filter: blur(4px);
+      color: #FFFFFF;
+      font-size: 7.8px;
+      font-weight: 700;
+      padding: 3px 8px;
+      letter-spacing: 0.4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* KPI STAT CHIPS */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7px;
+    }
+
+    .kpi-chip {
+      background: var(--lagoon-50);
+      border: 1px solid #CFE3DF;
+      border-radius: 6px;
+      padding: 6px 8px;
+      text-align: center;
+    }
+
+    .kpi-value {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--lagoon-900);
+      line-height: 1;
+    }
+
+    .kpi-label {
+      font-size: 7.5px;
+      font-weight: 700;
+      color: var(--slate-600);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      margin-top: 2px;
+    }
+
+    /* BOTTOM FEATURE BANDS (ELIMINATES EMPTY GAP) */
+    .bottom-feature-band {
+      background: #F3F8F7;
+      border: 1px solid #CFE3DF;
+      border-radius: 7px;
+      padding: 8px 11px;
+    }
+
+    .bottom-feature-band.dark {
+      background: var(--lagoon-900);
+      border-color: rgba(246, 180, 69, 0.4);
+      color: #FFFFFF;
+    }
+
+    .band-title {
+      font-family: var(--font-display);
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--lagoon-950);
+      margin-bottom: 5px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .bottom-feature-band.dark .band-title {
+      color: var(--saffron-400);
+    }
+
+    .band-item-title {
+      font-size: 9px;
+      font-weight: 800;
+      color: var(--lagoon-900);
+      margin-bottom: 1.5px;
+    }
+
+    .bottom-feature-band.dark .band-item-title {
+      color: #FFFFFF;
+    }
+
+    .band-item-desc {
+      font-size: 8px;
+      color: var(--slate-700);
+      line-height: 1.32;
+    }
+
+    .bottom-feature-band.dark .band-item-desc {
+      color: #BACFCB;
+    }
+
+    /* PRO-TIP ACCENT STRIP */
+    .pro-tip-strip {
+      background: #FFFDF5;
+      border-left: 3px solid var(--saffron-500);
+      border-radius: 0 5px 5px 0;
+      padding: 5px 10px;
+      font-size: 8.2px;
+      color: var(--slate-800);
+      line-height: 1.32;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pro-tip-strip strong {
+      color: var(--lagoon-950);
+    }
+
+    /* 4-STEP FLOW GRID */
+    .flow-step-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+
+    .flow-step-card {
+      background: #FFFFFF;
+      border: 1px solid #D5E5E2;
+      border-radius: 6px;
+      padding: 6px 8px;
+      text-align: left;
+    }
+
+    .flow-step-num {
+      font-size: 7.2px;
+      font-weight: 800;
+      color: var(--saffron-600);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .flow-step-title {
+      font-family: var(--font-display);
+      font-size: 9.5px;
+      font-weight: 800;
+      color: var(--lagoon-950);
+      margin: 1px 0;
+    }
+
+    .flow-step-desc {
+      font-size: 7.8px;
+      color: var(--slate-600);
+      line-height: 1.28;
+    }
+
+    /* =========================================================
+       PAGE 1: COVER PAGE STYLING (FRONT COVER)
+       ========================================================= */
+    .cover-page {
+      background: linear-gradient(135deg, #041414 0%, var(--lagoon-950) 40%, #082828 75%, #051A1A 100%);
+      color: #FFFFFF;
+      justify-content: space-between;
+      padding: 24px 28px;
+      position: relative;
+    }
+
+    .cover-page::before {
+      content: "";
+      position: absolute;
+      top: -120px;
+      right: -80px;
+      width: 450px;
+      height: 450px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(242, 163, 58, 0.15) 0%, transparent 65%);
+      pointer-events: none;
+    }
+
+    .cover-page::after {
+      content: "";
+      position: absolute;
+      bottom: -80px;
+      left: -80px;
+      width: 400px;
+      height: 400px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(31, 111, 107, 0.2) 0%, transparent 65%);
+      pointer-events: none;
+    }
+
+    .cover-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      z-index: 2;
+    }
+
+    .cover-logo-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .cover-logo-img {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      object-fit: cover;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      border: 1.5px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .cover-brand-text h2 {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      color: #FFFFFF;
+      line-height: 1;
+    }
+
+    .cover-brand-text h2 span {
+      color: var(--saffron-400);
+    }
+
+    .cover-brand-text p {
+      font-size: 8.5px;
+      color: #BACFCB;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    .cover-dird-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      padding: 4px 10px;
+      border-radius: 999px;
+      backdrop-filter: blur(8px);
+    }
+
+    .cover-dird-badge span {
+      font-size: 8.2px;
+      color: #D1DFDB;
+      font-weight: 600;
+    }
+
+    .cover-dird-badge img {
+      height: 18px;
+      object-fit: contain;
+      filter: brightness(0) invert(1);
+    }
+
+    .cover-hero-center {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      margin: 4px 0;
+    }
+
+    .cover-edition-tag {
+      display: inline-block;
+      background: rgba(246, 180, 69, 0.15);
+      border: 1px solid rgba(246, 180, 69, 0.4);
+      color: var(--saffron-400);
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 3px 12px;
+      border-radius: 999px;
+      margin-bottom: 6px;
+    }
+
+    .cover-main-headline {
+      font-family: var(--font-display);
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 1.15;
+      color: #FFFFFF;
+      letter-spacing: -0.5px;
+    }
+
+    .cover-main-headline span {
+      background: var(--gold-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .cover-sub-headline {
+      font-size: 11px;
+      color: #CFE3DF;
+      max-width: 580px;
+      margin: 6px auto 0 auto;
+      line-height: 1.45;
+    }
+
+    /* COVER 6 MODULES SHOWCASE RIBBON */
+    .cover-modules-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7px;
+      margin: 6px 0;
+      position: relative;
+      z-index: 2;
+    }
+
+    .cover-module-item {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 7px;
+      padding: 7px 10px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      backdrop-filter: blur(6px);
+    }
+
+    .cover-module-icon {
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .cover-module-name {
+      font-family: var(--font-display);
+      font-size: 10.5px;
+      font-weight: 800;
+      color: #FFFFFF;
+      line-height: 1.1;
+    }
+
+    .cover-module-sub {
+      font-size: 7.8px;
+      color: #B5CCC7;
+      margin-top: 1.5px;
+    }
+
+    .cover-preview-card {
+      position: relative;
+      z-index: 2;
+      border-radius: 9px;
+      overflow: hidden;
+      border: 2px solid rgba(246, 180, 69, 0.5);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+      background: #000;
+      height: 240px;
+    }
+
+    .cover-preview-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .cover-bottom {
+      position: relative;
+      z-index: 2;
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
+      padding-top: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .cover-highlights-grid {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .cover-highlight-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 9.5px;
+      font-weight: 700;
+      color: #E2ECE9;
+    }
+
+    .cover-highlight-item svg {
+      width: 13px;
+      height: 13px;
+      color: var(--saffron-400);
+      flex-shrink: 0;
+    }
+
+    .cover-price-badge {
+      background: var(--gold-gradient);
+      color: var(--lagoon-950);
+      padding: 5px 13px;
+      border-radius: 7px;
+      font-family: var(--font-display);
+      font-size: 12.5px;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+      box-shadow: 0 3px 12px rgba(245, 158, 11, 0.4);
+      white-space: nowrap;
+    }
+
+    /* =========================================================
+       PAGE 10: BACK COVER & PRICING SPECIFIC STYLES
+       ========================================================= */
+    .backcover-pricing-card {
+      background: #FFFFFF;
+      border: 1px solid #D1DFDB;
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .backcover-pricing-card.popular {
+      border: 2px solid var(--saffron-500);
+      background: linear-gradient(180deg, #FFFDF8 0%, #FFFFFF 100%);
+      box-shadow: 0 4px 16px rgba(242, 163, 58, 0.18);
+    }
+
+    .plan-badge-popular {
+      position: absolute;
+      top: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--gold-gradient);
+      color: var(--lagoon-950);
+      font-size: 7.2px;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 999px;
+      letter-spacing: 0.4px;
+    }
+
+    .plan-name {
+      font-family: var(--font-display);
+      font-size: 13.5px;
+      font-weight: 800;
+      color: var(--lagoon-950);
+    }
+
+    .plan-price {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--lagoon-900);
+      margin: 2px 0 1px 0;
+    }
+
+    .plan-price span {
+      font-size: 9.5px;
+      color: var(--slate-600);
+      font-weight: 600;
+    }
+
+    .plan-desc {
+      font-size: 8px;
+      color: var(--slate-600);
+      margin-bottom: 6px;
+      line-height: 1.25;
+    }
+
+    .plan-features {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 2.5px;
+      text-align: left;
+      font-size: 8px;
+      color: var(--slate-700);
+    }
+
+    .plan-features li::before {
+      content: "✔";
+      color: var(--emerald);
+      font-weight: bold;
+      margin-right: 3px;
+    }
+
+    /* BACK COVER FOOTER HERO CONTACT */
+    .backcover-contact-box {
+      background: linear-gradient(135deg, var(--lagoon-950) 0%, var(--lagoon-900) 65%, #0e3b3b 100%);
+      color: #FFFFFF;
+      border-radius: 9px;
+      padding: 12px 16px;
+      border: 2px solid var(--saffron-500);
+      display: grid;
+      grid-template-columns: 88px 1fr 140px;
+      gap: 12px;
+      align-items: center;
+      margin-top: 4px;
+    }
+
+    .backcover-qr-card {
+      background: #FFFFFF;
+      border-radius: 7px;
+      padding: 4px;
+      text-align: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+
+    .backcover-qr-img {
+      width: 78px;
+      height: 78px;
+      display: block;
+      margin: 0 auto;
+    }
+
+    .backcover-qr-text {
+      font-size: 7.2px;
+      font-weight: 800;
+      color: var(--lagoon-950);
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    /* =========================================================
+       PRINT OPTIMIZATIONS
+       ========================================================= */
+    @page {
+      size: A4 portrait;
+      margin: 0;
+    }
+
+    @media print {
+      html, body {
+        background: #FFFFFF !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      .toolbar {
+        display: none !important;
+      }
+
+      .page {
+        margin: 0 !important;
+        box-shadow: none !important;
+        page-break-after: always !important;
+        page-break-inside: avoid !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- FLOATING SCREEN CONTROLS -->
+  <div class="toolbar no-print">
+    <div class="toolbar-info">
+      <span>📖 E-Annapurna Enterprise Product Brochure</span>
+      <span class="toolbar-badge">10 Pages • A4 Print Ready</span>
+    </div>
+    <button class="btn-print" onclick="window.print()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+      Print Entire 10-Page Brochure / PDF
+    </button>
+    <a href="https://www.e-annapurna.com" target="_blank" class="btn-web">
+      Official Website
+    </a>
+  </div>
+
+  <!-- =========================================================
+       PAGE 1: COVER PAGE (FRONT COVER)
+       ========================================================= -->
+  <div class="page cover-page" id="page-1">
+    
+    <!-- Top Brand Header -->
+    <div class="cover-top">
+      <div class="cover-logo-row">
+        <img src="assets/logo.jpeg" alt="E-Annapurna Logo" class="cover-logo-img">
+        <div class="cover-brand-text">
+          <h2>E-<span>ANNAPURNA</span></h2>
+          <p>Cloud Hotel & Restaurant Operating System</p>
+        </div>
+      </div>
+
+      <div class="cover-dird-badge">
+        <span>Powered By</span>
+        <img src="assets/dird-logo.webp" alt="DIRD Logo">
+      </div>
+    </div>
+
+    <!-- Center Hero Title Block -->
+    <div class="cover-hero-center">
+      <div class="cover-edition-tag">
+        ★ Official Enterprise Product Catalog • 2026 Edition
+      </div>
+      <h1 class="cover-main-headline">
+        Reception se rasoi tak, <br>
+        <span>poora hotel ek screen par.</span>
+      </h1>
+      <p class="cover-sub-headline">
+        Cloud PMS, Multi-Floor Restaurant POS, Automated KOT, Kitchen Display Board (KDS), Digital Table QR, Live Waiting Queue aur Instant GST Billing — sab kuch ek ultra-fast platform par.
+      </p>
+    </div>
+
+    <!-- 6 Core Modules Ribbon Grid -->
+    <div class="cover-modules-grid">
+      <div class="cover-module-item">
+        <span class="cover-module-icon">🏨</span>
+        <div>
+          <div class="cover-module-name">Hotel PMS & Desk</div>
+          <div class="cover-module-sub">Visual Grid & Live KYC</div>
+        </div>
+      </div>
+      <div class="cover-module-item">
+        <span class="cover-module-icon">🍽️</span>
+        <div>
+          <div class="cover-module-name">Restaurant POS</div>
+          <div class="cover-module-sub">Touch Billing & Table Map</div>
+        </div>
+      </div>
+      <div class="cover-module-item">
+        <span class="cover-module-icon">👨‍🍳</span>
+        <div>
+          <div class="cover-module-name">Kitchen KDS & KOT</div>
+          <div class="cover-module-sub">Color Timers & Station Route</div>
+        </div>
+      </div>
+      <div class="cover-module-item">
+        <span class="cover-module-icon">📱</span>
+        <div>
+          <div class="cover-module-name">QR Standee Menu</div>
+          <div class="cover-module-sub">Contactless Self-Ordering</div>
+        </div>
+      </div>
+      <div class="cover-module-item">
+        <span class="cover-module-icon">⏱️</span>
+        <div>
+          <div class="cover-module-name">Live Waiting Queue</div>
+          <div class="cover-module-sub">Smart Token & SMS Call</div>
+        </div>
+      </div>
+      <div class="cover-module-item">
+        <span class="cover-module-icon">🧾</span>
+        <div>
+          <div class="cover-module-name">GST & Financials</div>
+          <div class="cover-module-sub">Split Pay & 1-Click Reports</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cover Center Mockup Image Frame -->
+    <div class="cover-preview-card">
+      <img src="assets/hero.jpg" alt="E-Annapurna Luxury Hospitality Overview">
+    </div>
+
+    <!-- Cover Bottom Highlights -->
+    <div class="cover-bottom">
+      <div class="cover-highlights-grid">
+        <div class="cover-highlight-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          Zero Setup Fee
+        </div>
+        <div class="cover-highlight-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          15-Min Onboarding
+        </div>
+        <div class="cover-highlight-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          Hardware Freedom
+        </div>
+        <div class="cover-highlight-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          24/7 Helpline
+        </div>
+      </div>
+
+      <div class="cover-price-badge">
+        Plans Starts @ ₹1,499 / Mo • 7 Days Free Trial
+      </div>
+    </div>
+
+  </div>
+
+  <!-- =========================================================
+       PAGE 2: EXECUTIVE OVERVIEW & WHY E-ANNAPURNA
+       ========================================================= -->
+  <div class="page" id="page-2">
+    <div class="page-header-runner">
+      <div class="runner-brand">
+        <strong>E-ANNAPURNA</strong>
+        <span class="runner-dot"></span>
+        <span>Section 01: Executive Architecture</span>
+      </div>
+      <div>Product Guide 2026</div>
+    </div>
+
+    <div class="module-hero-banner">
+      <div class="module-hero-content">
+        <span class="module-pill">Hospitality Modernization</span>
+        <h2 class="module-hero-title">Ek Software, <span>Zero Jhanjhat.</span></h2>
+        <p class="module-hero-desc">
+          Hotels ke liye alag, restaurant ke liye alag, rasoi ke liye paper slip aur billing ke liye alag software chalana band karein. E-Annapurna aapke poore business ko ek single real-time database par sync karta hai.
+        </p>
+      </div>
+      <div class="module-hero-badges">
+        <span class="badge-roi">+35% Faster Order Speed</span>
+        <span class="badge-roi">100% Tax & Cash Audit</span>
+      </div>
+    </div>
+
+    <div class="page-body">
+      <!-- 2 Column Comparison -->
+      <div class="grid-2col">
+        <div class="card-block">
+          <div class="card-block-title" style="color:#B91C1C;">✕ Traditional Fragmented Systems</div>
+          <ul class="feature-list">
+            <li><strong>Alag Alag Kharch:</strong> 4 alag software ke license aur AMC fees har saal bharni padti hai.</li>
+            <li><strong>Manual Paper KOT Loss:</strong> Kitchen slip kho jana ya chef tak late pahunchne se guest naraaz.</li>
+            <li><strong>Billing & Cash Chori:</strong> Front desk aur cash counter ka hisaab match na hona.</li>
+            <li><strong>Heavy Desktop Dependency:</strong> Mehnge local server aur PC kharab hote hi poora kaam thapp.</li>
+          </ul>
+        </div>
+
+        <div class="card-block">
+          <div class="card-block-title" style="color:var(--emerald);">✔ E-Annapurna Unified Cloud OS</div>
+          <ul class="feature-list">
+            <li><strong>Single All-in-One License:</strong> Reception, rasoi, table, aur GST billing sab ek platform par.</li>
+            <li><strong>Instant Digital KOT & KDS:</strong> Table order punch hote hi kitchen screen par timer ke saath live.</li>
+            <li><strong>100% Transparent Audit:</strong> Har room tariff, cash, UPI aur discount ka automatic audit trail.</li>
+            <li><strong>Device Freedom:</strong> Android, iPad, Laptop, PC ya POS machine — sab par instant login.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- KPI Statistics Grid -->
+      <div class="kpi-row">
+        <div class="kpi-chip">
+          <div class="kpi-value">18 Mins</div>
+          <div class="kpi-label">Average Time Saved Per Table</div>
+        </div>
+        <div class="kpi-chip">
+          <div class="kpi-value">0% Error</div>
+          <div class="kpi-label">Kitchen Slip Loss & Duplicate Orders</div>
+        </div>
+        <div class="kpi-chip">
+          <div class="kpi-value">99.9%</div>
+          <div class="kpi-label">Cloud High Availability & Uptime</div>
+        </div>
+      </div>
+
+      <!-- Overview Photo Frame -->
+      <div class="preview-frame" style="height: 145px;">
+        <img src="assets/dashboard.png" alt="E-Annapurna Cloud Control Center">
+        <div class="preview-caption">
+          <span>CENTRAL PROPERTY MANAGEMENT SYSTEM & REAL-TIME REVENUE ANALYTICS</span>
+          <span>100% CLOUD SYNC</span>
+        </div>
+      </div>
+
+      <!-- Bottom Architecture & Security Band -->
+      <div class="bottom-feature-band">
+        <div class="band-title">
+          🛡️ Enterprise Cloud Architecture & Data Security
+        </div>
+        <div class="grid-4col">
+          <div>
+            <div class="band-item-title">🔒 256-Bit SSL Encryption</div>
+            <div class="band-item-desc">Guest KYC, Aadhaar data aur transactions bank-grade encrypted hain.</div>
+          </div>
+          <div>
+            <div class="band-item-title">☁️ Automated 5-Min Backup</div>
+            <div class="band-item-desc">Disaster recovery ke saath data har 5 minute me cloud me safe hota hai.</div>
+          </div>
+          <div>
+            <div class="band-item-title">📶 Offline Resilience</div>
+            <div class="band-item-desc">Internet drop hone par bhi billing aur thermal printing bina ruke chalti hai.</div>
+          </div>
+          <div>
+            <div class="band-item-title">👥 Unlimited Staff Roles</div>
+            <div class="band-item-desc">Manager PIN protection se bill edit ya discounts bina permission nahi hote.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pro-Tip Ribbon -->
+      <div class="pro-tip-strip">
+        <span>💡</span>
+        <span><strong>Hospitality Industry Insight:</strong> Jo hotels fragmented software se E-Annapurna par aate hain, wo saal ka average ₹48,000 IT maintenance aur manual bill leaks me bachate hain.</span>
+      </div>
+    </div>
+
+    <div class="page-footer-runner">
+      <span>E-Annapurna Operating System • www.e-annapurna.com</span>
+      <span class="page-num">Page 02 / 10</span>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       PAGE 3: MODULE 1 — HOTEL ROOM BOOKING & FRONT DESK PMS
+       ========================================================= -->
+  <div class="page" id="page-3">
+    <div class="page-header-runner">
+      <div class="runner-brand">
+        <strong>E-ANNAPURNA</strong>
+        <span class="runner-dot"></span>
+        <span>Section 02: Hotel PMS & Front Desk</span>
+      </div>
+      <div>Product Guide 2026</div>
+    </div>
+
+    <div class="module-hero-banner">
+      <div class="module-hero-content">
+        <span class="module-pill">Front Office Automation</span>
+        <h2 class="module-hero-title">Room Inventory & <span>Live KYC Check-in</span></h2>
+        <p class="module-hero-desc">
+          Front desk operations ko superfast banayein. Real-time visual color grid, webcam se live guest photo capture, police verification compliant GRC auto-print aur automated checkout billing.
+        </p>
+      </div>
+      <div class="module-hero-badges">
+        <span class="badge-roi">20 Sec Fast Check-In</span>
+        <span class="badge-roi">GRC Police Format</span>
+      </div>
+    </div>
+
+    <div class="page-body">
+      <div class="grid-2col">
+        <!-- Feature Points -->
+        <div class="card-block">
+          <div class="card-block-title">Master Inventory & Smart Check-in</div>
+          <ul class="feature-list">
+            <li><strong>Visual Room Color Grid:</strong> 🟢 Available (Green), 🔴 Occupied (Red), 🟡 Advance Booked (Yellow), ⚪ Maintenance. Ek glance mein har floor aur room ka status.</li>
+            <li><strong>Webcam KYC Capture:</strong> Front desk webcam se guest ki live picture aur ID document (Aadhaar, Passport, DL) instant capture hota hai.</li>
+            <li><strong>Auto GRC Printing:</strong> Serialized counter (GRC-001, GRC-002) ke saath pre-filled registration card 1-click mein print karein.</li>
+            <li><strong>Advance Reservation:</strong> Token advance deposit lock karein aur guest ke aane par 1-click mein check-in me convert karein.</li>
+          </ul>
+        </div>
+
+        <!-- Room Tariff & Split Billing -->
+        <div class="card-block">
+          <div class="card-block-title">Automated Stay Tariff & Billing</div>
+          <ul class="feature-list">
+            <li><strong>Hourly & Daily Tariffs:</strong> 24-Hour ya standard 12-Noon checkout rule ke hisaab se automatic accurate room tariff calculation.</li>
+            <li><strong>Corporate B2B GSTIN:</strong> Company trip par aaye guests ke liye company GST number auto-check aur corporate tax invoice generation.</li>
+            <li><strong>Split Advance Settlement:</strong> Check-in ke waqt diya gaya advance token amount checkout bill mein automatic minus ho jata hai.</li>
+            <li><strong>Instant Room Post:</strong> Restaurant me khaya gaya khana guest ke room folio par direct transfer karein.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Mockup Showcase 2 Grid -->
+      <div class="grid-2col" style="height: 135px;">
+        <div class="preview-frame">
+          <img src="assets/hotel.png" alt="Front Desk Reception View">
+          <div class="preview-caption">
+            <span>FRONT DESK LIVE WEBCAM & KYC MODULE</span>
+            <span>POLICE COMPLIANT</span>
+          </div>
+        </div>
+        <div class="preview-frame">
+          <img src="assets/suite.jpg" alt="Room Inventory Management">
+          <div class="preview-caption">
+            <span>DYNAMIC CATEGORIES (DELUXE / SUITE / EXECUTIVE)</span>
+            <span>AUTO TARIFF</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Front Office Band -->
+      <div class="bottom-feature-band">
+        <div class="band-title">
+          📋 Front Office Operational Excellence & Housekeeping
+        </div>
+        <div class="grid-3col">
+          <div>
+            <div class="band-item-title">🧹 Live Housekeeping Matrix</div>
+            <div class="band-item-desc">Staff apne mobile phone se room ko Clean, Dirty ya Under Maintenance toggle kar sakta hai.</div>
+          </div>
+          <div>
+            <div class="band-item-title">🌙 Automated Night Audit</div>
+            <div class="band-item-desc">Raat 12:00 baje system automatic room tariff charge post karta hai aur daily occupancy report lock karta hai.</div>
+          </div>
+          <div>
+            <div class="band-item-title">👮 Police Station GRC Compliant</div>
+            <div class="band-item-desc">Form C aur police verification format me guest photo aur ID watermark ke saath official printout.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pro-Tip Ribbon -->
+      <div class="pro-tip-strip">
+        <span>💡</span>
+        <span><strong>Pro Tip for Reception:</strong> Webcam se guest ki live photo lene se identity fraud rukta hai aur xerox copy machine ka kharcha 100% khatam ho jata hai.</span>
+      </div>
+    </div>
+
+    <div class="page-footer-runner">
+      <span>E-Annapurna Operating System • www.e-annapurna.com</span>
+      <span class="page-num">Page 03 / 10</span>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       PAGE 4: MODULE 2 — RESTAURANT POS & DINING MANAGEMENT
+       ========================================================= -->
+  <div class="page" id="page-4">
+    <div class="page-header-runner">
+      <div class="runner-brand">
+        <strong>E-ANNAPURNA</strong>
+        <span class="runner-dot"></span>
+        <span>Section 03: Restaurant POS & Floor Management</span>
+      </div>
+      <div>Product Guide 2026</div>
+    </div>
+
+    <div class="module-hero-banner">
+      <div class="module-hero-content">
+        <span class="module-pill">Dining Floor POS</span>
+        <h2 class="module-hero-title">Ultra-Fast POS & <span>Interactive Table Plan</span></h2>
+        <p class="module-hero-desc">
+          Rush hours mein cashier aur captains ke liye lightning-fast billing interface. Dine-in floor map, takeaway parcels, delivery tracking aur running table add-ons bina purane order disturb kiye.
+        </p>
+      </div>
+      <div class="module-hero-badges">
+        <span class="badge-roi">&lt;3 Sec Order Punch</span>
+        <span class="badge-roi">Zero Duplicate KOTs</span>
+      </div>
+    </div>
+
+    <div class="page-body">
+      <div class="grid-2col">
+        <div class="card-block">
+          <div class="card-block-title">Interactive Floor & Table Intelligence</div>
+          <ul class="feature-list">
+            <li><strong>Live Table Grid:</strong> Table color status, occupied time elapsed, added dishes, aur running total screen par 1 glance me.</li>
+            <li><strong>Table Shifting & Merging:</strong> Agar guest doosre table par shift hota hai, to 1-click me saare items aur running bill transfer.</li>
+            <li><strong>Multi-Channel Modes:</strong> Ek screen se Dine-In Tables, Takeaway Parcels, Room Delivery aur Online Orders manage karein.</li>
+            <li><strong>Split Bills & Settlement:</strong> Corporate dining ya friends group ke liye bill ko per-person ya custom ratio me split karein.</li>
+          </ul>
+        </div>
+
+        <div class="card-block">
+          <div class="card-block-title">Smart Catalog & Running Add-Ons</div>
+          <ul class="feature-list">
+            <li><strong>Millisecond Dish Search:</strong> Dish code ya naam type karte hi category filter (Starters, Main, Breads, Chinese, Beverages).</li>
+            <li><strong>Running Table Add-Ons:</strong> Guest ne extra roti ya cold drink manga? Naye item ka KOT alag se niklega jabki master bill ek hi merge rahega!</li>
+            <li><strong>Portion & Custom Notes:</strong> Half/Full portions, Jain food, Less Spicy, No Onion jaise special kitchen instruction support.</li>
+            <li><strong>Secure Discounts & Vouchers:</strong> Manager PIN protection ke saath percentage ya flat discount aur complimentary KOT audit.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Preview Image Frame -->
+      <div class="preview-frame" style="height: 140px;">
+        <img src="assets/pos.png" alt="E-Annapurna Restaurant POS Interface">
+        <div class="preview-caption">
+          <span>HIGH SPEED TOUCH POS BILLING INTERFACE & REALTIME RUNNING TABLE TRACKER</span>
+          <span>MULTI-STATION</span>
+        </div>
+      </div>
+
+      <!-- Bottom Dining Floor Band -->
+      <div class="bottom-feature-band">
+        <div class="band-title">
+          ⚡ Rush-Hour Dining Operations & Hardware Coordination
+        </div>
+        <div class="grid-3col">
+          <div>
+            <div class="band-item-title">⚡ Sub-3-Second Order Punch</div>
+            <div class="band-item-desc">Minimal clicks layout jisse rush hours me cash counter par lambi line nahi lagti.</div>
+          </div>
+          <div>
+            <div class="band-item-title">🖨️ Cash Drawer Auto Kick</div>
+            <div class="band-item-desc">Cash tender hote hi cash till auto open hota hai aur 1.2 second me 3-inch receipt print.</div>
+          </div>
+          <div>
+            <div class="band-item-title">🏢 Multi-Floor Sync</div>
+            <div class="band-item-desc">Ground Floor AC Hall, 1st Floor Family Dining aur Rooftop Lounge ek POS terminal se sync.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pro-Tip Ribbon -->
+      <div class="pro-tip-strip">
+        <span>💡</span>
+        <span><strong>Pro Tip for Captains:</strong> Running add-ons ke liye pura bill re-print karne ki zaroorat nahi hoti — sirf naya dish kitchen me jaata hai aur total automatic update hota hai.</span>
+      </div>
+    </div>
+
+    <div class="page-footer-runner">
+      <span>E-Annapurna Operating System • www.e-annapurna.com</span>
+      <span class="page-num">Page 04 / 10</span>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       PAGE 5: MODULE 3 — AUTOMATED KOT & KITCHEN DISPLAY (KDS)
+       ========================================================= -->
+  <div class="page" id="page-5">
+    <div class="page-header-runner">
+      <div class="runner-brand">
+        <strong>E-ANNAPURNA</strong>
+        <span class="runner-dot"></span>
+        <span>Section 04: Kitchen Order Automation & KDS</span>
+      </div>
+      <div>Product Guide 2026</div>
+    </div>
+
+    <div class="module-hero-banner">
+      <div class="module-hero-content">
+        <span class="module-pill">Kitchen Display System</span>
+        <h2 class="module-hero-title">Automated KOT & <span>Live KDS Pipeline</span></h2>
+        <p class="module-hero-desc">
+          Kitchen order tickets ka manual loss aur confusion 100% khatam. Thermal printers par auto-print ke alawa kitchen wall screens par color-coded cooking timers ke saath orders route hote hain.
+        </p>
+      </div>
+      <div class="module-hero-badges">
+        <span class="badge-roi">Zero Order Delay</span>
+        <span class="badge-roi">Audible Ready Chimes</span>
+      </div>
+    </div>
+
+    <div class="page-body">
+      <div class="grid-2col">
+        <div class="card-block">
+          <div class="card-block-title">Thermal KOT Routing & Multi-Kitchen</div>
+          <ul class="feature-list">
+            <li><strong>Automatic Multi-Station Routing:</strong> Starters tandoor printer par, mocktails bar printer par, aur main course kitchen printer par auto-route.</li>
+            <li><strong>Zero Delay Print:</strong> Cashier ya waiter ke phone se order punch hote hi 1 second ke andar kitchen printer se ticket bahar.</li>
+            <li><strong>Complete Order Specs:</strong> Table No, KOT Number, Waiter Name, Time stamp aur Special chef notes clear font me.</li>
+            <li><strong>Cancel / Void KOT Alert:</strong> Agar koi item cancel hota hai, to kitchen me instant RED VOID slip print hoti hai.</li>
+          </ul>
+        </div>
+
+        <div class="card-block">
+          <div class="card-block-title">Live KDS Board & Color Alert Timers</div>
+          <ul class="feature-list">
+            <li><strong>Smart State Updates:</strong> Rasoi screen par 1-tap se order state badalti hai: <strong>New ➔ Cooking ➔ Ready ➔ Delivered</strong>.</li>
+            <li><strong>🟢 Green (&lt; 10 Mins):</strong> Order fresh hai, standard preparation time me chal raha hai.</li>
+            <li><strong>🟡 Yellow (10-20 Mins):</strong> Order cooking in progress, priority attention required.</li>
+            <li><strong>🔴 Red (&gt; 20 Mins):</strong> Delayed order alert — screen par blinking aur buzzer chime taaki customer complaint na kare.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Preview Image Frame & TV Sync Card -->
+      <div class="grid-2col" style="height: 135px;">
+        <div class="preview-frame">
+          <img src="assets/dining.jpg" alt="Restaurant Hall & Kitchen Coordination">
+          <div class="preview-caption">
+            <span>REAL-TIME KITCHEN TO DINING HALL SERVICE COORDINATION</span>
+            <span>ZERO WALKOUTS</span>
+          </div>
+        </div>
+
+        <div class="card-block" style="background: var(--lagoon-50); border: 1px dashed #B8D0CC; display: flex; flex-direction: column; justify-content: center;">
+          <div class="card-block-title" style="margin-bottom: 3px; font-size: 11.5px;">Dining Hall TV Display Sync for Waiters</div>
+          <p style="font-size: 8.5px; color: var(--slate-700); line-height: 1.35;">
+            Dining hall me lagi LED TV screen par automatic alert dikhta hai: <em>"Table 12 - Dal Makhani & Butter Naan Ready for Service"</em>. Waiters ko rasoi ke andar bar-bar jhankne ki zaroorat nahi padti!
+          </p>
+        </div>
+      </div>
+
+      <!-- Bottom Chef Control Band -->
+      <div class="bottom-feature-band">
+        <div class="band-title">
+          👨‍🍳 Executive Chef Station Control & Zero Waste Architecture
+        </div>
+        <div class="grid-3col">
+          <div>
+            <div class="band-item-title">👨‍🍳 Multi-Station Routing</div>
+            <div class="band-item-desc">Tandoor, Chinese, Bakery, Bar sabhi sections ke orders automatically alag printer par cut hote hain.</div>
+          </div>
+          <div>
+            <div class="band-item-title">🔔 Audible Loud Chime</div>
+            <div class="band-item-desc">Rasoi ke shor me naya order aate hi loud chime sound bajjti hai taaki koi ticket miss na ho.</div>
+          </div>
+          <div>
+            <div class="band-item-title">🚫 Red Void Alert</div>
+            <div class="band-item-desc">Agar customer ne order cancel kiya, to kitchen me RED VOID slip nikalti hai jisse khana waste na bane.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pro-Tip Ribbon -->
+      <div class="pro-tip-strip">
+        <span>💰</span>
+        <span><strong>Kitchen ROI:</strong> E-Annapurna KDS lagane ke baad thermal paper rolls me saal ka ₹18,000+ bachta hai aur galat order banne ki ladai 100% khatam ho jaati hai.</span>
+      </div>
+    </div>
+
+    <div class="page-footer-runner">
+      <span>E-Annapurna Operating System • www.e-annapurna.com</span>
+      <span class="page-num">Page 05 / 10</span>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       PAGE 6: MODULE 4 — QR STANDEE & SELF-ORDERING MENU
+       ========================================================= -->
+  <div class="page" id="page-6">
+    <div class="page-header-runner">
+      <div class="runner-brand">
+        <strong>E-ANNAPURNA</strong>
+        <span class="runner-dot"></span>
+        <span>Section 05: Contactless Digital QR Menu</span>
+      </div>
+      <div>Product Guide 2026</div>
+    </div>
+
+    <div class="module-hero-banner">
+      <div class="module-hero-content">
+        <span class="module-pill">Contactless Self-Ordering</span>
+        <h2 class="module-hero-title">QR Standee & <span>Digital Photo Menu</span></h2>
+        <p class="module-hero-desc">
+          Har dining table aur hotel room ke liye branded QR code standees. Guest apne phone camera se scan karke bina kisi mobile app download ke HD digital menu se direct order place kar sakta hai.
+        </p>
+      </div>
+      <div class="module-hero-badges">
+        <span class="badge-roi">Zero App Download</span>
+        <span class="badge-roi">Cashier Fraud Check</span>
+      </div>
+    </div>
+
+    <div class="page-body">
+      <div class="grid-2col">
+        <div class="card-block">
+          <div class="card-block-title">Seamless Guest Mobile Ordering</div>
+          <ul class="feature-list">
+            <li><strong>2-Second Instant Open:</strong> Guest camera scan karta hai aur hotel ka branded portal browser me open hota hai bina registration jhanjhat ke.</li>
+            <li><strong>HD Food Photos & Descriptions:</strong> High quality photos aur detailed description se customer avg 25% zyada order karte hain.</li>
+            <li><strong>Dietary & Allergy Filters:</strong> Pure Veg, Non-Veg, Chef Recommended aur Spicy level tags ke saath smooth browsing.</li>
+            <li><strong>Room Service Integration:</strong> Hotel room me thahre guests room standee scan karke seedha breakfast, water bottle ya dinner order karein.</li>
+          </ul>
+        </div>
+
+        <div class="card-block">
+          <div class="card-block-title">Admin Approval & Fraud Prevention</div>
+          <ul class="feature-list">
+            <li><strong>Cashier Verification:</strong> Customer ka order seedhe rasoi me jane ke bajaye Cashier ke <strong>Incoming Orders</strong> tab par aata hai.</li>
+            <li><strong>1-Click Approve / Decline:</strong> Cashier 1-click me approve karta hai to KOT auto-print hoti hai, ya item khatam hone par reason ke saath decline karta hai.</li>
+            <li><strong>Live Customer Status:</strong> Guest ke phone screen par instant message update hota hai: <em>"Order Approved! Chef is preparing your dish"</em>.</li>
+            <li><strong>Dynamic Out-of-Stock:</strong> Agar koi dish khatam ho jaye, to admin 1-click me menu se hide kar sakta hai bina physical menu reprint ke.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- KPI Chips -->
+      <div class="kpi-row">
+        <div class="kpi-chip">
+          <div class="kpi-value">+24%</div>
+          <div class="kpi-label">Average Order Value With Photo Menus</div>
+        </div>
+        <div class="kpi-chip">
+          <div class="kpi-value">₹0</div>
+          <div class="kpi-label">Physical Menu Printing & Laminating Cost</div>
+        </div>
+        <div class="kpi-chip">
+          <div class="kpi-value">100%</div>
+          <div class="kpi-label">Contactless & Modern Guest Experience</div>
+        </div>
+      </div>
+
+      <!-- Preview Image Frame -->
+      <div class="preview-frame" style="height: 125px;">
+        <img src="assets/banquet.jpg" alt="Dining & Table QR Experience">
+        <div class="preview-caption">
+          <span>CONTACTLESS QR STANDEES FOR TABLES, CABANAS & GUEST ROOMS</span>
+          <span>UP-TO-DATE PRICING</span>
+        </div>
+      </div>
+
+      <!-- 4-Step Contactless Journey -->
+      <div class="flow-step-grid">
+        <div class="flow-step-card">
+          <div class="flow-step-num">Step 01</div>
+          <div class="flow-step-title">Scan Table QR</div>
+          <div class="flow-step-desc">Camera scan karte hi HD photo menu open hota hai.</div>
+        </div>
+        <div class="flow-step-card">
+          <div class="flow-step-num">Step 02</div>
+          <div class="flow-step-title">Browse & Add</div>
+          <div class="flow-step-desc">Jain/Spicy filters aur custom notes add karke order punch.</div>
+        </div>
+        <div class="flow-step-card">
+          <div class="flow-step-num">Step 03</div>
+          <div class="flow-step-title">Cashier Approve</div>
+          <div class="flow-step-desc">Counter staff 1-click verify karta hai (Anti-fraud check).</div>
+        </div>
+        <div class="flow-step-card">
+          <div class="flow-step-num">Step 04</div>
+          <div class="flow-step-title">Kitchen Auto-KOT</div>
+          <div class="flow-step-desc">Thermal printer se KOT print + guest screen par cooking timer.</div>
+        </div>
+      </div>
+
+      <!-- Pro-Tip Ribbon -->
+      <div class="pro-tip-strip">
+        <span>✨</span>
+        <span><strong>Hardware Delivery:</strong> E-Annapurna subscription ke saath customized waterproof Acrylic Table Standees property logo aur Wi-Fi QR ke saath ready milte hain.</span>
+      </div>
+    </div>
+
+    <div class="page-footer-runner">
+      <span>E-Annapurna Operating System • www.e-annapurna.com</span>
+      <span class="page-num">Page 06 / 10</span>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       PAGE 7: MODULE 5 — LIVE WAITING LIST & SMART TOKEN QUEUE
+       ========================================================= -->
+  <div class="page" id="page-7">
+    <div class="page-header-runner">
+      <div class="runner-brand">
+        <strong>E-ANNAPURNA</strong>
+        <span class="runner-dot"></span>
+        <span>Section 06: Live Waiting List Management</span>
+      </div>
+      <div>Product Guide 2026</div>
+    </div>
+
+    <div class="module-hero-banner">
+      <div class="module-hero-content">
+        <span class="module-pill">Peak Rush Solution</span>
+        <h2 class="module-hero-title">Live Waiting Queue & <span>Smart Token</span></h2>
+        <p class="module-hero-desc">
+          Weekend aur lunch/dinner rush me customer walkouts aur gate par bheed ko khatam karein. Guest entrance QR scan karke digital token leta hai aur apne mobile par live waiting status track karta hai.
+        </p>
+      </div>
+      <div class="module-hero-badges">
+        <span class="badge-roi">Zero Customer Loss</span>
+        <span class="badge-roi">1-Click Table Call</span>
+      </div>
+    </div>
+
+    <div class="page-body">
+      <div class="grid-2col">
+        <div class="card-block">
+          <div class="card-block-title">Smart Digital Token Issuance</div>
+          <ul class="feature-list">
+            <li><strong>Self-Service QR Join:</strong> Table full hone par customer entrance standee scan karke apna naam, mobile number aur guest count enter karta hai.</li>
+            <li><strong>Front Host Token Entry:</strong> Agar customer ke paas phone nahi hai, to front host staff panel se 1-click walk-in token issue kar sakta hai.</li>
+            <li><strong>Live Queue Counter:</strong> Host dashboard par live count visible: <em>"8 Groups Currently Waiting | Turn #102 Active"</em>.</li>
+            <li><strong>Automatic Queue Ordering:</strong> Fair first-come first-served queue order jisme koi VIP jhagda ya turn cutting nahi hoti.</li>
+          </ul>
+        </div>
+
+        <div class="card-block">
+          <div class="card-block-title">Live Phone Tracking & Table Alerts</div>
+          <ul class="feature-list">
+            <li><strong>Live Position Tracking:</strong> Customer apne mobile screen par live dekhta hai: <em>"2 Groups Ahead of You • Est Wait: 8 Mins"</em>.</li>
+            <li><strong>Freedom to Walk Around:</strong> Guest gate par khade rahne ke bajaye parking ya garden me comfortable wait kar sakta hai.</li>
+            <li><strong>1-Click "Table Ready" Alert (📣):</strong> Table khali hote hi host 1-click se call karta hai — guest ke phone par sound alert bajj jata hai.</li>
+            <li><strong>No-Show Auto Management:</strong> Agar guest time par nahi aata, to host use politely skip karke agle guest ko table allocate kar sakta hai.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Business Impact Card -->
+      <div class="card-block" style="background: linear-gradient(135deg, rgba(246, 180, 69, 0.12) 0%, rgba(31, 111, 107, 0.08) 100%); border: 1px solid rgba(246, 180, 69, 0.4);">
+        <div class="card-block-title" style="color:var(--lagoon-900);">Why Top Restaurants Use E-Annapurna Live Waitlist?</div>
+        <div class="grid-3col" style="margin-top: 4px;">
+          <div>
+            <div style="font-weight: 800; font-size: 9.5px; color: var(--lagoon-950);">🚫 Stop Walk-Outs</div>
+            <p style="font-size: 8px; color: var(--slate-700); margin-top: 2px;">Guest ko exact wait time pata rehta hai isliye wo doosre restaurant nahi jata.</p>
+          </div>
+          <div>
+            <div style="font-weight: 800; font-size: 9.5px; color: var(--lagoon-950);">✨ Calm Reception</div>
+            <p style="font-size: 8px; color: var(--slate-700); margin-top: 2px;">Gate par bheed aur shor-sharaba band, 5-star fine dining atmosphere.</p>
+          </div>
+          <div>
+            <div style="font-weight: 800; font-size: 9.5px; color: var(--lagoon-950);">📊 Customer Data</div>
+            <p style="font-size: 8px; color: var(--slate-700); margin-top: 2px;">Har waiting guest ka mobile number future marketing aur offers ke liye safe.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preview Image Frame -->
+      <div class="preview-frame" style="height: 120px;">
+        <img src="assets/dining.jpg" alt="Organized Restaurant Dining Operations">
+        <div class="preview-caption">
+          <span>SMART WAITING QUEUE TOKEN DISPLAY & REAL-TIME TABLE READY NOTIFICATIONS</span>
+          <span>MAX DINING REVENUE</span>
+        </div>
+      </div>
+
+      <!-- Bottom Host Operations Band -->
+      <div class="bottom-feature-band">
+        <div class="band-title">
+          🎫 Greeter Host Controls & Smart Party Matchmaking
+        </div>
+        <div class="grid-3col">
+          <div>
+            <div class="band-item-title">📲 SMS / WhatsApp Instant Ping</div>
+            <div class="band-item-desc">Guest ke phone par 1-click sound alert: <em>"Aapka Table #04 ready hai, kripya enter karein!"</em></div>
+          </div>
+          <div>
+            <div class="band-item-title">👥 Party Size Smart Allocation</div>
+            <div class="band-item-desc">Host waiting list ko 2-seater, 4-seater ya 8-seater family table ke mutabik filter kar sakta hai.</div>
+          </div>
+          <div>
+            <div class="band-item-title">📈 Peak Rush Analytics</div>
+            <div class="band-item-desc">Weekend audit reports me pata chalta hai ki average wait time kya raha aur peak rush kitne baje aaya.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pro-Tip Ribbon -->
+      <div class="pro-tip-strip">
+        <span>🚀</span>
+        <span><strong>Revenue Impact:</strong> Live queue display lagane se peak hours me 80% tak guest walkouts rukte hain aur table turnover time 15 minute fast hota hai.</span>
+      </div>
+    </div>
+
+    <div class="page-footer-runner">
+      <span>E-Annapurna Operating System • www.e-annapurna.com</span>
+      <span class="page-num">Page 07 / 10</span>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       PAGE 8: MODULE 6 — GST BILLING, ACCOUNTS & REPORTS
+       ========================================================= -->
+  <div class="page" id="page-8">
+    <div class="page-header-runner">
+      <div class="runner-brand">
+        <strong>E-ANNAPURNA</strong>
+        <span class="runner-dot"></span>
+        <span>Section 07: GST Billing & Daily Audits</span>
+      </div>
+      <div>Product Guide 2026</div>
+    </div>
+
+    <div class="module-hero-banner">
+      <div class="module-hero-content">
+        <span class="module-pill">Financial Integrity</span>
+        <h2 class="module-hero-title">GST Tax Invoices & <span>Daily Audits</span></h2>
+        <p class="module-hero-desc">
+          High-speed 3-inch thermal POS bills, A4 tax invoices, multi-mode split payments aur rozana occupancy v revenue ki detailed audit reports bina kisi accounting error ke.
+        </p>
+      </div>
+      <div class="module-hero-badges">
+        <span class="badge-roi">100% GST Compliant</span>
+        <span class="badge-roi">UPI Dynamic QR Pay</span>
+      </div>
+    </div>
+
+    <div class="page-body">
+      <div class="grid-2col">
+        <div class="card-block">
+          <div class="card-block-title">Fast Thermal Billing & Split Payment</div>
+          <ul class="feature-list">
+            <li><strong>3-Inch & A4 Invoices:</strong> Restaurant thermal receipts aur hotel stay ke liye official A4 tax invoice printouts.</li>
+            <li><strong>Dynamic UPI QR on Bill:</strong> Bill ke niche exact amount ka UPI QR print hota hai — customer scan karke 2 second me payment karta hai.</li>
+            <li><strong>Multi-Mode Split Pay:</strong> Ek hi bill me aadha Cash, aadha Card aur baaki UPI par split settlement.</li>
+            <li><strong>Custom Taxes & Service Charges:</strong> Restaurant 5% GST, AC room 12% GST ya 18% slab auto calculate hota hai.</li>
+          </ul>
+        </div>
+
+        <div class="card-block">
+          <div class="card-block-title">Live Reports & Business Analytics</div>
+          <ul class="feature-list">
+            <li><strong>Daily Occupancy & Collection:</strong> Roz ka total cash, total card, UPI collection aur pending hotel dues ka audit.</li>
+            <li><strong>Item Consumption Analytics:</strong> Kaun si dish sabse zyada bikti hai aur kis menu item par sabse zyada profit margin hai.</li>
+            <li><strong>Cash Drawer Shift Handover:</strong> Cashier shift badalte waqt counter cash match karke discrepancy report generate karein.</li>
+            <li><strong>One-Click Export:</strong> Monthly GST filing ke liye Excel aur PDF format me CA-ready tax sheets export karein.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Preview Image Frame -->
+      <div class="preview-frame" style="height: 140px;">
+        <img src="assets/dashboard.png" alt="E-Annapurna Daily Financial Analytics">
+        <div class="preview-caption">
+          <span>DAILY REVENUE DISTRIBUTION, TAX AUDITS & CASH SETTLEMENT REPORTS</span>
+          <span>CA READY DATA</span>
+        </div>
+      </div>
+
+      <!-- Bottom Financial Band -->
+      <div class="bottom-feature-band">
+        <div class="band-title">
+          💼 Chartered Accountant (CA) Ready Compliance & Anti-Theft
+        </div>
+        <div class="grid-3col">
+          <div>
+            <div class="band-item-title">🔒 Bill Reprint & Void Audit</div>
+            <div class="band-item-desc">Har bill reprint aur cancelled KOT manager log me timestamp ke saath record hoti hai (Zero Cash Chori).</div>
+          </div>
+          <div>
+            <div class="band-item-title">📱 11:59 PM WhatsApp Summary</div>
+            <div class="band-item-desc">Owner ke phone par roz raat total sales, cash in hand, aur occupancy summary automatically deliver.</div>
+          </div>
+          <div>
+            <div class="band-item-title">🏛️ GSTR-1 & 3B Direct Export</div>
+            <div class="band-item-desc">B2B aur B2C invoice breakdown ke saath CA-ready Excel sheets 1-click me export karein.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pro-Tip Ribbon -->
+      <div class="pro-tip-strip">
+        <span>🏛️</span>
+        <span><strong>Tax Rules Supported:</strong> Restaurant 5% composite/regular GST, Room 12% & 18% slabs, Service charge waiver toggle aur Corporate GSTIN verification.</span>
+      </div>
+    </div>
+
+    <div class="page-footer-runner">
+      <span>E-Annapurna Operating System • www.e-annapurna.com</span>
+      <span class="page-num">Page 08 / 10</span>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       PAGE 9: MULTI-PROPERTY, STAFF ROLES & HARDWARE FREEDOM
+       ========================================================= -->
+  <div class="page" id="page-9">
+    <div class="page-header-runner">
+      <div class="runner-brand">
+        <strong>E-ANNAPURNA</strong>
+        <span class="runner-dot"></span>
+        <span>Section 08: Multi-Property & Hardware Ecosystem</span>
+      </div>
+      <div>Product Guide 2026</div>
+    </div>
+
+    <div class="module-hero-banner">
+      <div class="module-hero-content">
+        <span class="module-pill">Enterprise Control</span>
+        <h2 class="module-hero-title">Multi-Property & <span>Role Permissions</span></h2>
+        <p class="module-hero-desc">
+          Ek hi login se multiple hotel properties aur resort chains manage karein. Role-based access se staff wahi dekh sakta hai jo uske kaam ke liye zaroori hai.
+        </p>
+      </div>
+      <div class="module-hero-badges">
+        <span class="badge-roi">Unlimited Branches</span>
+        <span class="badge-roi">Zero Hardware Lock-in</span>
+      </div>
+    </div>
+
+    <div class="page-body">
+      <div class="grid-2col">
+        <div class="card-block">
+          <div class="card-block-title">Central Multi-Property Dashboard</div>
+          <ul class="feature-list">
+            <li><strong>Multi-Branch Switcher:</strong> Delhi, Jaipur ya Goa ki sabhi properties ka live business ek master login se track karein.</li>
+            <li><strong>Centralized Menu & Tariffs:</strong> Master menu items aur rates sabhi branches me 1-click me push karein.</li>
+            <li><strong>Comparative Branch Analytics:</strong> Kaun sa hotel branch zyada revenue aur occupancy generate kar raha hai.</li>
+          </ul>
+        </div>
+
+        <div class="card-block">
+          <div class="card-block-title">Role-Based Security & Permissions</div>
+          <ul class="feature-list">
+            <li><strong>Front Desk Staff:</strong> Check-in/out, KYC aur room booking access (financial edit restricted).</li>
+            <li><strong>Restaurant Waiter / Captain:</strong> Order punching aur running table KOT access.</li>
+            <li><strong>Kitchen Chef:</strong> Sirf KDS kitchen board aur order status update access.</li>
+            <li><strong>Housekeeping:</strong> Room cleaning, dirty/clean status toggles phone par.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- 100% Hardware Freedom Banner -->
+      <div class="card-block" style="background: var(--lagoon-900); color: #FFFFFF; border: 1px solid var(--saffron-500); padding: 8px 12px;">
+        <div style="font-family: var(--font-display); font-size: 11.5px; font-weight: 800; color: var(--saffron-400); margin-bottom: 5px;">
+          100% Device & Printer Compatibility (No Expensive Hardware Needed)
+        </div>
+        <div class="grid-4col" style="font-size: 8.2px; color: #CFE3DF; font-weight: 600;">
+          <div>📱 <strong>Mobile Devices:</strong> Android Phones, Tablets, iPhones & iPads.</div>
+          <div>💻 <strong>Computers:</strong> Windows Laptops, Desktops, Apple Mac.</div>
+          <div>🖨️ <strong>Thermal Printers:</strong> 2" & 3" USB, Bluetooth, LAN & Wi-Fi.</div>
+          <div>🖥️ <strong>POS Terminals:</strong> Touch POS Terminals, Cash Drawers.</div>
+        </div>
+      </div>
+
+      <!-- Preview Image Frame -->
+      <div class="preview-frame" style="height: 125px;">
+        <img src="assets/hotel.png" alt="Multi-property Hotel Management">
+        <div class="preview-caption">
+          <span>ENTERPRISE GRADE ROLE BASED ACCESS CONTROL & CHAIN HOTEL INFRASTRUCTURE</span>
+          <span>BANK GRADE SECURITY</span>
+        </div>
+      </div>
+
+      <!-- Bottom Staff Matrix Band -->
+      <div class="bottom-feature-band">
+        <div class="band-title">
+          🔐 Staff Role & Security Matrix Overview
+        </div>
+        <div class="grid-4col">
+          <div>
+            <div class="band-item-title">👑 Owner / GM</div>
+            <div class="band-item-desc">Full revenue, profit reports, master tariff and employee access.</div>
+          </div>
+          <div>
+            <div class="band-item-title">🏨 Front Desk</div>
+            <div class="band-item-desc">Check-in, Webcam KYC, GRC print, room status and bill settlements.</div>
+          </div>
+          <div>
+            <div class="band-item-title">🍽️ Cashier</div>
+            <div class="band-item-desc">Table orders, bill print, cash drawer kick (discount edit locked).</div>
+          </div>
+          <div>
+            <div class="band-item-title">👨‍🍳 Kitchen Chef</div>
+            <div class="band-item-desc">KDS screen timer, cooking states, and dish 86 out-of-stock tags.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pro-Tip Ribbon -->
+      <div class="pro-tip-strip">
+        <span>💡</span>
+        <span><strong>Zero Hardware Lock-in:</strong> E-Annapurna chalane ke liye mehnge ₹50,000 ke touch POS terminal khareedne ki bilkul zaroorat nahi hai. Aapke purane PC/Laptop/Tablet par instant chalta hai.</span>
+      </div>
+    </div>
+
+    <div class="page-footer-runner">
+      <span>E-Annapurna Operating System • www.e-annapurna.com</span>
+      <span class="page-num">Page 09 / 10</span>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       PAGE 10: PRICING PLANS, ONBOARDING & BACK COVER
+       ========================================================= -->
+  <div class="page" id="page-10" style="background:#FAFBFB;">
+    <div class="page-header-runner">
+      <div class="runner-brand">
+        <strong>E-ANNAPURNA</strong>
+        <span class="runner-dot"></span>
+        <span>Section 09: Transparent Pricing & Getting Started</span>
+      </div>
+      <div>Product Guide 2026</div>
+    </div>
+
+    <div class="module-hero-banner" style="padding: 10px 20px;">
+      <div class="module-hero-content">
+        <span class="module-pill">Risk-Free Investment</span>
+        <h2 class="module-hero-title">Simple Pricing, <span>Zero Hidden Costs.</span></h2>
+        <p class="module-hero-desc">
+          Har hotel aur restaurant ke size ke hisaab se tailored plans. Pehle 7 din free chalao, poora software test karo, fir decide karo.
+        </p>
+      </div>
+      <div class="module-hero-badges">
+        <span class="badge-roi">★ 7 Days Free Trial</span>
+        <span class="badge-roi">No Credit Card Needed</span>
+      </div>
+    </div>
+
+    <div class="page-body" style="gap: 8px; padding: 10px 20px;">
+      <!-- 3 Tier Pricing Grid -->
+      <div class="grid-3col">
+        <!-- Starter Plan -->
+        <div class="backcover-pricing-card">
+          <div class="plan-name">Starter Plan</div>
+          <div class="plan-price">₹1,499 <span>/month</span></div>
+          <div class="plan-desc">10 rooms tak ke chhote hotel ya guest house ke liye</div>
+          <ul class="plan-features">
+            <li>Room Booking & Visual Grid</li>
+            <li>Guest KYC & Live Webcam</li>
+            <li>GRC Card Printing</li>
+            <li>GST Billing & Tax Invoices</li>
+            <li>2 Staff Role Logins</li>
+            <li>Email & Call Support</li>
+          </ul>
+        </div>
+
+        <!-- Growth Plan (Popular) -->
+        <div class="backcover-pricing-card popular">
+          <span class="plan-badge-popular">MOST POPULAR</span>
+          <div class="plan-name" style="color:var(--saffron-600);">Growth Plan</div>
+          <div class="plan-price">₹3,999 <span>/month</span></div>
+          <div class="plan-desc">Restaurant wale hotels ke liye complete powerhouse</div>
+          <ul class="plan-features">
+            <li>Starter Plan Ka Sab Kuch</li>
+            <li>Restaurant POS + Table Map</li>
+            <li>Automated KOT & Multi-Kitchen</li>
+            <li>Live Kitchen Display (KDS)</li>
+            <li>Table QR Scan & Self-Order</li>
+            <li>Live Waiting Queue & Token</li>
+            <li>10 Staff Role Logins</li>
+            <li>Priority WhatsApp & Phone Help</li>
+          </ul>
+        </div>
+
+        <!-- Enterprise Plan -->
+        <div class="backcover-pricing-card">
+          <div class="plan-name">Enterprise Plan</div>
+          <div class="plan-price">₹9,999 <span>/month</span></div>
+          <div class="plan-desc">Resorts, banquet aur hotel chain properties ke liye</div>
+          <ul class="plan-features">
+            <li>Growth Plan Ka Sab Kuch</li>
+            <li>Multi-Property Central Login</li>
+            <li>Unlimited Staff Accounts</li>
+            <li>Custom Reports & CA Export</li>
+            <li>Banquet Event Management</li>
+            <li>Dedicated Hospitality Manager</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- 3-Step Instant Onboarding -->
+      <div class="card-block" style="padding: 7px 11px; background: #FFFFFF;">
+        <div class="card-block-title" style="margin-bottom: 3px; font-size: 11px;">Shuru Karna Bilkul Aasaan — 15 Minute Me Live!</div>
+        <div class="grid-3col" style="font-size: 8.2px;">
+          <div>
+            <strong>Step 01: Property Register</strong><br>
+            <span style="color:var(--slate-600);">2-minute online form — hotel naam, rooms aur city bharein.</span>
+          </div>
+          <div>
+            <strong>Step 02: Rooms & Menu Load</strong><br>
+            <span style="color:var(--slate-600);">Excel se 1-click import karein ya direct form se load karein.</span>
+          </div>
+          <div>
+            <strong>Step 03: Live Billing & 7-Day Trial</strong><br>
+            <span style="color:var(--slate-600);">Staff logins banayein aur turant billing shuru karein.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- FAQ & Hoteliers' Assurance Band -->
+      <div class="bottom-feature-band">
+        <div class="band-title">
+          ❓ Frequently Asked Questions (FAQ) & Hoteliers' Assurance
+        </div>
+        <div class="grid-4col">
+          <div>
+            <div class="band-item-title">Data Migration?</div>
+            <div class="band-item-desc">Hamari technical team aapka pura room rate chart aur food menu free me import karegi.</div>
+          </div>
+          <div>
+            <div class="band-item-title">Staff Training?</div>
+            <div class="band-item-desc">Hamari expert team aapke staff ko live video call aur phone par 1-on-1 poori training degi.</div>
+          </div>
+          <div>
+            <div class="band-item-title">Internet Drop?</div>
+            <div class="band-item-desc">POS billing aur kitchen KOTs local offline cache me chalte hain — kaam kabhi nahi rukega!</div>
+          </div>
+          <div>
+            <div class="band-item-title">Hidden Charges?</div>
+            <div class="band-item-desc">Zero setup fee, zero AMC cost, aur 7-din bina credit card ke 100% free guarantee.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BACK COVER CONTACT & QR BLOCK -->
+      <div class="backcover-contact-box">
+        <!-- QR Code -->
+        <div class="backcover-qr-card">
+          <img src="assets/website-qr.png" alt="Scan QR For Website" class="backcover-qr-img">
+          <div class="backcover-qr-text">Scan For Website</div>
+        </div>
+
+        <!-- Contact Details -->
+        <div>
+          <div style="font-family: var(--font-display); font-size: 14px; font-weight: 800; color: #FFFFFF; line-height: 1.1;">
+            Aaj Hi Free Live Demo Book Karein!
+          </div>
+          <div style="font-size: 8.5px; color: #BACFCB; margin-top: 2px;">
+            Hamari hospitality expert team aapke hotel par live demo arrange karegi.
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3px 8px; margin-top: 5px; font-size: 8.5px;">
+            <div>🌐 Website: <a href="https://www.e-annapurna.com" target="_blank" style="color:#FFE58F; font-weight:700; text-decoration:none;">www.e-annapurna.com</a></div>
+            <div>📞 Call / WhatsApp: <strong style="color:#FFFFFF;">+91 98765 43210</strong></div>
+            <div>✉️ Email: <a href="mailto:contact@e-annapurna.com" style="color:#FFE58F; text-decoration:none;">contact@e-annapurna.com</a></div>
+            <div>🕒 Support: <strong style="color:#FFFFFF;">24/7 Priority Helpline</strong></div>
+          </div>
+
+          <div style="font-size: 7.8px; color: #8EAFA9; margin-top: 3px;">
+            📍 Corporate Office: Connaught Place, New Delhi - 110001 | Powered by DIRD (dird.co.in)
+          </div>
+        </div>
+
+        <!-- Action Guarantee Column -->
+        <div style="text-align: center; display: flex; flex-direction: column; gap: 3px;">
+          <a href="https://www.e-annapurna.com" target="_blank" style="background:var(--gold-gradient); color:var(--lagoon-950); padding: 7px 10px; border-radius: 5px; font-weight: 800; font-size: 10.5px; text-transform: uppercase; text-decoration: none; display: block; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4); text-align: center;">
+            Book Free Demo
+          </a>
+          <div style="font-size: 7.8px; color: #34D399; font-weight: 700;">
+            ✔ 7 Din Free Guarantee
+          </div>
+          <div style="font-size: 7px; color: #6C8E88;">
+            © 2026 E-Annapurna. All rights reserved.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="page-footer-runner">
+      <span>E-Annapurna Operating System • www.e-annapurna.com</span>
+      <span class="page-num">Page 10 / 10</span>
+    </div>
+  </div>
+
+</body>
+</html>

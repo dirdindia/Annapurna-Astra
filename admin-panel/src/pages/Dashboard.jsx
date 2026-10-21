@@ -198,7 +198,7 @@ export default function Dashboard() {
         <div className="p-6 sm:p-8 border-b border-lagoon-100/80 flex items-center justify-between">
           <div>
             <h3 className="text-lg font-display font-bold text-lagoon-950 tracking-tight">Recent Hotels</h3>
-            <p className="text-xs text-slate-500 font-medium">Newly onboarded properties on Annapurna Astra Cloud</p>
+            <p className="text-xs text-slate-500 font-medium">Newly onboarded properties on E-Annapurna Cloud</p>
           </div>
         </div>
         <div className="overflow-x-auto">

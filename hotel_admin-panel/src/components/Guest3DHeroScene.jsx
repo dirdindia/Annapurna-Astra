@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
 
-export default function Guest3DHeroScene({ hotelName = "Annapurna Astra", hotelType = "Luxury Dining" }) {
+export default function Guest3DHeroScene({ hotelName = "E-Annapurna", hotelType = "Luxury Dining" }) {
   const mountRef = useRef(null);
 
   useEffect(() => {

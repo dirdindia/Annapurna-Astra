@@ -21,14 +21,16 @@ export default function Navbar({ currentUser, onLogout, theme, toggleTheme, togg
           </button>
         )}
         <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate("/")}>
-          {Boolean(currentUser?.hotelLogo && currentUser.hotelLogo.trim()) && (
-            <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-700/60 overflow-hidden flex items-center justify-center p-1 shadow-md shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-700/60 overflow-hidden flex items-center justify-center p-1 shadow-md shrink-0">
+            {Boolean(currentUser?.hotelLogo && currentUser.hotelLogo.trim()) ? (
               <img src={currentUser.hotelLogo} alt={currentUser?.hotelName || "Hotel Logo"} className="w-full h-full object-contain rounded-lg" />
-            </div>
-          )}
+            ) : (
+              <img src="/e-annapurna-logo.jpeg" alt="E-Annapurna Logo" className="w-full h-full object-contain rounded-lg" />
+            )}
+          </div>
           <div>
             <h1 className="text-xl font-bold font-display tracking-tight text-white leading-none">
-              {currentUser?.hotelName || "Annapurna Astra Admin"}
+              {currentUser?.hotelName || "E-Annapurna Admin"}
             </h1>
             <p className="text-[10px] text-saffron-500 font-semibold tracking-wider uppercase hidden sm:block mt-0.5">
               Hotel Operations & Billing

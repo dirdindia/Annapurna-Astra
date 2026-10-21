@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import api, { tableAPI, orderAPI, tableBookingAPI } from "../../api";
-import { UtensilsCrossed, Users, Plus, Minus, Trash2, Search, ArrowUpRight, ArrowLeft, Bike, ShoppingBag, Truck, X, BedDouble, CalendarClock, Calendar, Clock, Phone, AlertCircle, CalendarDays, CheckCircle, Hotel } from "lucide-react";
+import api, { tableAPI, orderAPI, tableBookingAPI, waitlistAPI } from "../../api";
+import { UtensilsCrossed, Users, Plus, Minus, Trash2, Search, ArrowUpRight, ArrowLeft, Bike, ShoppingBag, Truck, X, BedDouble, CalendarClock, Calendar, Clock, Phone, AlertCircle, CalendarDays, CheckCircle, Hotel, Ticket, UserPlus, PhoneCall, Check, RefreshCw, UserCheck } from "lucide-react";
 import { showError, showSuccess, showConfirm } from "../../utils/alerts";
 import ThermalReceipt from "../../components/ThermalReceipt";
 import MagneticButton from "../../components/MagneticButton";
@@ -47,6 +47,21 @@ export default function StaffKotBilling() {
   const [tableBookings, setTableBookings] = useState([]);
   const [showBookingsModal, setShowBookingsModal] = useState(false);
 
+  // Live Waitlist & Queue
+  const [waitlistActive, setWaitlistActive] = useState([]);
+  const [waitlistCompleted, setWaitlistCompleted] = useState([]);
+  const [showWaitlistModal, setShowWaitlistModal] = useState(false);
+  const [waitlistTab, setWaitlistTab] = useState("active"); // "active", "walkin", "history"
+  const [newWalkin, setNewWalkin] = useState({
+    customerName: "",
+    customerMobile: "",
+    guestsCount: 2,
+    notes: "",
+    assignedTableNo: "",
+  });
+  const [isSubmittingWalkin, setIsSubmittingWalkin] = useState(false);
+  const [waitlistLoading, setWaitlistLoading] = useState(false);
+
   const [activeBookings, setActiveBookings] = useState([]);
   const [showRoomSelectModal, setShowRoomSelectModal] = useState(false);
 
@@ -56,8 +71,9 @@ export default function StaffKotBilling() {
     fetchAllCategories();
     fetchActiveBookings();
     fetchTableBookings();
+    fetchWaitlist();
 
-    // Listen for live table booking confirmation & order updates
+    // Listen for live table booking confirmation & order & waitlist updates
     const token = localStorage.getItem("token");
     let eventSource;
     if (token) {
@@ -69,10 +85,17 @@ export default function StaffKotBilling() {
         eventSource.onmessage = (event) => {
           try {
             const data = JSON.parse(event.data);
-            if (data.type === "table_booking_updated" || data.type === "new_table_booking" || data.type === "order_billed" || data.type === "order_cancelled") {
+            if (
+              data.type === "table_booking_updated" || 
+              data.type === "new_table_booking" || 
+              data.type === "order_billed" || 
+              data.type === "order_cancelled" ||
+              data.type === "waitlist_updated"
+            ) {
               fetchTables();
               fetchVirtualOrders();
               fetchTableBookings();
+              fetchWaitlist();
             }
           } catch (e) {}
         };
@@ -83,6 +106,99 @@ export default function StaffKotBilling() {
       if (eventSource) eventSource.close();
     };
   }, []);
+
+  const fetchWaitlist = async () => {
+    setWaitlistLoading(true);
+    try {
+      const res = await waitlistAPI.getAdminWaitlist();
+      if (res.data.success) {
+        setWaitlistActive(res.data.data.active || []);
+        setWaitlistCompleted(res.data.data.completed || []);
+      }
+    } catch (error) {
+      console.error("Error fetching waitlist:", error);
+    } finally {
+      setWaitlistLoading(false);
+    }
+  };
+
+  const handleCallGuest = async (entry, tableNo) => {
+    try {
+      const res = await waitlistAPI.callGuest(entry._id, { tableNo });
+      if (res.data.success) {
+        showSuccess("Guest Called!", `Guest ${entry.customerName} has been alerted for Table ${tableNo || entry.assignedTableNo || "Next Free Table"}.`);
+        fetchWaitlist();
+      }
+    } catch (err) {
+      showError("Call Failed", err.response?.data?.message || "Failed to call guest");
+    }
+  };
+
+  const handleSeatGuest = async (entry, tableNo) => {
+    const chosenTableNo = tableNo || entry.assignedTableNo;
+    if (!chosenTableNo) {
+      showError("Select Table", "Please pick an available table to seat this guest.");
+      return;
+    }
+    const tableObj = tables.find((t) => String(t.tableNo) === String(chosenTableNo));
+    try {
+      const res = await waitlistAPI.seatGuest(entry._id, { tableNo: chosenTableNo, tableId: tableObj?._id });
+      if (res.data.success) {
+        showSuccess("Guest Seated!", `Token ${entry.tokenNo} (${entry.customerName}) seated at Table ${chosenTableNo}.`);
+        fetchWaitlist();
+        fetchTables();
+        setShowWaitlistModal(false);
+        if (tableObj) {
+          setCheckoutData((prev) => ({
+            ...prev,
+            customerName: entry.customerName || "",
+            customerMobile: entry.customerMobile || "",
+            paymentMode: "Cash",
+          }));
+          handleTableClick(tableObj);
+        }
+      }
+    } catch (err) {
+      showError("Seating Failed", err.response?.data?.message || "Failed to seat guest");
+    }
+  };
+
+  const handleUpdateWaitlistStatus = async (id, status) => {
+    const confirm = await showConfirm(
+      `Confirm ${status === "cancelled" ? "Cancellation" : "No-Show"}`,
+      `Are you sure you want to mark this guest as ${status}?`
+    );
+    if (!confirm) return;
+    try {
+      await waitlistAPI.updateStatus(id, status);
+      showSuccess("Updated", `Token marked as ${status}.`);
+      fetchWaitlist();
+    } catch (err) {
+      showError("Error", err.response?.data?.message || "Failed to update status");
+    }
+  };
+
+  const handleAddWalkinGuest = async (e) => {
+    e.preventDefault();
+    if (!newWalkin.customerName.trim() || !newWalkin.customerMobile.trim()) {
+      showError("Missing Info", "Please enter guest name and mobile number.");
+      return;
+    }
+    setIsSubmittingWalkin(true);
+    try {
+      const res = await waitlistAPI.addManualGuest(newWalkin);
+      if (res.data.success) {
+        showSuccess("Queue Token Created!", `Token #${res.data.data.tokenNo} issued for ${res.data.data.customerName}!`);
+        setNewWalkin({ customerName: "", customerMobile: "", guestsCount: 2, notes: "", assignedTableNo: "" });
+        setWaitlistTab("active");
+        fetchWaitlist();
+      }
+    } catch (err) {
+      showError("Error", err.response?.data?.message || "Failed to add walk-in guest");
+    } finally {
+      setIsSubmittingWalkin(false);
+    }
+  };
 
   const fetchTableBookings = async () => {
     try {
@@ -540,8 +656,27 @@ export default function StaffKotBilling() {
             </button>
           </MagneticButton>
           
-          {/* Table Reservations Pill Button */}
-          <div className="ml-auto">
+          {/* Table Reservations & Live Waitlist Pill Buttons */}
+          <div className="ml-auto flex items-center gap-2">
+            <MagneticButton>
+              <button
+                type="button"
+                onClick={() => {
+                  fetchWaitlist();
+                  setShowWaitlistModal(true);
+                }}
+                className="px-4 py-2.5 bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/40 text-cyan-800 dark:text-cyan-300 hover:text-cyan-900 dark:hover:text-cyan-200 rounded-xl flex items-center gap-2 font-bold text-xs transition-all shadow-sm active:scale-95 cursor-pointer"
+              >
+                <Ticket className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+                <span>Live Waitlist</span>
+                {waitlistActive.length > 0 && (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-cyan-500 text-slate-950 animate-pulse">
+                    {waitlistActive.filter((w) => w.status === "waiting").length} Waiting
+                  </span>
+                )}
+              </button>
+            </MagneticButton>
+
             <MagneticButton>
               <button
                 type="button"
@@ -899,6 +1034,405 @@ export default function StaffKotBilling() {
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Live Waitlist & Digital Token Queue Modal */}
+        {showWaitlistModal && (
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl w-full max-w-3xl shadow-2xl relative animate-fade-in max-h-[88vh] flex flex-col text-slate-900 dark:text-white">
+              {/* Close button */}
+              <button
+                onClick={() => setShowWaitlistModal(false)}
+                className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              {/* Header */}
+              <div className="flex items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4 mb-4 pr-8">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20">
+                    <Ticket className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold font-display text-slate-900 dark:text-white flex items-center gap-2">
+                      <span>Live Dining Waitlist & Queue</span>
+                      {waitlistActive.length > 0 && (
+                        <span className="text-xs px-2.5 py-0.5 rounded-full bg-cyan-500 text-slate-950 font-black">
+                          {waitlistActive.length} In Line
+                        </span>
+                      )}
+                    </h2>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+                      Real-time walk-in guest queue when tables are full • Call & Seat guests
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={fetchWaitlist}
+                  disabled={waitlistLoading}
+                  className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-all text-xs flex items-center gap-1.5 font-bold cursor-pointer"
+                  title="Refresh Queue"
+                >
+                  <RefreshCw className={`w-4 h-4 ${waitlistLoading ? "animate-spin text-cyan-500" : ""}`} />
+                  <span className="hidden sm:inline">Refresh</span>
+                </button>
+              </div>
+
+              {/* Sub-Tabs: Active Queue | + Walk-in Guest | History */}
+              <div className="flex items-center gap-2 mb-4 border-b border-slate-200 dark:border-slate-800 pb-2">
+                <button
+                  type="button"
+                  onClick={() => setWaitlistTab("active")}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    waitlistTab === "active"
+                      ? "bg-cyan-600 text-white shadow-md shadow-cyan-600/20"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60"
+                  }`}
+                >
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>Active Queue ({waitlistActive.length})</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setWaitlistTab("walkin")}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    waitlistTab === "walkin"
+                      ? "bg-cyan-600 text-white shadow-md shadow-cyan-600/20"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60"
+                  }`}
+                >
+                  <UserPlus className="w-3.5 h-3.5" />
+                  <span>+ Add Walk-In Guest</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setWaitlistTab("history")}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    waitlistTab === "history"
+                      ? "bg-cyan-600 text-white shadow-md shadow-cyan-600/20"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60"
+                  }`}
+                >
+                  <CheckCircle className="w-3.5 h-3.5" />
+                  <span>Seated Today ({waitlistCompleted.length})</span>
+                </button>
+              </div>
+
+              {/* Tab 1: Active Queue */}
+              {waitlistTab === "active" && (
+                <div className="overflow-y-auto flex-1 space-y-3 pr-1 custom-scrollbar">
+                  {waitlistActive.length === 0 ? (
+                    <div className="py-12 text-center text-slate-400">
+                      <Ticket className="w-12 h-12 text-slate-400 mx-auto mb-2 opacity-50" />
+                      <p className="font-bold text-slate-700 dark:text-slate-300">No customers waiting right now!</p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        When dining tables are full, guests can scan QR standee or you can click "+ Add Walk-In Guest" to issue a token.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setWaitlistTab("walkin")}
+                        className="mt-4 px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs inline-flex items-center gap-1.5 transition-all shadow-md shadow-cyan-600/20"
+                      >
+                        <UserPlus className="w-4 h-4" /> Issue Walk-In Token
+                      </button>
+                    </div>
+                  ) : (
+                    waitlistActive.map((entry, index) => {
+                      const minutesWaiting = Math.max(
+                        1,
+                        Math.round((new Date() - new Date(entry.createdAt)) / 60000)
+                      );
+                      const availableTables = (tables || []).filter((t) => t.status === "Available");
+
+                      return (
+                        <div
+                          key={entry._id}
+                          className={`p-4 rounded-2xl border transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 ${
+                            entry.status === "called"
+                              ? "bg-cyan-500/10 border-cyan-500/40 ring-1 ring-cyan-500/30"
+                              : "bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800"
+                          }`}
+                        >
+                          {/* Left: Token info */}
+                          <div className="flex items-start gap-3.5">
+                            <div className="w-14 h-14 rounded-2xl bg-cyan-500/15 border border-cyan-500/30 flex flex-col items-center justify-center text-cyan-800 dark:text-cyan-300 font-mono font-black shrink-0 shadow-sm">
+                              <span className="text-[10px] uppercase font-bold text-cyan-600 dark:text-cyan-400">#Pos {index + 1}</span>
+                              <span className="text-base">{entry.tokenNo}</span>
+                            </div>
+
+                            <div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <h4 className="font-extrabold text-slate-900 dark:text-white text-base">
+                                  {entry.customerName}
+                                </h4>
+                                <span
+                                  className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                                    entry.status === "called"
+                                      ? "bg-blue-500 text-white animate-pulse"
+                                      : "bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30"
+                                  }`}
+                                >
+                                  {entry.status === "called" ? "📣 Called - Table Ready" : "⏳ Waiting"}
+                                </span>
+                                {entry.assignedTableNo && (
+                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30">
+                                    Table {entry.assignedTableNo}
+                                  </span>
+                                )}
+                              </div>
+
+                              <p className="text-slate-600 dark:text-slate-400 text-xs mt-1 flex items-center gap-3 flex-wrap">
+                                <span className="flex items-center gap-1 font-semibold">
+                                  <Phone className="w-3.5 h-3.5 text-slate-400" />
+                                  <a href={`tel:${entry.customerMobile}`} className="hover:underline">{entry.customerMobile}</a>
+                                </span>
+                                <span className="flex items-center gap-1 font-semibold">
+                                  <Users className="w-3.5 h-3.5 text-slate-400" />
+                                  {entry.guestsCount} Guests
+                                </span>
+                                <span className="text-amber-800 dark:text-amber-400 font-bold">
+                                  ⏱ {minutesWaiting}m waiting
+                                </span>
+                              </p>
+
+                              {entry.notes && (
+                                <p className="text-xs text-slate-500 italic mt-1 bg-slate-100 dark:bg-slate-800/80 px-2.5 py-1 rounded-lg inline-block">
+                                  Note: "{entry.notes}"
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Right: Actions (Table Selection, Call, Seat, No-Show) */}
+                          <div className="flex flex-wrap items-center gap-2 shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-slate-200 dark:border-slate-800">
+                            {/* Available Tables Dropdown */}
+                            <div className="flex items-center gap-1.5">
+                              <select
+                                defaultValue={entry.assignedTableNo || ""}
+                                id={`select-tbl-${entry._id}`}
+                                className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white text-xs font-bold rounded-xl px-2.5 py-2 focus:outline-none focus:border-cyan-500 shadow-sm"
+                              >
+                                <option value="">-- Pick Table --</option>
+                                {availableTables.map((tbl) => (
+                                  <option key={tbl._id} value={tbl.tableNo}>
+                                    Table {tbl.tableNo} ({tbl.capacity}P)
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+
+                            {/* Call Guest Button */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const selEl = document.getElementById(`select-tbl-${entry._id}`);
+                                const chosenTable = selEl?.value || entry.assignedTableNo;
+                                handleCallGuest(entry, chosenTable);
+                              }}
+                              className="px-3 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs flex items-center gap-1.5 transition-all shadow-md shadow-cyan-600/20 active:scale-95 cursor-pointer"
+                              title="Alert customer that table is ready"
+                            >
+                              <PhoneCall className="w-3.5 h-3.5" />
+                              <span>{entry.status === "called" ? "Call Again" : "Call Guest"}</span>
+                            </button>
+
+                            {/* Seat Guest & Open KOT */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const selEl = document.getElementById(`select-tbl-${entry._id}`);
+                                const chosenTable = selEl?.value || entry.assignedTableNo;
+                                handleSeatGuest(entry, chosenTable);
+                              }}
+                              className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs flex items-center gap-1.5 transition-all shadow-md shadow-emerald-600/20 active:scale-95 cursor-pointer"
+                            >
+                              <UtensilsCrossed className="w-3.5 h-3.5" />
+                              <span>Seat & KOT</span>
+                            </button>
+
+                            {/* No-Show / Cancel */}
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateWaitlistStatus(entry._id, "no_show")}
+                              className="px-2.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-rose-500/10 hover:text-rose-600 text-slate-500 dark:text-slate-400 font-bold text-xs transition-all border border-slate-200 dark:border-slate-700"
+                              title="Guest did not show up"
+                            >
+                              No Show
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              )}
+
+              {/* Tab 2: Add Walk-In Guest Form */}
+              {waitlistTab === "walkin" && (
+                <form onSubmit={handleAddWalkinGuest} className="overflow-y-auto flex-1 space-y-4 pr-1">
+                  <div className="bg-cyan-50 dark:bg-cyan-500/10 border border-cyan-200 dark:border-cyan-500/30 p-3.5 rounded-2xl text-xs text-cyan-900 dark:text-cyan-200 flex items-center gap-3">
+                    <Ticket className="w-5 h-5 text-cyan-600 dark:text-cyan-400 shrink-0" />
+                    <p>
+                      Walk-in guest arrived at the counter and dining tables are full? Issue them a live queue token. They will be notified when a table becomes available.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                        Guest Name *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={newWalkin.customerName}
+                        onChange={(e) => setNewWalkin({ ...newWalkin, customerName: e.target.value })}
+                        placeholder="e.g. Ramesh Kumar"
+                        className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3 py-2.5 text-sm outline-none focus:border-cyan-500 font-semibold"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                        Mobile Number *
+                      </label>
+                      <input
+                        type="tel"
+                        required
+                        value={newWalkin.customerMobile}
+                        onChange={(e) => setNewWalkin({ ...newWalkin, customerMobile: e.target.value })}
+                        placeholder="10-digit mobile number"
+                        className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3 py-2.5 text-sm outline-none focus:border-cyan-500 font-mono font-semibold"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                        Party Size (Guests Count)
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setNewWalkin({ ...newWalkin, guestsCount: Math.max(1, newWalkin.guestsCount - 1) })}
+                          className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-800 font-black text-base hover:bg-slate-300 dark:hover:bg-slate-700 flex items-center justify-center transition-all"
+                        >
+                          -
+                        </button>
+                        <input
+                          type="number"
+                          min="1"
+                          max="50"
+                          value={newWalkin.guestsCount}
+                          onChange={(e) => setNewWalkin({ ...newWalkin, guestsCount: Number(e.target.value) || 1 })}
+                          className="w-20 text-center bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl py-2 font-bold text-base outline-none focus:border-cyan-500"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setNewWalkin({ ...newWalkin, guestsCount: newWalkin.guestsCount + 1 })}
+                          className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-800 font-black text-base hover:bg-slate-300 dark:hover:bg-slate-700 flex items-center justify-center transition-all"
+                        >
+                          +
+                        </button>
+                        <span className="text-xs text-slate-500 ml-1 font-semibold">Guests</span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                        Preferred Table (Optional)
+                      </label>
+                      <select
+                        value={newWalkin.assignedTableNo}
+                        onChange={(e) => setNewWalkin({ ...newWalkin, assignedTableNo: e.target.value })}
+                        className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3 py-2.5 text-sm outline-none focus:border-cyan-500 font-semibold"
+                      >
+                        <option value="">Any Available Table</option>
+                        {tables.map((t) => (
+                          <option key={t._id} value={t.tableNo}>
+                            Table {t.tableNo} ({t.capacity} Seater) - {t.status}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                      Special Notes / Seating Requests
+                    </label>
+                    <input
+                      type="text"
+                      value={newWalkin.notes}
+                      onChange={(e) => setNewWalkin({ ...newWalkin, notes: e.target.value })}
+                      placeholder="e.g. AC section, high chair needed, near window"
+                      className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3 py-2.5 text-sm outline-none focus:border-cyan-500"
+                    />
+                  </div>
+
+                  <div className="pt-2">
+                    <MagneticButton className="w-full">
+                      <button
+                        type="submit"
+                        disabled={isSubmittingWalkin}
+                        className="w-full py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-extrabold rounded-xl shadow-lg shadow-cyan-600/20 text-sm transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer disabled:opacity-50"
+                      >
+                        <Ticket className="w-4 h-4" />
+                        <span>{isSubmittingWalkin ? "Generating Token..." : "Issue Queue Token"}</span>
+                      </button>
+                    </MagneticButton>
+                  </div>
+                </form>
+              )}
+
+              {/* Tab 3: Completed History */}
+              {waitlistTab === "history" && (
+                <div className="overflow-y-auto flex-1 space-y-2.5 pr-1 custom-scrollbar">
+                  {waitlistCompleted.length === 0 ? (
+                    <div className="py-12 text-center text-slate-400 text-xs">
+                      No completed queue entries yet today.
+                    </div>
+                  ) : (
+                    waitlistCompleted.map((entry) => (
+                      <div
+                        key={entry._id}
+                        className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/30 border border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="font-mono font-bold text-cyan-600 dark:text-cyan-400 bg-cyan-500/10 px-2 py-1 rounded-lg border border-cyan-500/20">
+                            {entry.tokenNo}
+                          </span>
+                          <div>
+                            <h5 className="font-bold text-slate-900 dark:text-white">{entry.customerName}</h5>
+                            <p className="text-slate-500 text-[11px]">
+                              {entry.customerMobile} • {entry.guestsCount} Guests
+                              {entry.assignedTableNo && ` • Seated at Table ${entry.assignedTableNo}`}
+                            </p>
+                          </div>
+                        </div>
+
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                            entry.status === "seated"
+                              ? "bg-emerald-500/20 text-emerald-800 dark:text-emerald-400 border border-emerald-500/30"
+                              : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
+                          }`}
+                        >
+                          {entry.status}
+                        </span>
+                      </div>
+                    ))
+                  )}
                 </div>
               )}
             </div>

@@ -24,6 +24,12 @@ import {
   Award,
   ShieldCheck,
   Star,
+  Ticket,
+  Users,
+  BellRing,
+  Timer,
+  Check,
+  AlertTriangle,
 } from "lucide-react";
 import { publicAPI } from "../../api";
 import api from "../../api";
@@ -94,6 +100,15 @@ export default function PublicGuestPortal() {
   const [guestsCount, setGuestsCount] = useState(2);
   const [bookingNotes, setBookingNotes] = useState("");
   const [submittingBooking, setSubmittingBooking] = useState(false);
+
+  // Waitlist / Live Queue State
+  const [waitlistId, setWaitlistId] = useState(() => localStorage.getItem("active_waitlist_id") || null);
+  const [waitlistData, setWaitlistData] = useState(null);
+  const [queueSummary, setQueueSummary] = useState(null);
+  const [waitlistGuests, setWaitlistGuests] = useState(2);
+  const [waitlistNotes, setWaitlistNotes] = useState("");
+  const [submittingWaitlist, setSubmittingWaitlist] = useState(false);
+  const [refreshingWaitlist, setRefreshingWaitlist] = useState(false);
 
   const handleTrackByMobile = async (e) => {
     if (e) e.preventDefault();
@@ -402,9 +417,9 @@ export default function PublicGuestPortal() {
           key,
           amount,
           currency,
-          name: hotel?.name || "Annapurna Astra Dining",
+          name: hotel?.name || "E-Annapurna Dining",
           description: `Order Payment for ${activeTab === "parcel" ? "Parcel" : `Table ${selectedTable}`}`,
-          image: hotel?.logo || "/favicon.svg",
+          image: hotel?.logo || "/e-annapurna-logo.jpeg",
           order_id: razorpayOrderId,
           prefill: {
             name: customerName,
@@ -558,6 +573,140 @@ export default function PublicGuestPortal() {
       Swal.fire({ icon: "error", title: "Booking Failed", text: "Could not request table reservation." });
     } finally {
       setSubmittingBooking(false);
+    }
+  };
+
+  // Fetch Live Queue Summary
+  const fetchQueueSummary = async () => {
+    if (!hotelId) return;
+    try {
+      const res = await publicAPI.getQueueSummary(hotelId);
+      if (res.data.success) {
+        setQueueSummary(res.data.data);
+      }
+    } catch (e) {
+      console.error("Queue summary error:", e);
+    }
+  };
+
+  // Fetch Token Status
+  const fetchWaitlistStatus = async (idToFetch = waitlistId) => {
+    if (!idToFetch) return;
+    setRefreshingWaitlist(true);
+    try {
+      const res = await publicAPI.getWaitlistStatus(idToFetch);
+      if (res.data.success) {
+        setWaitlistData(res.data.data.waitlist);
+      }
+    } catch (e) {
+      if (e.response?.status === 404) {
+        localStorage.removeItem("active_waitlist_id");
+        setWaitlistId(null);
+        setWaitlistData(null);
+      }
+    } finally {
+      setRefreshingWaitlist(false);
+    }
+  };
+
+  // Polling for queue summary & active token status
+  useEffect(() => {
+    if (!hotelId) return;
+    fetchQueueSummary();
+    const interval = setInterval(() => {
+      fetchQueueSummary();
+      if (waitlistId) {
+        fetchWaitlistStatus(waitlistId);
+      }
+    }, 12000);
+    return () => clearInterval(interval);
+  }, [hotelId, waitlistId]);
+
+  // Initial fetch for waitlist status if id exists
+  useEffect(() => {
+    if (waitlistId) {
+      fetchWaitlistStatus(waitlistId);
+    }
+  }, [waitlistId]);
+
+  // Join Waiting Queue
+  const handleJoinWaitlist = async (e) => {
+    if (e) e.preventDefault();
+    if (!customerName.trim() || !customerMobile.trim()) {
+      Swal.fire({
+        icon: "warning",
+        title: "Missing Information",
+        text: "Please enter your Name and Mobile Number to generate a queue token.",
+      });
+      return;
+    }
+
+    setSubmittingWaitlist(true);
+    try {
+      const payload = {
+        hotelId: hotel._id,
+        customerName: customerName.trim(),
+        customerMobile: customerMobile.trim(),
+        guestsCount: Number(waitlistGuests) || 2,
+        notes: waitlistNotes,
+      };
+
+      const res = await publicAPI.joinWaitlist(payload);
+      if (res.data.success) {
+        const item = res.data.data.waitlist;
+        setWaitlistId(item._id);
+        setWaitlistData(item);
+        localStorage.setItem("active_waitlist_id", item._id);
+        localStorage.setItem("guest_name", customerName.trim());
+        localStorage.setItem("guest_mobile", customerMobile.trim());
+
+        Swal.fire({
+          icon: "success",
+          title: `Queue Token #${item.tokenNo} 🎟️`,
+          html: `<p class="text-sm">Aapka number queue mein lag chuka hai!</p>
+                 <p class="text-base font-bold text-amber-500 mt-2">Ahead in line: ${res.data.data.positionAhead} groups</p>
+                 <p class="text-xs text-gray-400 mt-1">Est. wait: ~${res.data.data.estimatedWaitMinutes} minutes</p>
+                 <p class="text-xs text-gray-500 mt-3">Jaise hi table ready hoga, yahi screen par alert aayega.</p>`,
+          confirmButtonColor: "#f59e0b",
+        });
+
+        fetchQueueSummary();
+      }
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Could Not Join Queue",
+        text: err.response?.data?.message || "Failed to generate queue token.",
+      });
+    } finally {
+      setSubmittingWaitlist(false);
+    }
+  };
+
+  // Cancel Queue Token
+  const handleCancelWaitlist = async () => {
+    if (!waitlistId) return;
+    const result = await Swal.fire({
+      title: "Leave Queue?",
+      text: "Are you sure you want to cancel your waiting token?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, Cancel Token",
+      cancelButtonText: "No, Keep My Spot",
+      confirmButtonColor: "#ef4444",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await publicAPI.cancelWaitlist(waitlistId);
+        localStorage.removeItem("active_waitlist_id");
+        setWaitlistId(null);
+        setWaitlistData(null);
+        Swal.fire({ icon: "info", title: "Cancelled", text: "Your waiting token has been cancelled." });
+        fetchQueueSummary();
+      } catch (e) {
+        Swal.fire({ icon: "error", title: "Error", text: "Failed to cancel queue token." });
+      }
     }
   };
 
@@ -769,12 +918,63 @@ export default function PublicGuestPortal() {
         </div>
       )}
 
-      {/* Tab Controls (Dine-In, Parcel, Book Table, Track Order) */}
+      {/* Active Waitlist Live Notification Banner */}
+      {waitlistData && (waitlistData.status === "waiting" || waitlistData.status === "called") && (
+        <div className="max-w-xl mx-auto px-4 mt-3">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className={`p-3.5 rounded-2xl border backdrop-blur-xl flex items-center justify-between shadow-xl ${
+              waitlistData.status === "called"
+                ? "bg-emerald-500/20 border-emerald-500/50 text-emerald-200 animate-pulse"
+                : "bg-amber-500/15 border-amber-500/40 text-amber-200"
+            }`}
+          >
+            <div className="flex items-center gap-3 min-w-0 pr-2">
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border ${
+                waitlistData.status === "called"
+                  ? "bg-emerald-500/30 border-emerald-400 text-emerald-300"
+                  : "bg-amber-500/20 border-amber-400 text-amber-300"
+              }`}>
+                <Ticket className="w-5 h-5" />
+              </div>
+              <div className="truncate">
+                <p className="font-extrabold text-xs text-white flex items-center gap-2">
+                  <span>Token #{waitlistData.tokenNo}</span>
+                  {waitlistData.status === "called" ? (
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-500 text-slate-950 font-black text-[10px]">
+                      TABLE READY! 🎉
+                    </span>
+                  ) : (
+                    <span className="px-2 py-0.5 rounded-full bg-amber-500/30 text-amber-300 border border-amber-500/40 font-bold text-[10px]">
+                      In Queue
+                    </span>
+                  )}
+                </p>
+                <p className="text-[11px] text-slate-300 mt-0.5 truncate">
+                  {waitlistData.status === "called"
+                    ? `Please proceed to Table ${waitlistData.assignedTableNo || "Host Desk"}`
+                    : `${waitlistData.positionAhead || 0} groups ahead · ~${waitlistData.estimatedWaitMinutes || 12}m wait`}
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setActiveTab("waitlist")}
+              className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-saffron-400 to-saffron-500 text-slate-950 font-black text-xs shrink-0 cursor-pointer shadow-md active:scale-95 transition-all"
+            >
+              View Ticket
+            </button>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Tab Controls (Dine-In, Parcel, Book Table, Live Queue, Track Order) */}
       <div className="max-w-xl mx-auto px-4 mt-4">
-        <div className="grid grid-cols-4 gap-1.5 p-1.5 bg-[#0A2F2F]/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl">
+        <div className="grid grid-cols-5 gap-1 p-1.5 bg-[#0A2F2F]/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl">
           <button
             onClick={() => setActiveTab("dine_in")}
-            className={`flex items-center justify-center gap-1.5 py-2.5 px-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-1 rounded-xl text-[11px] sm:text-xs font-bold transition-all cursor-pointer ${
               activeTab === "dine_in"
                 ? "bg-gradient-to-r from-saffron-400 to-saffron-500 text-slate-950 shadow-md shadow-saffron-500/25 font-black"
                 : "text-slate-300 hover:text-white hover:bg-white/5"
@@ -786,7 +986,7 @@ export default function PublicGuestPortal() {
 
           <button
             onClick={() => setActiveTab("parcel")}
-            className={`flex items-center justify-center gap-1.5 py-2.5 px-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-1 rounded-xl text-[11px] sm:text-xs font-bold transition-all cursor-pointer ${
               activeTab === "parcel"
                 ? "bg-gradient-to-r from-saffron-400 to-saffron-500 text-slate-950 shadow-md shadow-saffron-500/25 font-black"
                 : "text-slate-300 hover:text-white hover:bg-white/5"
@@ -798,7 +998,7 @@ export default function PublicGuestPortal() {
 
           <button
             onClick={() => setActiveTab("table_booking")}
-            className={`flex items-center justify-center gap-1.5 py-2.5 px-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-1 rounded-xl text-[11px] sm:text-xs font-bold transition-all cursor-pointer ${
               activeTab === "table_booking"
                 ? "bg-gradient-to-r from-saffron-400 to-saffron-500 text-slate-950 shadow-md shadow-saffron-500/25 font-black"
                 : "text-slate-300 hover:text-white hover:bg-white/5"
@@ -809,8 +1009,23 @@ export default function PublicGuestPortal() {
           </button>
 
           <button
+            onClick={() => setActiveTab("waitlist")}
+            className={`relative flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-1 rounded-xl text-[11px] sm:text-xs font-bold transition-all cursor-pointer ${
+              activeTab === "waitlist"
+                ? "bg-gradient-to-r from-saffron-400 to-saffron-500 text-slate-950 shadow-md shadow-saffron-500/25 font-black"
+                : "text-slate-300 hover:text-white hover:bg-white/5"
+            }`}
+          >
+            <Ticket className={`w-3.5 h-3.5 shrink-0 ${activeTab === "waitlist" ? "text-slate-950 stroke-[2.5]" : "text-amber-400"}`} />
+            <span className="truncate">Live Queue</span>
+            {waitlistData && (waitlistData.status === "waiting" || waitlistData.status === "called") && (
+              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+            )}
+          </button>
+
+          <button
             onClick={() => setActiveTab("track_order")}
-            className={`flex items-center justify-center gap-1.5 py-2.5 px-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-1 rounded-xl text-[11px] sm:text-xs font-bold transition-all cursor-pointer ${
               activeTab === "track_order"
                 ? "bg-gradient-to-r from-saffron-400 to-saffron-500 text-slate-950 shadow-md shadow-saffron-500/25 font-black"
                 : "text-slate-300 hover:text-white hover:bg-white/5"
@@ -1123,6 +1338,290 @@ export default function PublicGuestPortal() {
                 </MagneticButton>
               </div>
             </form>
+          </motion.div>
+        ) : activeTab === "waitlist" ? (
+          /* VIEW 4: LIVE WAITING QUEUE TOKEN & FORM */
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-4"
+          >
+            {/* Live Queue Header Card */}
+            <div className="bg-[#0A2F2F]/60 backdrop-blur-xl border border-white/15 rounded-3xl p-6 shadow-2xl">
+              <div className="flex items-center justify-between gap-3 mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 rounded-2xl bg-gradient-to-br from-amber-500/20 to-saffron-500/20 text-saffron-400 border border-saffron-500/30 shadow-lg">
+                    <Ticket className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-black text-white font-display flex items-center gap-2">
+                      <span>Live Waiting Queue</span>
+                      <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-saffron-500/20 text-saffron-300 border border-saffron-500/30">
+                        Smart Token
+                      </span>
+                    </h2>
+                    <p className="text-xs text-slate-300">
+                      Walked in and tables are full? Reserve your turn digitally.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    fetchQueueSummary();
+                    if (waitlistId) fetchWaitlistStatus(waitlistId);
+                  }}
+                  disabled={refreshingWaitlist}
+                  className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 transition-colors cursor-pointer"
+                  title="Refresh Queue"
+                >
+                  <RefreshCw className={`w-4 h-4 ${refreshingWaitlist ? "animate-spin text-saffron-400" : ""}`} />
+                </button>
+              </div>
+
+              {/* Quick Status Metrics */}
+              <div className="grid grid-cols-3 gap-2.5 pt-3 border-t border-white/10">
+                <div className="bg-[#061C1C]/80 border border-white/10 rounded-2xl p-3 text-center">
+                  <p className="text-[10px] uppercase font-bold text-slate-400">Tables Status</p>
+                  <p className="text-sm font-black text-white mt-0.5">
+                    {queueSummary ? `${queueSummary.occupiedTables}/${queueSummary.totalTables} Full` : "Live Sync"}
+                  </p>
+                </div>
+                <div className="bg-[#061C1C]/80 border border-white/10 rounded-2xl p-3 text-center">
+                  <p className="text-[10px] uppercase font-bold text-slate-400">Waiting Ahead</p>
+                  <p className="text-sm font-black text-amber-400 mt-0.5 font-mono">
+                    {queueSummary ? `${queueSummary.waitingCount} Groups` : "0 Groups"}
+                  </p>
+                </div>
+                <div className="bg-[#061C1C]/80 border border-white/10 rounded-2xl p-3 text-center">
+                  <p className="text-[10px] uppercase font-bold text-slate-400">Avg Wait Time</p>
+                  <p className="text-sm font-black text-emerald-400 mt-0.5 font-mono">
+                    ~{queueSummary?.estimatedWaitPerParty || 12}m / group
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* IF GUEST HAS AN ACTIVE TOKEN */}
+            {waitlistData && (waitlistData.status === "waiting" || waitlistData.status === "called" || waitlistData.status === "seated") ? (
+              <div className="bg-gradient-to-b from-[#0A2F2F]/80 to-[#061C1C]/90 backdrop-blur-2xl border-2 border-saffron-500/40 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-saffron-500/10 rounded-full blur-3xl pointer-events-none" />
+
+                {/* Status Header */}
+                <div className="flex items-center justify-between pb-6 border-b border-white/10">
+                  <div>
+                    <span className="text-[11px] font-extrabold uppercase tracking-widest text-saffron-400">
+                      Your Digital Dining Pass
+                    </span>
+                    <h3 className="text-3xl font-black text-white font-mono mt-1">
+                      Token #{waitlistData.tokenNo}
+                    </h3>
+                  </div>
+
+                  <div className="text-right">
+                    {waitlistData.status === "waiting" && (
+                      <span className="px-3 py-1.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm">
+                        <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+                        In Live Queue
+                      </span>
+                    )}
+                    {waitlistData.status === "called" && (
+                      <span className="px-3.5 py-1.5 rounded-full bg-emerald-500 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-lg shadow-emerald-500/30 animate-pulse">
+                        <BellRing className="w-3.5 h-3.5" />
+                        Table Ready!
+                      </span>
+                    )}
+                    {waitlistData.status === "seated" && (
+                      <span className="px-3 py-1.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/40 text-xs font-black uppercase tracking-wider">
+                        Seated at Table {waitlistData.assignedTableNo}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Called / Ready Alert Banner */}
+                {waitlistData.status === "called" && (
+                  <motion.div
+                    initial={{ scale: 0.95 }}
+                    animate={{ scale: 1 }}
+                    className="mt-6 p-4 rounded-2xl bg-emerald-500/25 border-2 border-emerald-400 text-emerald-100 flex items-start gap-3.5 shadow-2xl"
+                  >
+                    <div className="p-2 rounded-xl bg-emerald-500 text-slate-950 font-black">
+                      <Check className="w-5 h-5 stroke-[3]" />
+                    </div>
+                    <div>
+                      <h4 className="font-extrabold text-base text-white">Your Table is Ready! 🎉</h4>
+                      <p className="text-xs text-emerald-100 mt-1 leading-relaxed">
+                        Namaste <b>{waitlistData.customerName}</b>, Table <b>#{waitlistData.assignedTableNo || "Front"}</b> is prepared for your party of {waitlistData.guestsCount}. Please contact the reception/host desk within 5 minutes.
+                      </p>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Waiting Position & Countdown */}
+                {waitlistData.status === "waiting" && (
+                  <div className="my-6 p-5 rounded-2xl bg-[#061C1C]/70 border border-white/10 flex flex-col sm:flex-row items-center justify-around gap-4 text-center">
+                    <div>
+                      <p className="text-xs text-slate-400 font-bold uppercase">Ahead of You</p>
+                      <p className="text-3xl font-black text-saffron-400 font-mono mt-1">
+                        {waitlistData.positionAhead || 0} <span className="text-xs font-sans text-slate-300">parties</span>
+                      </p>
+                    </div>
+                    <div className="h-8 w-px bg-white/10 hidden sm:block" />
+                    <div>
+                      <p className="text-xs text-slate-400 font-bold uppercase">Estimated Wait</p>
+                      <p className="text-3xl font-black text-emerald-400 font-mono mt-1">
+                        ~{waitlistData.estimatedWaitMinutes || 12} <span className="text-xs font-sans text-slate-300">mins</span>
+                      </p>
+                    </div>
+                    <div className="h-8 w-px bg-white/10 hidden sm:block" />
+                    <div>
+                      <p className="text-xs text-slate-400 font-bold uppercase">Party Size</p>
+                      <p className="text-3xl font-black text-white font-mono mt-1">
+                        {waitlistData.guestsCount} <span className="text-xs font-sans text-slate-300">guests</span>
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Seated Celebration */}
+                {waitlistData.status === "seated" && (
+                  <div className="my-6 p-5 rounded-2xl bg-sky-500/15 border border-sky-400/30 text-center">
+                    <p className="text-base font-black text-white">You are seated at Table {waitlistData.assignedTableNo}!</p>
+                    <p className="text-xs text-sky-200 mt-1">Enjoy your meal! You can now browse our menu and order directly.</p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedTable(waitlistData.assignedTableNo);
+                        setActiveTab("dine_in");
+                      }}
+                      className="mt-4 px-6 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-black text-xs shadow-lg cursor-pointer"
+                    >
+                      Browse Dine-In Menu ➔
+                    </button>
+                  </div>
+                )}
+
+                {/* Customer Details info */}
+                <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-300">
+                  <div className="flex items-center gap-3">
+                    <span className="font-bold text-white">{waitlistData.customerName}</span>
+                    <span>•</span>
+                    <span className="font-mono">{waitlistData.customerMobile}</span>
+                  </div>
+
+                  {waitlistData.status === "waiting" && (
+                    <button
+                      type="button"
+                      onClick={handleCancelWaitlist}
+                      className="text-xs text-rose-400 hover:text-rose-300 font-bold underline underline-offset-4 cursor-pointer"
+                    >
+                      Cancel Token
+                    </button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              /* JOIN WAITING QUEUE FORM */
+              <div className="bg-[#0A2F2F]/60 backdrop-blur-xl border border-white/15 rounded-3xl p-6 sm:p-8 shadow-2xl">
+                <div className="mb-6">
+                  <h3 className="text-lg font-black text-white font-display">Get Your Live Queue Token</h3>
+                  <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                    Enter your name & mobile number. We will assign your position in the digital queue and alert you as soon as a table becomes available!
+                  </p>
+                </div>
+
+                <form onSubmit={handleJoinWaitlist} className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div>
+                      <label className="text-xs text-slate-200 font-bold mb-1.5 block">Full Name *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Rahul Sharma"
+                        value={customerName}
+                        onChange={(e) => setCustomerName(e.target.value)}
+                        className="w-full bg-[#061C1C]/80 border border-white/15 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-saffron-400/40 focus:border-saffron-400 transition-all font-medium"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs text-slate-200 font-bold mb-1.5 block">Mobile Number *</label>
+                      <input
+                        type="tel"
+                        required
+                        placeholder="10-digit mobile number"
+                        value={customerMobile}
+                        onChange={(e) => setCustomerMobile(e.target.value)}
+                        className="w-full bg-[#061C1C]/80 border border-white/15 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-saffron-400/40 focus:border-saffron-400 transition-all font-medium"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs text-slate-200 font-bold mb-1.5 block">Number of Guests *</label>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center bg-[#061C1C]/80 border border-white/15 rounded-xl p-1">
+                        <button
+                          type="button"
+                          onClick={() => setWaitlistGuests((prev) => Math.max(1, prev - 1))}
+                          className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/15 text-white flex items-center justify-center font-bold cursor-pointer"
+                        >
+                          <Minus className="w-3.5 h-3.5" />
+                        </button>
+                        <span className="w-12 text-center text-sm font-black text-saffron-400 font-mono">
+                          {waitlistGuests}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setWaitlistGuests((prev) => Math.min(20, prev + 1))}
+                          className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/15 text-white flex items-center justify-center font-bold cursor-pointer"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                      <span className="text-xs text-slate-400">
+                        {waitlistGuests <= 2 ? "Couples / Small table" : waitlistGuests <= 4 ? "Standard Family Table" : "Large Group Table"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs text-slate-200 font-bold mb-1.5 block">Seating Preferences (Optional)</label>
+                    <textarea
+                      rows="2"
+                      placeholder="e.g. Quiet corner, high chair for toddler, AC area..."
+                      value={waitlistNotes}
+                      onChange={(e) => setWaitlistNotes(e.target.value)}
+                      className="w-full bg-[#061C1C]/80 border border-white/15 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-saffron-400/40 focus:border-saffron-400 transition-all font-medium"
+                    />
+                  </div>
+
+                  <div className="pt-2 flex justify-center">
+                    <MagneticButton className="w-full sm:w-auto">
+                      <button
+                        type="submit"
+                        disabled={submittingWaitlist}
+                        className="w-full sm:w-auto min-w-[280px] py-3.5 px-8 rounded-xl bg-gradient-to-r from-saffron-400 to-saffron-500 hover:from-saffron-300 hover:to-saffron-400 text-slate-950 font-black text-sm tracking-wide shadow-xl shadow-saffron-500/25 transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+                      >
+                        {submittingWaitlist ? (
+                          <>
+                            <RefreshCw className="w-4 h-4 animate-spin" />
+                            <span>Generating Token...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Ticket className="w-4 h-4" />
+                            <span>🎟️ Get My Queue Token</span>
+                          </>
+                        )}
+                      </button>
+                    </MagneticButton>
+                  </div>
+                </form>
+              </div>
+            )}
           </motion.div>
         ) : (
           /* VIEW 4: TRACK ORDER BY MOBILE */

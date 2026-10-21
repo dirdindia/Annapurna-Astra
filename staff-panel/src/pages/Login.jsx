@@ -65,8 +65,8 @@ export default function Login({ onLoginSuccess }) {
             className="flex flex-col items-center"
           >
             {/* Frosted glass logo container */}
-            <div className="bg-white/10 p-5 rounded-3xl backdrop-blur-xl mb-8 shadow-2xl border border-white/15 flex items-center justify-center">
-              <img src="/favicon.svg" alt="Annapurna Astra Logo" className="w-24 h-24 rounded-2xl drop-shadow-md" />
+            <div className="bg-white/10 p-5 rounded-3xl backdrop-blur-xl mb-8 shadow-2xl border border-white/15 flex items-center justify-center overflow-hidden">
+              <img src="/e-annapurna-logo.jpeg" alt="E-Annapurna Logo" className="w-24 h-24 rounded-2xl drop-shadow-md object-contain" />
             </div>
 
             {/* Pure white brand title */}
@@ -74,7 +74,7 @@ export default function Login({ onLoginSuccess }) {
               style={{ color: '#FFFFFF' }} 
               className="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight font-display !text-white"
             >
-              Annapurna Astra
+              E-Annapurna
             </h1>
             
             <p className="text-base text-teal-100/80 leading-relaxed font-light mb-8 max-w-md mx-auto">
@@ -114,11 +114,11 @@ export default function Login({ onLoginSuccess }) {
           className="w-full max-w-md bg-white/95 rounded-3xl p-8 sm:p-10 border border-slate-200/80 shadow-2xl backdrop-blur-xl relative"
         >
           {/* Top Amber-Saffron Accent Stripe */}
-          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 rounded-t-3xl" />
+          {/* <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 rounded-t-3xl" /> */}
 
           <div className="mb-8 text-center sm:text-left">
             <div className="lg:hidden mx-auto mb-5 flex justify-center">
-              <img src="/favicon.svg" alt="Annapurna Astra Logo" className="w-16 h-16 shadow-xl rounded-2xl" />
+              <img src="/e-annapurna-logo.jpeg" alt="E-Annapurna Logo" className="w-16 h-16 shadow-xl rounded-2xl object-contain bg-white/10 p-2" />
             </div>
             <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-600 mb-2">
               <Users size={14} />
@@ -216,7 +216,7 @@ export default function Login({ onLoginSuccess }) {
             <p>
               Need a new account?{' '}
               <a href="http://localhost:5173/register" className="font-medium text-slate-600 hover:text-amber-600 hover:underline">
-                Register property on Annapurna Astra
+                Register property on E-Annapurna
               </a>
             </p>
           </div>

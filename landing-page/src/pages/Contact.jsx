@@ -76,7 +76,7 @@ export default function Contact() {
               </div>
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-lagoon-100/60">Email Support</p>
-                <p className="text-base font-semibold text-white">contact@annapurnaastra.com</p>
+                <p className="text-base font-semibold text-white">contact@e-annapurna.com</p>
               </div>
             </motion.div>
 

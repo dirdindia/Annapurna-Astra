@@ -185,9 +185,9 @@ export default function AdminBilling() {
         key: data.keyId || razorpayKeyId,
         amount: data.amount,
         currency: data.currency || "INR",
-        name: data.hotelName || currentUser?.hotelName || "Annapurna Astra PMS",
+        name: data.hotelName || currentUser?.hotelName || "E-Annapurna PMS",
         description: `${planKey} Plan Subscription (${billingCycle === "yearly" ? "1 Year" : "30 Days"})`,
-        image: "/favicon.svg",
+        image: "/e-annapurna-logo.jpeg",
         order_id: data.orderId,
         prefill: {
           name: data.customerName || currentUser?.name || "Hotel Admin",
@@ -319,7 +319,7 @@ export default function AdminBilling() {
             Hotel Subscription & Billing
           </h1>
           <p className="text-slate-400 mt-1 text-sm">
-            Activate or upgrade your Annapurna Astra plan to enable staff logins, billing counters, and POS operations.
+            Activate or upgrade your E-Annapurna plan to enable staff logins, billing counters, and POS operations.
           </p>
         </div>
 

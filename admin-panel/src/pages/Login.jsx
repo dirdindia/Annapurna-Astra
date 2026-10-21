@@ -68,8 +68,8 @@ export default function Login() {
             className="flex flex-col items-center login-left-brand"
           >
             {/* Centered Logo in frosted glass container */}
-            <div className="bg-white/10 p-5 rounded-3xl backdrop-blur-xl mb-6 shadow-2xl border border-white/15 flex items-center justify-center hover:scale-105 transition-transform duration-300">
-              <img src="/favicon.svg" alt="Annapurna Astra Logo" className="w-20 h-20 rounded-2xl drop-shadow-lg" />
+            <div className="bg-white/10 p-5 rounded-3xl backdrop-blur-xl mb-6 shadow-2xl border border-white/15 flex items-center justify-center hover:scale-105 transition-transform duration-300 overflow-hidden">
+              <img src="/e-annapurna-logo.jpeg" alt="E-Annapurna Logo" className="w-20 h-20 object-contain rounded-2xl drop-shadow-lg" />
             </div>
 
             {/* Cloud Control Badge */}
@@ -80,7 +80,7 @@ export default function Login() {
 
             {/* Pure White Brand Title */}
             <h1 className="text-4xl md:text-5xl font-black mb-3 tracking-tight font-display text-white drop-shadow-md">
-              Annapurna <span className="text-saffron-400">Astra</span>
+              E-<span className="text-saffron-400">Annapurna</span>
             </h1>
             
             <p className="text-sm md:text-base text-lagoon-100/90 leading-relaxed font-normal max-w-md mb-8">
@@ -126,8 +126,8 @@ export default function Login() {
             {/* Mobile Header Branding */}
             <div className="mb-8 text-center lg:text-left">
               <div className="lg:hidden mx-auto mb-4 flex justify-center">
-                <div className="bg-lagoon-900 p-3 rounded-2xl shadow-xl border border-lagoon-700/60">
-                  <img src="/favicon.svg" alt="Annapurna Astra Logo" className="w-12 h-12" />
+                <div className="bg-lagoon-900 p-2.5 rounded-2xl shadow-xl border border-lagoon-700/60 overflow-hidden">
+                  <img src="/e-annapurna-logo.jpeg" alt="E-Annapurna Logo" className="w-12 h-12 object-contain rounded-xl" />
                 </div>
               </div>
 

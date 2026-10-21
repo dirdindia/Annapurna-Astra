@@ -19,9 +19,14 @@ import {
   Search,
   Filter,
   Check,
+  Ticket,
+  PhoneCall,
+  UserPlus,
+  Users,
+  Phone,
 } from "lucide-react";
 import QRCode from "qrcode";
-import api, { qrOrderAPI, tableAPI } from "../../api";
+import api, { qrOrderAPI, tableAPI, waitlistAPI } from "../../api";
 import Swal from "sweetalert2";
 import MagneticButton from "../../components/MagneticButton";
 
@@ -67,6 +72,20 @@ export default function AdminQrOrders() {
   const [bookings, setBookings] = useState([]);
   const [loadingBookings, setLoadingBookings] = useState(false);
   const [allTables, setAllTables] = useState([]);
+
+  // Waitlist state
+  const [waitlistActive, setWaitlistActive] = useState([]);
+  const [waitlistCompleted, setWaitlistCompleted] = useState([]);
+  const [loadingWaitlist, setLoadingWaitlist] = useState(false);
+  const [waitlistSubTab, setWaitlistSubTab] = useState("queue"); // "queue" | "manual" | "history"
+  const [manualGuest, setManualGuest] = useState({
+    customerName: "",
+    customerMobile: "",
+    guestsCount: 2,
+    notes: "",
+    assignedTableNo: "",
+  });
+  const [submittingManual, setSubmittingManual] = useState(false);
 
   // Standee print ref
   const standeeRef = useRef(null);
@@ -142,9 +161,123 @@ export default function AdminQrOrders() {
     }
   };
 
+  const fetchTables = async () => {
+    try {
+      const res = await tableAPI.getTables();
+      if (res.data?.success) {
+        setAllTables(res.data.data || []);
+      }
+    } catch (e) {}
+  };
+
+  const fetchAdminWaitlist = async () => {
+    setLoadingWaitlist(true);
+    try {
+      const res = await waitlistAPI.getAdminWaitlist();
+      if (res.data?.success) {
+        setWaitlistActive(res.data.data.active || []);
+        setWaitlistCompleted(res.data.data.completed || []);
+      }
+    } catch (err) {
+      console.error("Error fetching waitlist:", err);
+    } finally {
+      setLoadingWaitlist(false);
+    }
+  };
+
+  const handleCallWaitlistGuest = async (entry, tableNo) => {
+    try {
+      const res = await waitlistAPI.callGuest(entry._id, { tableNo });
+      if (res.data.success) {
+        Swal.fire({
+          icon: "success",
+          title: "Guest Called!",
+          text: `Guest ${entry.customerName} alerted for Table ${tableNo || entry.assignedTableNo || "Next Ready Table"}.`,
+          timer: 2000,
+          showConfirmButton: false,
+        });
+        fetchAdminWaitlist();
+      }
+    } catch (err) {
+      Swal.fire({ icon: "error", title: "Error", text: err.response?.data?.message || "Failed to call guest" });
+    }
+  };
+
+  const handleSeatWaitlistGuest = async (entry, tableNo) => {
+    const chosenTable = tableNo || entry.assignedTableNo;
+    if (!chosenTable) {
+      Swal.fire({ icon: "warning", title: "Select Table", text: "Please pick an available table from the dropdown." });
+      return;
+    }
+    const tableObj = allTables.find((t) => String(t.tableNo) === String(chosenTable));
+    try {
+      const res = await waitlistAPI.seatGuest(entry._id, { tableNo: chosenTable, tableId: tableObj?._id });
+      if (res.data.success) {
+        Swal.fire({
+          icon: "success",
+          title: "Guest Seated!",
+          text: `Token ${entry.tokenNo} seated at Table ${chosenTable}. Table is now Occupied.`,
+          timer: 2200,
+          showConfirmButton: false,
+        });
+        fetchAdminWaitlist();
+        fetchTables();
+      }
+    } catch (err) {
+      Swal.fire({ icon: "error", title: "Seating Failed", text: err.response?.data?.message || "Failed to seat guest" });
+    }
+  };
+
+  const handleUpdateWaitlistStatus = async (id, status) => {
+    const res = await Swal.fire({
+      title: `Confirm ${status === "cancelled" ? "Cancellation" : "No-Show"}?`,
+      text: `Are you sure you want to mark this guest as ${status}?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, proceed",
+      confirmButtonColor: "#ef4444",
+    });
+    if (!res.isConfirmed) return;
+
+    try {
+      await waitlistAPI.updateStatus(id, status);
+      Swal.fire({ icon: "info", title: "Updated", timer: 1500, showConfirmButton: false });
+      fetchAdminWaitlist();
+    } catch (err) {
+      Swal.fire({ icon: "error", title: "Error", text: err.response?.data?.message || "Failed to update status" });
+    }
+  };
+
+  const handleAddManualGuest = async (e) => {
+    e.preventDefault();
+    if (!manualGuest.customerName.trim() || !manualGuest.customerMobile.trim()) {
+      Swal.fire({ icon: "warning", title: "Missing Details", text: "Customer name and mobile number are required." });
+      return;
+    }
+    setSubmittingManual(true);
+    try {
+      const res = await waitlistAPI.addManualGuest(manualGuest);
+      if (res.data.success) {
+        Swal.fire({
+          icon: "success",
+          title: "Token Issued!",
+          text: `Queue Token #${res.data.data.tokenNo} generated for ${res.data.data.customerName}!`,
+        });
+        setManualGuest({ customerName: "", customerMobile: "", guestsCount: 2, notes: "", assignedTableNo: "" });
+        setWaitlistSubTab("queue");
+        fetchAdminWaitlist();
+      }
+    } catch (err) {
+      Swal.fire({ icon: "error", title: "Error", text: err.response?.data?.message || "Failed to generate token" });
+    } finally {
+      setSubmittingManual(false);
+    }
+  };
+
   useEffect(() => {
     fetchOrders();
     fetchBookings();
+    fetchAdminWaitlist();
   }, [filterStatus]);
 
   // Real-time SSE Connection: Listens for instant order push from backend
@@ -202,6 +335,9 @@ export default function AdminQrOrders() {
           });
         } else if (data.type === "table_booking_updated") {
           fetchBookings();
+        } else if (data.type === "waitlist_updated") {
+          fetchAdminWaitlist();
+          fetchTables();
         } else if (data.type === "kds_status_update") {
           // Update order status in local state directly and fetch to ensure sync
           setOrders((prev) =>
@@ -237,6 +373,9 @@ export default function AdminQrOrders() {
   useEffect(() => {
     if (activeTab === "bookings") {
       fetchBookings();
+    } else if (activeTab === "waitlist") {
+      fetchAdminWaitlist();
+      fetchTables();
     }
   }, [activeTab]);
 
@@ -374,7 +513,7 @@ export default function AdminQrOrders() {
   const handleDownloadQR = () => {
     if (!qrDataUrl) return;
     const downloadLink = document.createElement("a");
-    downloadLink.download = `${currentUser?.hotelName || "Annapurna Astra"}-QR.png`;
+    downloadLink.download = `${currentUser?.hotelName || "E-Annapurna"}-QR.png`;
     downloadLink.href = qrDataUrl;
     downloadLink.click();
   };
@@ -454,6 +593,25 @@ export default function AdminQrOrders() {
               {pendingBookingsCount > 0 && (
                 <span className="w-5 h-5 rounded-full bg-rose-500 text-white flex items-center justify-center text-[10px] font-black animate-pulse">
                   {pendingBookingsCount}
+                </span>
+              )}
+            </button>
+          </MagneticButton>
+
+          <MagneticButton>
+            <button
+              onClick={() => setActiveTab("waitlist")}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                activeTab === "waitlist"
+                  ? "bg-gradient-to-r from-saffron-400 to-saffron-500 text-slate-950 shadow-md shadow-saffron-500/20"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              <Ticket className="w-4 h-4" />
+              <span>Live Waitlist</span>
+              {waitlistActive.length > 0 && (
+                <span className="w-5 h-5 rounded-full bg-cyan-500 text-slate-950 flex items-center justify-center text-[10px] font-black animate-pulse">
+                  {waitlistActive.filter((w) => w.status === "waiting").length}
                 </span>
               )}
             </button>
@@ -867,7 +1025,7 @@ export default function AdminQrOrders() {
                     {currentUser?.hotelName?.charAt(0) || "S"}
                   </div>
                 )}
-                <h3 className="text-xl font-black text-white tracking-tight">{currentUser?.hotelName || "Annapurna Astra Dining"}</h3>
+                <h3 className="text-xl font-black text-white tracking-tight">{currentUser?.hotelName || "E-Annapurna Dining"}</h3>
                 <p className="text-xs text-amber-400 font-semibold mt-0.5 uppercase tracking-widest">
                   Scan to View Menu & Order
                 </p>
@@ -908,7 +1066,7 @@ export default function AdminQrOrders() {
 
               {/* Footer Powered By */}
               <p className="text-[10px] text-slate-500 mt-4 tracking-wider uppercase font-semibold">
-                Powered by Annapurna Astra SaaS
+                Powered by E-Annapurna SaaS
               </p>
             </div>
           </div>
@@ -1036,6 +1194,438 @@ export default function AdminQrOrders() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* TAB 4: LIVE WAITLIST & DIGITAL QUEUE */}
+      {activeTab === "waitlist" && (
+        <div className="space-y-6 animate-fade-in">
+          {/* Quick Metrics Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800">
+              <span className="text-xs text-slate-400 font-medium">Total In Queue</span>
+              <div className="text-2xl font-black text-white font-mono mt-1">
+                {waitlistActive.length}
+              </div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20">
+              <span className="text-xs text-amber-400 font-medium">Waiting Turn</span>
+              <div className="text-2xl font-black text-amber-400 font-mono mt-1">
+                {waitlistActive.filter((w) => w.status === "waiting").length}
+              </div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-cyan-500/10 border border-cyan-500/20">
+              <span className="text-xs text-cyan-400 font-medium">Called (Table Ready)</span>
+              <div className="text-2xl font-black text-cyan-400 font-mono mt-1">
+                {waitlistActive.filter((w) => w.status === "called").length}
+              </div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
+              <span className="text-xs text-emerald-400 font-medium">Available Tables</span>
+              <div className="text-2xl font-black text-emerald-400 font-mono mt-1">
+                {allTables.filter((t) => t.status === "Available").length} / {allTables.length}
+              </div>
+            </div>
+          </div>
+
+          {/* Sub-Tab Navigation & Refresh */}
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-1.5 bg-slate-900/80 p-1 rounded-xl border border-slate-800">
+              <button
+                onClick={() => setWaitlistSubTab("queue")}
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  waitlistSubTab === "queue"
+                    ? "bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                <Clock className="w-3.5 h-3.5" />
+                <span>Live Queue ({waitlistActive.length})</span>
+              </button>
+
+              <button
+                onClick={() => setWaitlistSubTab("manual")}
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  waitlistSubTab === "manual"
+                    ? "bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                <UserPlus className="w-3.5 h-3.5" />
+                <span>+ Issue Walk-In Token</span>
+              </button>
+
+              <button
+                onClick={() => setWaitlistSubTab("history")}
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  waitlistSubTab === "history"
+                    ? "bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>Completed Today ({waitlistCompleted.length})</span>
+              </button>
+            </div>
+
+            <button
+              onClick={() => {
+                fetchAdminWaitlist();
+                fetchTables();
+              }}
+              disabled={loadingWaitlist}
+              className="p-2 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 text-xs flex items-center gap-1.5 font-bold transition-all cursor-pointer"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loadingWaitlist ? "animate-spin text-cyan-400" : ""}`} />
+              <span>Refresh</span>
+            </button>
+          </div>
+
+          {/* Sub-View 1: Live Queue */}
+          {waitlistSubTab === "queue" && (
+            <div className="bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+              {waitlistActive.length === 0 ? (
+                <div className="py-16 text-center text-slate-400">
+                  <Ticket className="w-12 h-12 text-slate-500 mx-auto mb-3 opacity-40" />
+                  <p className="font-bold text-white text-base">All caught up! No waiting guests in line.</p>
+                  <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
+                    When dining tables are full, guests scanning the QR code can join the live waiting queue, or you can issue walk-in tokens.
+                  </p>
+                  <button
+                    onClick={() => setWaitlistSubTab("manual")}
+                    className="mt-4 px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs inline-flex items-center gap-1.5 transition-all shadow-md shadow-cyan-600/20 cursor-pointer"
+                  >
+                    <UserPlus className="w-4 h-4" /> Issue Walk-In Token
+                  </button>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs text-slate-200">
+                    <thead className="bg-slate-950/80 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+                      <tr>
+                        <th className="py-3 px-4 font-bold">Token & Position</th>
+                        <th className="py-3 px-4 font-bold">Guest Info</th>
+                        <th className="py-3 px-4 font-bold">Party Size</th>
+                        <th className="py-3 px-4 font-bold">Wait Duration</th>
+                        <th className="py-3 px-4 font-bold">Status</th>
+                        <th className="py-3 px-4 font-bold">Assign Table</th>
+                        <th className="py-3 px-4 text-right font-bold">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800/60">
+                      {waitlistActive.map((entry, index) => {
+                        const minutesWaiting = Math.max(
+                          1,
+                          Math.round((new Date() - new Date(entry.createdAt)) / 60000)
+                        );
+                        const availableTables = allTables.filter((t) => t.status === "Available");
+
+                        return (
+                          <tr
+                            key={entry._id}
+                            className={`hover:bg-slate-850/50 transition-colors ${
+                              entry.status === "called" ? "bg-cyan-500/5" : ""
+                            }`}
+                          >
+                            <td className="py-3.5 px-4">
+                              <div className="flex items-center gap-2">
+                                <span className="font-mono font-black text-cyan-400 bg-cyan-500/15 border border-cyan-500/30 px-2.5 py-1 rounded-xl text-sm">
+                                  {entry.tokenNo}
+                                </span>
+                                <span className="text-[10px] font-bold text-slate-400">
+                                  #{index + 1}
+                                </span>
+                              </div>
+                            </td>
+
+                            <td className="py-3.5 px-4">
+                              <div className="font-bold text-white text-sm">{entry.customerName}</div>
+                              <div className="text-slate-400 text-xs flex items-center gap-1.5 mt-0.5">
+                                <Phone className="w-3 h-3 text-slate-400" />
+                                <a href={`tel:${entry.customerMobile}`} className="hover:underline">
+                                  {entry.customerMobile}
+                                </a>
+                              </div>
+                              {entry.notes && (
+                                <p className="text-[11px] text-amber-400/90 italic mt-0.5 max-w-xs truncate">
+                                  "{entry.notes}"
+                                </p>
+                              )}
+                            </td>
+
+                            <td className="py-3.5 px-4 font-bold text-slate-300">
+                              <span className="flex items-center gap-1">
+                                <Users className="w-3.5 h-3.5 text-slate-400" />
+                                {entry.guestsCount} Guests
+                              </span>
+                            </td>
+
+                            <td className="py-3.5 px-4 font-bold text-amber-400">
+                              ⏱ {minutesWaiting} mins
+                            </td>
+
+                            <td className="py-3.5 px-4">
+                              <span
+                                className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${
+                                  entry.status === "called"
+                                    ? "bg-cyan-500 text-slate-950 animate-pulse font-extrabold"
+                                    : "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                                }`}
+                              >
+                                {entry.status === "called" ? "📣 Called - Table Ready" : "⏳ Waiting"}
+                              </span>
+                              {entry.assignedTableNo && (
+                                <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                  T-{entry.assignedTableNo}
+                                </span>
+                              )}
+                            </td>
+
+                            <td className="py-3.5 px-4">
+                              <select
+                                id={`admin-wait-tbl-${entry._id}`}
+                                defaultValue={entry.assignedTableNo || ""}
+                                className="bg-slate-950 border border-slate-700 text-cyan-400 rounded-xl px-2.5 py-1.5 text-xs font-bold outline-none focus:border-cyan-500"
+                              >
+                                <option value="">-- Pick Table --</option>
+                                {availableTables.map((tbl) => (
+                                  <option key={tbl._id} value={tbl.tableNo}>
+                                    Table {tbl.tableNo} ({tbl.capacity}P)
+                                  </option>
+                                ))}
+                              </select>
+                            </td>
+
+                            <td className="py-3.5 px-4 text-right">
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const selectEl = document.getElementById(`admin-wait-tbl-${entry._id}`);
+                                    const chosenTable = selectEl?.value || entry.assignedTableNo;
+                                    handleCallWaitlistGuest(entry, chosenTable);
+                                  }}
+                                  className="px-2.5 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-[11px] flex items-center gap-1 transition-all shadow-md shadow-cyan-600/20 active:scale-95 cursor-pointer"
+                                  title="Call guest to restaurant counter"
+                                >
+                                  <PhoneCall className="w-3 h-3" />
+                                  <span>{entry.status === "called" ? "Call Again" : "Call"}</span>
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const selectEl = document.getElementById(`admin-wait-tbl-${entry._id}`);
+                                    const chosenTable = selectEl?.value || entry.assignedTableNo;
+                                    handleSeatWaitlistGuest(entry, chosenTable);
+                                  }}
+                                  className="px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-[11px] flex items-center gap-1 transition-all shadow-md shadow-emerald-600/20 active:scale-95 cursor-pointer"
+                                  title="Seat guest at table"
+                                >
+                                  <Utensils className="w-3 h-3" />
+                                  <span>Seat Guest</span>
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleUpdateWaitlistStatus(entry._id, "no_show")}
+                                  className="px-2 py-1.5 rounded-xl bg-slate-800 hover:bg-rose-500/20 hover:text-rose-400 text-slate-400 font-bold text-[11px] transition-all"
+                                  title="Mark as no-show"
+                                >
+                                  No Show
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Sub-View 2: Issue Walk-In Token Form */}
+          {waitlistSubTab === "manual" && (
+            <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 max-w-2xl shadow-xl">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2 mb-1">
+                <Ticket className="w-5 h-5 text-cyan-400" />
+                <span>Issue Live Walk-in Token</span>
+              </h3>
+              <p className="text-xs text-slate-400 mb-6">
+                When dining tables are full and guests walk in, issue them a sequential digital token. They will be called as soon as a table frees up.
+              </p>
+
+              <form onSubmit={handleAddManualGuest} className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">
+                      Guest Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={manualGuest.customerName}
+                      onChange={(e) => setManualGuest({ ...manualGuest, customerName: e.target.value })}
+                      placeholder="e.g. Rahul Sharma"
+                      className="w-full bg-slate-950 border border-slate-800 text-white rounded-xl px-3 py-2.5 text-sm outline-none focus:border-cyan-500 font-semibold"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">
+                      Mobile Number *
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      value={manualGuest.customerMobile}
+                      onChange={(e) => setManualGuest({ ...manualGuest, customerMobile: e.target.value })}
+                      placeholder="10-digit mobile"
+                      className="w-full bg-slate-950 border border-slate-800 text-white rounded-xl px-3 py-2.5 text-sm outline-none focus:border-cyan-500 font-mono font-semibold"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">
+                      Party Size (Number of Guests)
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setManualGuest({ ...manualGuest, guestsCount: Math.max(1, manualGuest.guestsCount - 1) })
+                        }
+                        className="w-10 h-10 rounded-xl bg-slate-800 text-white font-black hover:bg-slate-700 flex items-center justify-center transition-all"
+                      >
+                        -
+                      </button>
+                      <input
+                        type="number"
+                        min="1"
+                        max="50"
+                        value={manualGuest.guestsCount}
+                        onChange={(e) =>
+                          setManualGuest({ ...manualGuest, guestsCount: Number(e.target.value) || 1 })
+                        }
+                        className="w-20 text-center bg-slate-950 border border-slate-800 text-white rounded-xl py-2 font-bold text-base outline-none focus:border-cyan-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setManualGuest({ ...manualGuest, guestsCount: manualGuest.guestsCount + 1 })
+                        }
+                        className="w-10 h-10 rounded-xl bg-slate-800 text-white font-black hover:bg-slate-700 flex items-center justify-center transition-all"
+                      >
+                        +
+                      </button>
+                      <span className="text-xs text-slate-400 ml-1">Guests</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">
+                      Table Preference (Optional)
+                    </label>
+                    <select
+                      value={manualGuest.assignedTableNo}
+                      onChange={(e) => setManualGuest({ ...manualGuest, assignedTableNo: e.target.value })}
+                      className="w-full bg-slate-950 border border-slate-800 text-white rounded-xl px-3 py-2.5 text-sm outline-none focus:border-cyan-500 font-semibold"
+                    >
+                      <option value="">Any Available Table</option>
+                      {allTables.map((t) => (
+                        <option key={t._id} value={t.tableNo}>
+                          Table {t.tableNo} ({t.capacity} Seater) - {t.status}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">
+                    Special Notes
+                  </label>
+                  <input
+                    type="text"
+                    value={manualGuest.notes}
+                    onChange={(e) => setManualGuest({ ...manualGuest, notes: e.target.value })}
+                    placeholder="e.g. High chair needed, AC section, window side"
+                    className="w-full bg-slate-950 border border-slate-800 text-white rounded-xl px-3 py-2.5 text-sm outline-none focus:border-cyan-500"
+                  />
+                </div>
+
+                <div className="pt-2">
+                  <MagneticButton className="w-full">
+                    <button
+                      type="submit"
+                      disabled={submittingManual}
+                      className="w-full py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-extrabold rounded-xl shadow-lg shadow-cyan-600/20 text-sm transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer disabled:opacity-50"
+                    >
+                      <Ticket className="w-4 h-4" />
+                      <span>{submittingManual ? "Generating..." : "Generate Queue Token"}</span>
+                    </button>
+                  </MagneticButton>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* Sub-View 3: Completed History */}
+          {waitlistSubTab === "history" && (
+            <div className="bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+              {waitlistCompleted.length === 0 ? (
+                <div className="py-16 text-center text-slate-400 text-xs">
+                  No seated or completed tokens yet today.
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs text-slate-200">
+                    <thead className="bg-slate-950/80 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+                      <tr>
+                        <th className="py-3 px-4 font-bold">Token</th>
+                        <th className="py-3 px-4 font-bold">Customer Name</th>
+                        <th className="py-3 px-4 font-bold">Mobile</th>
+                        <th className="py-3 px-4 font-bold">Party</th>
+                        <th className="py-3 px-4 font-bold">Assigned Table</th>
+                        <th className="py-3 px-4 font-bold">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800/60">
+                      {waitlistCompleted.map((entry) => (
+                        <tr key={entry._id} className="hover:bg-slate-850/40">
+                          <td className="py-3 px-4 font-mono font-bold text-cyan-400">{entry.tokenNo}</td>
+                          <td className="py-3 px-4 font-bold text-white">{entry.customerName}</td>
+                          <td className="py-3 px-4 text-slate-400">{entry.customerMobile}</td>
+                          <td className="py-3 px-4">{entry.guestsCount} Guests</td>
+                          <td className="py-3 px-4 text-emerald-400 font-bold">
+                            {entry.assignedTableNo ? `Table ${entry.assignedTableNo}` : "-"}
+                          </td>
+                          <td className="py-3 px-4">
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                                entry.status === "seated"
+                                  ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                                  : "bg-slate-800 text-slate-400"
+                              }`}
+                            >
+                              {entry.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           )}
         </div>

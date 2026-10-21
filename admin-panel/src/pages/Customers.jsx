@@ -787,7 +787,7 @@ Registered On: ${new Date(h.createdAt).toLocaleDateString()}
                     <div className="bg-saffron-500/10 border border-saffron-500/20 rounded-2xl p-4 flex items-start gap-3">
                       <Info className="w-5 h-5 text-saffron-600 shrink-0 mt-0.5" />
                       <div className="text-xs text-saffron-900 leading-relaxed font-medium">
-                        These tax and license credentials automatically generate on customer room folios, dining bills, and regulatory audit reports exported through the Annapurna Astra billing engine.
+                        These tax and license credentials automatically generate on customer room folios, dining bills, and regulatory audit reports exported through the E-Annapurna billing engine.
                       </div>
                     </div>
                   </motion.div>

@@ -149,6 +149,14 @@ export const tableBookingAPI = {
   updateBooking: (id, data) => api.put(`/api/public/admin/table-bookings/${id}`, data),
 };
 
+export const waitlistAPI = {
+  getAdminWaitlist: () => api.get("/api/public/admin/waitlist"),
+  addManualGuest: (data) => api.post("/api/public/admin/waitlist/manual", data),
+  callGuest: (id, data) => api.put(`/api/public/admin/waitlist/${id}/call`, data),
+  seatGuest: (id, data) => api.put(`/api/public/admin/waitlist/${id}/seat`, data),
+  updateStatus: (id, status) => api.put(`/api/public/admin/waitlist/${id}/status`, { status }),
+};
+
 export const roomBookingAPI = {
   exportBookings: (params) => api.get("/api/room-bookings/export", { params, responseType: 'blob' }),
 };

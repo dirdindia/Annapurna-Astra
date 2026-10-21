@@ -53,7 +53,7 @@ export default function About() {
             transition={{ duration: 0.7, delay: 0.3 }}
             className="mt-8 text-xl text-lagoon-100/70 leading-relaxed max-w-2xl mx-auto"
           >
-            Annapurna Astra isliye bana ki chhote aur medium hotels ko 4-5 alag software na chalane padein. Hum samajhte hain ki ek hotel chalana kitna mushkil hota hai.
+            E-Annapurna isliye bana ki chhote aur medium hotels ko 4-5 alag software na chalane padein. Hum samajhte hain ki ek hotel chalana kitna mushkil hota hai.
           </motion.p>
         </div>
 

@@ -1,0 +1,1525 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>E-Annapurna — Single Page Marketing Pamphlet</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;0,9..144,800;1,9..144,600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* =========================================================
+       PRINT & PAGE DIMENSION RULES (EXACT SINGLE A4 SHEET)
+       ========================================================= */
+    :root {
+      --lagoon-950: #051A1A;
+      --lagoon-900: #0A2F2F;
+      --lagoon-800: #0F4242;
+      --lagoon-700: #145555;
+      --lagoon-500: #1F6F6B;
+      --lagoon-100: #E2ECE9;
+      --lagoon-50:  #F2F7F6;
+      --saffron-400: #F6B445;
+      --saffron-500: #F2A33A;
+      --saffron-600: #D98A1F;
+      --gold-gradient: linear-gradient(135deg, #FFE58F 0%, #F59E0B 50%, #D97706 100%);
+      --emerald: #10B981;
+      --emerald-dark: #065F46;
+      --linen: #FBFBFA;
+      --slate-800: #1E293B;
+      --slate-600: #475569;
+      --font-display: 'Fraunces', Georgia, serif;
+      --font-sans: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: #E2E7E5;
+      color: var(--slate-800);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 0;
+      min-height: 100vh;
+    }
+
+    /* Print control toolbar (hidden in print) */
+    .toolbar {
+      position: sticky;
+      top: 10px;
+      z-index: 9999;
+      background: rgba(10, 47, 47, 0.95);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 999px;
+      padding: 8px 18px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+      margin-bottom: 16px;
+    }
+
+    .toolbar-title {
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toolbar-title span.badge {
+      background: rgba(242, 163, 58, 0.2);
+      color: var(--saffron-400);
+      border: 1px solid var(--saffron-400);
+      border-radius: 20px;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .toolbar-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--gold-gradient);
+      color: var(--lagoon-950);
+      font-family: var(--font-sans);
+      font-weight: 800;
+      font-size: 13px;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 999px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
+      transition: all 0.2s ease;
+    }
+
+    .toolbar-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.5);
+    }
+
+    .toolbar-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      padding: 7px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 999px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .toolbar-secondary:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* THE A4 PRINT SHEET CONTAINER */
+    .sheet {
+      width: 210mm;
+      height: 297mm;
+      max-height: 297mm;
+      background: #FFFFFF;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.18);
+      border-radius: 2px;
+    }
+
+    /* TOP HEADER / BRAND BAR */
+    .header {
+      background: linear-gradient(135deg, var(--lagoon-950) 0%, var(--lagoon-900) 55%, #0d3838 100%);
+      color: #FFFFFF;
+      padding: 11px 20px 9px 20px;
+      position: relative;
+      z-index: 2;
+      border-bottom: 3px solid var(--saffron-500);
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo-img {
+      height: 44px;
+      width: auto;
+      border-radius: 8px;
+      background: #fff;
+      padding: 2px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+    }
+
+    .brand-title {
+      font-family: var(--font-display);
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      line-height: 1.05;
+      color: #FFFFFF;
+    }
+
+    .brand-title span {
+      background: var(--gold-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-subtitle {
+      font-size: 9.5px;
+      color: var(--lagoon-100);
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+
+    .header-badges {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .dird-powered {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 6px;
+      padding: 4px 8px;
+    }
+
+    .dird-powered span {
+      font-size: 9px;
+      color: #BACFCB;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+    }
+
+    .dird-logo-img {
+      height: 20px;
+      width: auto;
+      filter: brightness(1.1);
+    }
+
+    .trust-pill {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34D399;
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      letter-spacing: 0.2px;
+    }
+
+    /* HERO SECTION */
+    .hero-section {
+      padding: 10px 20px 6px 20px;
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 1.18fr 0.82fr;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .hero-content h1 {
+      font-family: var(--font-display);
+      font-size: 25px;
+      font-weight: 800;
+      line-height: 1.14;
+      color: var(--lagoon-950);
+      letter-spacing: -0.5px;
+    }
+
+    .hero-content h1 .highlight {
+      color: var(--saffron-600);
+      position: relative;
+      display: inline-block;
+    }
+
+    .hero-tagline {
+      margin-top: 5px;
+      font-size: 11px;
+      line-height: 1.42;
+      color: var(--slate-600);
+      font-weight: 500;
+    }
+
+    .hero-perks {
+      margin-top: 7px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .perk-chip {
+      background: var(--lagoon-50);
+      border: 1px solid #D1DFDB;
+      color: var(--lagoon-900);
+      font-size: 9.2px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .perk-chip svg {
+      width: 11px;
+      height: 11px;
+      color: var(--emerald);
+    }
+
+    /* HERO MOCKUP VISUALS */
+    .hero-visuals {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .mockup-stack {
+      position: relative;
+      width: 100%;
+      height: 124px;
+    }
+
+    .mockup-main {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 78%;
+      border-radius: 8px;
+      box-shadow: 0 10px 22px -4px rgba(10, 47, 47, 0.25);
+      border: 2px solid var(--lagoon-900);
+      overflow: hidden;
+      background: #000;
+      z-index: 2;
+    }
+
+    .mockup-main img {
+      width: 100%;
+      height: 102px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .mockup-secondary {
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 60%;
+      border-radius: 8px;
+      box-shadow: 0 8px 18px -2px rgba(0,0,0,0.22);
+      border: 2px solid var(--saffron-500);
+      overflow: hidden;
+      background: #fff;
+      z-index: 3;
+    }
+
+    .mockup-secondary img {
+      width: 100%;
+      height: 80px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .mockup-badge {
+      position: absolute;
+      top: 6px;
+      left: 10px;
+      background: rgba(10, 47, 47, 0.9);
+      color: #FFE58F;
+      font-size: 8.5px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 4px;
+      letter-spacing: 0.3px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      z-index: 4;
+    }
+
+    /* =========================================================
+       SUPER ATTRACTIVE PRICING & LAUNCH OFFER BANNER (USER FOCUS)
+       ========================================================= */
+    .pricing-banner {
+      margin: 4px 18px 8px 18px;
+      background: linear-gradient(135deg, #072626 0%, #0B3535 50%, #0F4242 100%);
+      border: 2px solid var(--saffron-400);
+      border-radius: 11px;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #fff;
+      position: relative;
+      box-shadow: 0 6px 18px rgba(242, 163, 58, 0.2);
+      overflow: hidden;
+    }
+
+    .pricing-banner::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 180px;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(246, 180, 69, 0.16));
+      pointer-events: none;
+    }
+
+    .price-hook {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+    }
+
+    .price-tag-bubble {
+      background: var(--gold-gradient);
+      color: var(--lagoon-950);
+      border-radius: 9px;
+      padding: 5px 13px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.35);
+      border: 1px solid #FFF3C4;
+    }
+
+    .price-tag-bubble .starting-from {
+      font-size: 8px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      line-height: 1;
+    }
+
+    .price-tag-bubble .price-amount {
+      font-family: var(--font-display);
+      font-size: 23px;
+      font-weight: 800;
+      line-height: 1;
+      margin: 2px 0 1px 0;
+    }
+
+    .price-tag-bubble .per-month {
+      font-size: 8.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      line-height: 1;
+    }
+
+    .price-hook-text h3 {
+      font-family: var(--font-display);
+      font-size: 15.5px;
+      font-weight: 800;
+      color: #FFFFFF;
+      letter-spacing: -0.2px;
+    }
+
+    .price-hook-text h3 span {
+      color: var(--saffron-400);
+    }
+
+    .price-hook-text p {
+      font-size: 10px;
+      color: #D1E5E2;
+      margin-top: 2px;
+      font-weight: 500;
+    }
+
+    .pricing-pills-row {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+    }
+
+    .trial-badge {
+      background: #10B981;
+      color: #032e18;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 3px 11px;
+      border-radius: 999px;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      box-shadow: 0 3px 8px rgba(16, 185, 129, 0.4);
+    }
+
+    .zero-fee-text {
+      font-size: 9px;
+      color: #FFE58F;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    /* =========================================================
+       6 CORE MODULES (BENTO FEATURE GRID)
+       ========================================================= */
+    .features-section {
+      padding: 0 18px 6px 18px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .section-headline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: 14.5px;
+      font-weight: 800;
+      color: var(--lagoon-900);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .section-title::before {
+      content: "";
+      width: 4px;
+      height: 15px;
+      background: var(--saffron-500);
+      border-radius: 2px;
+      display: inline-block;
+    }
+
+    .section-subtitle {
+      font-size: 9.5px;
+      color: var(--slate-600);
+      font-weight: 600;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 7px;
+    }
+
+    .feature-card {
+      background: #FFFFFF;
+      border: 1px solid #D1DFDB;
+      border-radius: 9px;
+      padding: 9.5px 11px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 2px 7px rgba(10, 47, 47, 0.04);
+      justify-content: space-between;
+    }
+
+    .feature-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 5px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .card-icon-wrap {
+      width: 25px;
+      height: 25px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .card-icon-wrap svg {
+      width: 14.5px;
+      height: 14.5px;
+    }
+
+    .icon-pms  { background: #E6F4EA; color: #137333; }
+    .icon-pos  { background: #FEF3C7; color: #B45309; }
+    .icon-kot  { background: #FEE2E2; color: #B91C1C; }
+    .icon-qr   { background: #EDE9FE; color: #6D28D9; }
+    .icon-gst  { background: #E0F2FE; color: #0369A1; }
+    .icon-app  { background: #FCE7F3; color: #BE185D; }
+    .icon-wait { background: #FFEDD5; color: #C2410C; }
+
+    .card-tag {
+      font-size: 8px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: var(--lagoon-50);
+      color: var(--lagoon-700);
+      border: 1px solid #CFE3DF;
+    }
+
+    .card-title {
+      font-size: 11.2px;
+      font-weight: 800;
+      color: var(--lagoon-950);
+      line-height: 1.2;
+    }
+
+    .card-bullets {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 3.2px;
+      margin-top: 3.5px;
+    }
+
+    .card-bullets li {
+      font-size: 9.1px;
+      line-height: 1.32;
+      color: #334155;
+      display: flex;
+      align-items: flex-start;
+      gap: 4px;
+      font-weight: 500;
+    }
+
+    .card-bullets li::before {
+      content: "•";
+      color: var(--saffron-500);
+      font-size: 12px;
+      font-weight: bold;
+      line-height: 1;
+    }
+
+    .card-bullets li strong {
+      color: #0F172A;
+      font-weight: 700;
+    }
+
+    /* =========================================================
+       WHY E-ANNAPURNA VS OLD SOFTWARE (COMPARISON STRIP)
+       ========================================================= */
+    .comparison-strip {
+      background: var(--lagoon-50);
+      border: 1px dashed #B8D0CC;
+      border-radius: 8px;
+      padding: 6px 12px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 7px;
+    }
+
+    .comp-item {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5px;
+    }
+
+    .comp-old {
+      font-size: 8.5px;
+      color: #991B1B;
+      text-decoration: line-through;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      font-weight: 600;
+    }
+
+    .comp-new {
+      font-size: 9.2px;
+      color: var(--lagoon-900);
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .comp-new svg {
+      width: 11px;
+      height: 11px;
+      color: var(--emerald);
+      flex-shrink: 0;
+    }
+
+    /* =========================================================
+       NEW: 3-STEP SETUP STRIP (FILLS EMPTY SPACE)
+       ========================================================= */
+    .steps-section {
+      padding: 0 18px 7px 18px;
+    }
+
+    .steps-strip {
+      background: linear-gradient(135deg, #FFFFFF 0%, #F8FAF9 100%);
+      border: 1px solid #D1DFDB;
+      border-radius: 9px;
+      padding: 8px 12px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      box-shadow: 0 2px 7px rgba(10, 47, 47, 0.04);
+      position: relative;
+    }
+
+    .step-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .step-num {
+      width: 24px;
+      height: 24px;
+      border-radius: 7px;
+      background: var(--gold-gradient);
+      color: var(--lagoon-950);
+      font-family: var(--font-display);
+      font-size: 12px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(245, 158, 11, 0.35);
+      border: 1px solid #FFF1B8;
+    }
+
+    .step-content h4 {
+      font-size: 10.5px;
+      font-weight: 800;
+      color: var(--lagoon-950);
+      line-height: 1.2;
+    }
+
+    .step-content p {
+      font-size: 8.6px;
+      color: #475569;
+      line-height: 1.3;
+      margin-top: 1.5px;
+    }
+
+    /* =========================================================
+       NEW: HARDWARE & TRUST BANNER (FILLS EMPTY SPACE)
+       ========================================================= */
+    .hardware-strip {
+      margin: 0 18px 8px 18px;
+      background: var(--lagoon-900);
+      color: #FFFFFF;
+      border-radius: 7px;
+      padding: 6px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 8.8px;
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(10, 47, 47, 0.15);
+    }
+
+    .hardware-strip .hw-title {
+      color: var(--saffron-400);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .hardware-strip .hw-items {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #E2ECE9;
+    }
+
+    .hardware-strip .hw-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .hardware-strip .hw-item svg {
+      width: 11px;
+      height: 11px;
+      color: var(--saffron-400);
+    }
+
+    /* HOTELIER TESTIMONIAL & PROOF STRIP */
+    .testimonial-strip {
+      margin: 0 18px 8px 18px;
+      background: linear-gradient(135deg, rgba(246, 180, 69, 0.12) 0%, rgba(31, 111, 107, 0.08) 100%);
+      border: 1px solid rgba(246, 180, 69, 0.35);
+      border-radius: 7px;
+      padding: 6px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 8.8px;
+    }
+
+    .testi-stars {
+      color: var(--saffron-500);
+      font-size: 11px;
+      letter-spacing: 1px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .testi-text {
+      color: var(--lagoon-950);
+      font-style: italic;
+      font-weight: 600;
+      flex: 1;
+      line-height: 1.25;
+    }
+
+    .testi-author {
+      color: var(--lagoon-700);
+      font-weight: 800;
+      white-space: nowrap;
+      font-size: 8.2px;
+    }
+
+    /* =========================================================
+       RICH FOOTER CTA & CONTACT SECTION (HIGH CONVERTING)
+       ========================================================= */
+    .footer-cta {
+      background: linear-gradient(135deg, var(--lagoon-950) 0%, var(--lagoon-900) 60%, #0c3333 100%);
+      color: #FFFFFF;
+      padding: 10px 18px 10px 18px;
+      position: relative;
+      z-index: 2;
+      border-top: 3px solid var(--saffron-500);
+      margin-top: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* Footer Top Ticker */
+    .footer-ticker {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      padding-bottom: 6px;
+      font-size: 8.5px;
+      font-weight: 800;
+      letter-spacing: 0.6px;
+      color: var(--saffron-400);
+      text-transform: uppercase;
+    }
+
+    .footer-ticker .ticker-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .footer-ticker .ticker-dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--saffron-500);
+    }
+
+    /* Footer Main Grid */
+    .footer-main-row {
+      display: grid;
+      grid-template-columns: 88px 1fr 145px;
+      gap: 14px;
+      align-items: center;
+    }
+
+    /* Left QR Box */
+    .qr-box {
+      background: #FFFFFF;
+      padding: 4px;
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+
+    .qr-img {
+      width: 78px;
+      height: 78px;
+      display: block;
+    }
+
+    .qr-label {
+      font-size: 7.5px;
+      font-weight: 800;
+      color: var(--lagoon-950);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      margin-top: 2px;
+      text-align: center;
+    }
+
+    /* Center Contact Details */
+    .contact-details {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .cta-heading {
+      font-family: var(--font-display);
+      font-size: 14.5px;
+      font-weight: 800;
+      color: #FFFFFF;
+      line-height: 1.1;
+    }
+
+    .cta-heading span {
+      color: var(--saffron-400);
+    }
+
+    .cta-subtext {
+      font-size: 9px;
+      color: #BACFCB;
+      font-weight: 500;
+      margin-bottom: 2px;
+    }
+
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px 12px;
+    }
+
+    .contact-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 9.5px;
+    }
+
+    .contact-icon {
+      width: 17px;
+      height: 17px;
+      border-radius: 4px;
+      background: rgba(242, 163, 58, 0.2);
+      color: var(--saffron-400);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .contact-icon svg {
+      width: 11px;
+      height: 11px;
+    }
+
+    .contact-item a, .contact-item span {
+      color: #FFFFFF;
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .contact-item a:hover {
+      color: var(--saffron-400);
+    }
+
+    .contact-address {
+      font-size: 8.2px;
+      color: #8EAFA9;
+      margin-top: 2px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Right Action Button Column */
+    .cta-action-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      text-align: center;
+    }
+
+    .cta-btn-gold {
+      background: var(--gold-gradient);
+      color: var(--lagoon-950);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      text-decoration: none;
+      display: block;
+      width: 100%;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+      border: 1px solid #FDE68A;
+      text-align: center;
+    }
+
+    .cta-guarantee {
+      font-size: 7.8px;
+      color: #34D399;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .bottom-copyright {
+      font-size: 7.2px;
+      color: #6C8E88;
+      margin-top: 1px;
+    }
+
+    /* Footer Bottom Security Badges */
+    .footer-bottom-trust {
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding-top: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 8px;
+      color: #BACFCB;
+    }
+
+    .trust-bullets {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .trust-bullet-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .trust-bullet-item svg {
+      width: 10px;
+      height: 10px;
+      color: #34D399;
+    }
+
+    /* =========================================================
+       EXACT PRINT STYLES
+       ========================================================= */
+    @page {
+      size: A4 portrait;
+      margin: 0;
+    }
+
+    @media print {
+      html, body {
+        width: 210mm;
+        height: 297mm;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #FFFFFF !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      .toolbar {
+        display: none !important;
+      }
+
+      .sheet {
+        width: 210mm !important;
+        height: 297mm !important;
+        max-height: 297mm !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+        page-break-after: avoid !important;
+        page-break-inside: avoid !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- FLOATING SCREEN CONTROLS (HIDDEN DURING PRINT) -->
+  <div class="toolbar no-print">
+    <div class="toolbar-title">
+      <span>📄 Single Page Marketing Pamphlet</span>
+      <span class="badge">A4 Print Ready</span>
+    </div>
+    <button class="toolbar-btn" onclick="window.print()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+      Print / Save as PDF
+    </button>
+    <a href="https://www.e-annapurna.com" target="_blank" class="toolbar-secondary">
+      Visit Website
+    </a>
+  </div>
+
+  <!-- A4 SINGLE PAGE PAMPHLET CONTAINER -->
+  <div class="sheet" id="pamphlet">
+    
+    <!-- TOP HEADER BRANDING (STRICTLY E-ANNAPURNA, NO ASTRA) -->
+    <header class="header">
+      <div class="header-top">
+        <div class="brand-group">
+          <img src="assets/logo.jpeg" alt="E-Annapurna Logo" class="brand-logo-img">
+          <div>
+            <div class="brand-title">E-<span>ANNAPURNA</span></div>
+            <div class="brand-subtitle">Smart Cloud Hotel & Restaurant Operating System</div>
+          </div>
+        </div>
+
+        <div class="header-badges">
+          <div class="trust-pill">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            10,000+ Hoteliers Trust
+          </div>
+          <div class="dird-powered">
+            <span>Powered By</span>
+            <img src="assets/dird-logo.webp" alt="DIRD Logo" class="dird-logo-img">
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- HERO HOOK & MOCKUPS -->
+    <section class="hero-section">
+      <div class="hero-content">
+        <h1>
+          Reception se rasoi tak, <br>
+          <span class="highlight">poora hotel ek screen par!</span>
+        </h1>
+        <p class="hero-tagline">
+          Room booking, automated KOT, restaurant POS billing, live kitchen display (KDS), aur live waiting queue — bina kisi complex hardware ya alag alag software ke jhanjhat ke!
+        </p>
+
+        <div class="hero-perks">
+          <span class="perk-chip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            Zero Setup Cost
+          </span>
+          <span class="perk-chip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            2-Minute Onboarding
+          </span>
+          <span class="perk-chip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            Cloud Real-Time Sync
+          </span>
+          <span class="perk-chip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            GST & GRC Compliant
+          </span>
+        </div>
+      </div>
+
+      <!-- LIVE SYSTEM MOCKUPS -->
+      <div class="hero-visuals">
+        <div class="mockup-stack">
+          <div class="mockup-badge">LIVE CLOUD PLATFORM</div>
+          <div class="mockup-main">
+            <img src="assets/dashboard.png" alt="E-Annapurna PMS Dashboard">
+          </div>
+          <div class="mockup-secondary">
+            <img src="assets/pos.png" alt="E-Annapurna POS & Table Management">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         ATTRACTIVE PRICING & SPECIAL OFFER STRIP (₹1,499/MO)
+         ========================================================= -->
+    <section class="pricing-banner">
+      <div class="price-hook">
+        <div class="price-tag-bubble">
+          <span class="starting-from">Starts At Just</span>
+          <span class="price-amount">₹1,499</span>
+          <span class="per-month">/ Month</span>
+        </div>
+        <div class="price-hook-text">
+          <h3>Dhamaka Launch Offer: <span>Pehle 7 Din FREE Chalao!</span></h3>
+          <p>Chhote hotel se lekar multi-property resort tak — Sabhi features unlocked. Fir pasand aaye to continue karo.</p>
+        </div>
+      </div>
+
+      <div class="pricing-pills-row">
+        <span class="trial-badge">★ 7 DAYS FREE TRIAL</span>
+        <span class="zero-fee-text">✓ No Credit Card Required</span>
+      </div>
+    </section>
+
+    <!-- =========================================================
+       6 POWERFUL MODULES (ALL FEATURES IN DETAIL)
+       ========================================================= -->
+    <section class="features-section">
+      <div class="section-headline">
+        <div class="section-title">Aapke Hotel Ke Liye All-in-One Complete Powerhouse</div>
+        <div class="section-subtitle">Phone, Tablet, Laptop ya POS Machine — Har device par superfast chalta hai</div>
+      </div>
+
+      <div class="feature-grid">
+        
+        <!-- MODULE 1: ROOM BOOKING & PMS -->
+        <div class="feature-card">
+          <div class="feature-card-header">
+            <div class="header-left">
+              <div class="card-icon-wrap icon-pms">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M2 4v16M2 8h18a2 2 0 0 1 2 2v10M2 17h20M6 8v9"></path></svg>
+              </div>
+              <div class="card-title">Room Booking & Front Desk PMS</div>
+            </div>
+            <span class="card-tag">Core PMS</span>
+          </div>
+          <ul class="card-bullets">
+            <li><strong>Live Room Color Grid:</strong> Green (Available), Red (Occupied), Yellow (Booked).</li>
+            <li><strong>Instant Guest Check-in:</strong> Web camera se live photo & ID card capture.</li>
+            <li><strong>GRC Card Generation:</strong> Police verification format 1-click print.</li>
+            <li><strong>Advance Reservation:</strong> Advance token deposit aur checkout calculation.</li>
+          </ul>
+        </div>
+
+        <!-- MODULE 2: RESTAURANT POS -->
+        <div class="feature-card">
+          <div class="feature-card-header">
+            <div class="header-left">
+              <div class="card-icon-wrap icon-pos">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8zM6 1v3M10 1v3M14 1v3"></path></svg>
+              </div>
+              <div class="card-title">Restaurant POS & Dining Floor</div>
+            </div>
+            <span class="card-tag">Quick POS</span>
+          </div>
+          <ul class="card-bullets">
+            <li><strong>Interactive Table Map:</strong> Table status, running orders & elapsed timer.</li>
+            <li><strong>Rapid Dish Catalog:</strong> Millisecond category search & shortcuts.</li>
+            <li><strong>Running Table Add-ons:</strong> Purane items disturb kiye bina add-on KOT.</li>
+            <li><strong>Dine-In & Takeaway:</strong> Direct parcel, delivery aur table billing.</li>
+          </ul>
+        </div>
+
+        <!-- MODULE 3: AUTOMATED KOT & KDS -->
+        <div class="feature-card">
+          <div class="feature-card-header">
+            <div class="header-left">
+              <div class="card-icon-wrap icon-kot">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"></path><line x1="6" y1="17" x2="18" y2="17"></line></svg>
+              </div>
+              <div class="card-title">Automated KOT & Live KDS Screen</div>
+            </div>
+            <span class="card-tag">Live KDS</span>
+          </div>
+          <ul class="card-bullets">
+            <li><strong>Kitchen Order Tickets:</strong> Order punch hote hi kitchen thermal print.</li>
+            <li><strong>Smart KDS Pipeline:</strong> Rasoi screen par New ➔ Cooking ➔ Ready.</li>
+            <li><strong>Cooking Alert Timers:</strong> Delay roko green, yellow aur red alert se.</li>
+            <li><strong>Dining Hall LED Display:</strong> Waiters ke liye instant order ready chime.</li>
+          </ul>
+        </div>
+
+        <!-- MODULE 4: QR SCAN & ORDER -->
+        <div class="feature-card">
+          <div class="feature-card-header">
+            <div class="header-left">
+              <div class="card-icon-wrap icon-qr">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+              </div>
+              <div class="card-title">QR Standee & Self-Ordering Menu</div>
+            </div>
+            <span class="card-tag">QR Menu</span>
+          </div>
+          <ul class="card-bullets">
+            <li><strong>Contactless Table QR:</strong> Guest apne mobile camera se scan karega.</li>
+            <li><strong>Photo Digital Menu:</strong> HD photos, dish descriptions & customizable rates.</li>
+            <li><strong>Zero App Download:</strong> Direct browser par 2 second mein open hota hai.</li>
+            <li><strong>Admin Approval:</strong> Fake orders se bachne ke liye cashier verification.</li>
+          </ul>
+        </div>
+
+        <!-- MODULE 5: GST BILLING & PAYMENTS -->
+        <div class="feature-card">
+          <div class="feature-card-header">
+            <div class="header-left">
+              <div class="card-icon-wrap icon-gst">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+              </div>
+              <div class="card-title">GST Tax Invoices & Thermal Print</div>
+            </div>
+            <span class="card-tag">GST POS</span>
+          </div>
+          <ul class="card-bullets">
+            <li><strong>3-Inch Thermal & A4 Print:</strong> High-speed bill print with QR payment.</li>
+            <li><strong>Multi-Mode Split Pay:</strong> Cash, UPI QR, Card & Room charge post.</li>
+            <li><strong>Corporate GSTIN:</strong> Company GST number auto-check & invoice.</li>
+            <li><strong>Discounts & Service Charges:</strong> Custom tax rates aur split bills.</li>
+          </ul>
+        </div>
+
+        <!-- MODULE 6: LIVE WAITING QUEUE & TOKEN -->
+        <div class="feature-card">
+          <div class="feature-card-header">
+            <div class="header-left">
+              <div class="card-icon-wrap icon-wait">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              </div>
+              <div class="card-title">Live Waiting Queue & Smart Token</div>
+            </div>
+            <span class="card-tag">Live Queue</span>
+          </div>
+          <ul class="card-bullets">
+            <li><strong>Digital Queue Token:</strong> Table full hone par customer QR scan karke digital token le.</li>
+            <li><strong>Live Wait Tracking:</strong> Guest mobile par live dekhe aage kitne log hain aur wait time.</li>
+            <li><strong>1-Click Table Call (📣):</strong> Table khali hote hi cashier 1-click se guest ko alert kare.</li>
+            <li><strong>Stop Rush Walk-Outs:</strong> Peak lunch/dinner rush me bheed, jhagda aur customer loss khatam.</li>
+          </ul>
+        </div>
+
+      </div>
+
+      <!-- COMPARISON WITH OLD TRADITIONAL SOFTWARE -->
+      <div class="comparison-strip">
+        <div class="comp-item">
+          <span class="comp-old">✕ Heavy Desktop Hardware</span>
+          <span class="comp-new">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            100% Cloud Phone/Laptop
+          </span>
+        </div>
+        <div class="comp-item">
+          <span class="comp-old">✕ 3-4 Alag Alag Softwares</span>
+          <span class="comp-new">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            PMS + POS + KOT Ek Jagah
+          </span>
+        </div>
+        <div class="comp-item">
+          <span class="comp-old">✕ Lost Paper Kitchen Slips</span>
+          <span class="comp-new">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            Auto KOT & Live KDS Screen
+          </span>
+        </div>
+        <div class="comp-item">
+          <span class="comp-old">✕ ₹40,000+ Huge Upfront Fee</span>
+          <span class="comp-new">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            Only ₹1,499/mo + 7-Day Trial
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         NEW SECTION 1: SHURU KARNA BILKUL AASAAN (3-STEP ONBOARDING)
+         ========================================================= -->
+    <section class="steps-section">
+      <div class="steps-strip">
+        <div class="step-item">
+          <div class="step-num">01</div>
+          <div class="step-content">
+            <h4>Property Register Karein</h4>
+            <p>Sirf 2 minute ka aasaan form — property ka naam, city aur room numbers bhar kar shuru karein.</p>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-num">02</div>
+          <div class="step-content">
+            <h4>Rooms & Menu Setup</h4>
+            <p>Excel sheet se 1-click import karein ya direct form se food items aur tariff pricing load karein.</p>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-num">03</div>
+          <div class="step-content">
+            <h4>Staff Add & Live Billing</h4>
+            <p>Front desk, waiter aur kitchen staff logins create karein aur 7 din risk-free chalao.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         NEW SECTION 2: HARDWARE FREEDOM & PRINTER SUPPORT BANNER
+         ========================================================= -->
+    <div class="hardware-strip">
+      <div class="hw-title">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+        100% Device & Hardware Freedom:
+      </div>
+      <div class="hw-items">
+        <div class="hw-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          Android Mobiles & Tablets
+        </div>
+        <div class="hw-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          Windows PC & Laptops
+        </div>
+        <div class="hw-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          Thermal Printers (USB / Bluetooth / LAN)
+        </div>
+        <div class="hw-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          POS Touch Terminals
+        </div>
+      </div>
+    </div>
+
+    <!-- HOTELIER SOCIAL PROOF STRIP -->
+    <div class="testimonial-strip">
+      <div class="testi-stars">★★★★★</div>
+      <div class="testi-text">
+        “E-Annapurna lagane ke baad reception aur rasoi ka jhanjhat 100% khatam ho gaya. Waiting queue token se lunch rush mein ek bhi customer walk-out nahi hota!”
+      </div>
+      <div class="testi-author">— Hotel Green Park & Grand Dine, Delhi NCR</div>
+    </div>
+
+    <!-- =========================================================
+         ENRICHED FOOTER CTA & CONTACT (WITH WEBSITE QR & ALL INFO)
+         ========================================================= -->
+    <footer class="footer-cta">
+      <!-- Footer Top Ticker -->
+      <div class="footer-ticker">
+        <div class="ticker-item">🏨 Hotel PMS & Room Inventory</div>
+        <div class="ticker-dot"></div>
+        <div class="ticker-item">🍽️ Touch POS & Table Management</div>
+        <div class="ticker-dot"></div>
+        <div class="ticker-item">👨‍🍳 Kitchen Order Ticket (KOT) & KDS</div>
+        <div class="ticker-dot"></div>
+        <div class="ticker-item">📱 Table QR Scan & Self-Order</div>
+        <div class="ticker-dot"></div>
+        <div class="ticker-item">⏳ Live Waiting Queue & Token</div>
+        <div class="ticker-dot"></div>
+        <div class="ticker-item">🧾 GST Thermal Billing</div>
+      </div>
+
+      <!-- Main Footer Row -->
+      <div class="footer-main-row">
+        <!-- QR CODE CONTAINER -->
+        <div class="qr-box">
+          <img src="assets/website-qr.png" alt="Scan QR For Website & Demo" class="qr-img">
+          <span class="qr-label">Scan For Website</span>
+        </div>
+
+        <!-- CONTACT INFO & WEBSITE LINK -->
+        <div class="contact-details">
+          <div class="cta-heading">
+            Aaj Hi Free Demo Book Karein — <span>7 Din Ka Free Trial!</span>
+          </div>
+          <div class="cta-subtext">Hamari hospitality expert team aapke hotel par aakar ya online complete setup aur live demo karegi.</div>
+
+          <div class="contact-grid">
+            <div class="contact-item">
+              <div class="contact-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+              </div>
+              <span>Official Website: <a href="https://www.e-annapurna.com" target="_blank">www.e-annapurna.com</a></span>
+            </div>
+
+            <div class="contact-item">
+              <div class="contact-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+              </div>
+              <span>Call & WhatsApp: <strong>+91 98765 43210</strong></span>
+            </div>
+
+            <div class="contact-item">
+              <div class="contact-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+              </div>
+              <span>Email: <a href="mailto:contact@e-annapurna.com">contact@e-annapurna.com</a></span>
+            </div>
+
+            <div class="contact-item">
+              <div class="contact-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              </div>
+              <span>Support: <strong>24/7 Priority Indian Helpdesk</strong></span>
+            </div>
+          </div>
+
+          <div class="contact-address">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+            Head Office: Connaught Place, New Delhi - 110001 | Technology Partner: DIRD (dird.co.in)
+          </div>
+        </div>
+
+        <!-- ACTION BUTTON & GUARANTEE -->
+        <div class="cta-action-col">
+          <a href="https://www.e-annapurna.com" target="_blank" class="cta-btn-gold">
+            Book Free Demo
+          </a>
+          <div class="cta-guarantee">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            7 Din Free Guarantee
+          </div>
+          <div class="bottom-copyright">
+            © 2026 E-Annapurna. All rights reserved.
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Bottom Security & Trust Badges -->
+      <div class="footer-bottom-trust">
+        <div class="trust-bullets">
+          <div class="trust-bullet-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            256-Bit SSL Encrypted Cloud Data
+          </div>
+          <div class="trust-bullet-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            99.9% Cloud Uptime Guarantee
+          </div>
+          <div class="trust-bullet-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            Free Onboarding & Staff Training
+          </div>
+        </div>
+        <div class="trust-bullet-item">
+          🇮🇳 Proudly Built for Indian Hospitality
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+</body>
+</html>

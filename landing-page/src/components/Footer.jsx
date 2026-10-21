@@ -7,7 +7,7 @@ export default function Footer() {
       <div className="container-x grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
         {/* Column 1: Brand */}
         <div className="md:col-span-1">
-          <p className="font-display text-2xl font-bold text-white">Annapurna <span className="text-saffron-500">Astra</span></p>
+          <p className="font-display text-2xl font-bold text-white">E-<span className="text-saffron-500">Annapurna</span></p>
           <p className="mt-4 text-sm text-lagoon-100/70 leading-relaxed">Rooms, restaurant aur staff – ek hi software mein.</p>
         </div>
 
@@ -47,7 +47,7 @@ export default function Footer() {
       {/* Footer Bottom */}
       <div className="border-t border-white/10 py-5">
         <div className="container-x flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-lagoon-100/60">© {new Date().getFullYear()} Annapurna Astra. All rights reserved.</p>
+          <p className="text-xs text-lagoon-100/60">© {new Date().getFullYear()} E-Annapurna. All rights reserved.</p>
           <div className="flex items-center gap-2">
             <span className="text-xs text-lagoon-100/60">Powered by</span>
             <a href="https://dird.co.in" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:opacity-80 transition-opacity">

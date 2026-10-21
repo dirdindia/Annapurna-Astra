@@ -181,6 +181,18 @@ export const publicAPI = {
   createPaymentOrder: (data) => api.post("/api/public/payment/create-order", data, { showLoader: false }),
   verifyPayment: (data) => api.post("/api/public/payment/verify", data, { showLoader: false }),
   bookTable: (data) => api.post("/api/public/table-booking", data, { showLoader: false }),
+  joinWaitlist: (data) => api.post("/api/public/waitlist/join", data, { showLoader: false }),
+  getWaitlistStatus: (id, params) => api.get(`/api/public/waitlist/status/${id || "by-phone"}`, { params, showLoader: false }),
+  getQueueSummary: (hotelId) => api.get(`/api/public/waitlist/summary/${hotelId}`, { showLoader: false }),
+  cancelWaitlist: (id) => api.post(`/api/public/waitlist/${id}/cancel`, {}, { showLoader: false }),
+};
+
+export const waitlistAPI = {
+  getAdminWaitlist: () => api.get("/api/public/admin/waitlist"),
+  addManualGuest: (data) => api.post("/api/public/admin/waitlist/manual", data),
+  callGuest: (id, data) => api.put(`/api/public/admin/waitlist/${id}/call`, data),
+  seatGuest: (id, data) => api.put(`/api/public/admin/waitlist/${id}/seat`, data),
+  updateStatus: (id, status) => api.put(`/api/public/admin/waitlist/${id}/status`, { status }),
 };
 
 export default api;
