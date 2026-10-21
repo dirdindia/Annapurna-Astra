@@ -28,7 +28,7 @@ const loginOptions = [
     title: 'Admin Login',
     desc: 'Super Admin, Multi-Property & Global System',
     icon: ShieldAlert,
-    href: 'https://admin.e-annapurna.co.in/login',
+    href: 'https://admin.e-annapurna.co.in',
     internal: false,
     badge: 'System',
     color: 'from-emerald-500/20 to-teal-500/20 text-emerald-600',
