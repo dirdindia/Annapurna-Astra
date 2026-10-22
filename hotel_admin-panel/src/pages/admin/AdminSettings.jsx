@@ -2,10 +2,11 @@ import React, { useState, useEffect } from "react";
 import { 
   Settings, Shield, LayoutGrid, Check, X, AlertCircle, Database, User, 
   MapPin, Building2, Landmark, FileText, Clock, CreditCard, Globe, QrCode, ShieldCheck, Phone, Star, Percent, Share2,
-  Loader2, CheckCircle2 
+  Loader2, CheckCircle2, ShieldAlert, BellRing, Send, KeyRound, Smartphone, ExternalLink, Sparkles,
+  Bot, ChevronDown, ChevronUp, Copy
 } from "lucide-react";
 import AdminLookups from "./AdminLookups";
-import { authAPI, uploadAPI } from "../../api";
+import { authAPI, uploadAPI, antiTheftAPI } from "../../api";
 import Swal from "sweetalert2";
 import { State, City } from "country-state-city";
 import MagneticButton from "../../components/MagneticButton";
@@ -15,6 +16,16 @@ const indianStates = State.getStatesOfCountry("IN");
 export default function AdminSettings() {
   const [activeTab, setActiveTab] = useState("profile");
   const [currentUser, setCurrentUser] = useState(null);
+  const [testingTelegram, setTestingTelegram] = useState(false);
+  const [detectingChatId, setDetectingChatId] = useState(false);
+  const [showBotInstructions, setShowBotInstructions] = useState(false);
+  const [copiedBotCommand, setCopiedBotCommand] = useState(false);
+
+  const handleCopyCommand = (text) => {
+    navigator.clipboard.writeText(text);
+    setCopiedBotCommand(true);
+    setTimeout(() => setCopiedBotCommand(false), 2000);
+  };
 
   // Profile Form
   const [profileData, setProfileData] = useState({
@@ -61,6 +72,9 @@ export default function AdminSettings() {
     instagramUrl: "",
     facebookUrl: "",
     starRating: "3-Star",
+    telegramAlertsEnabled: false,
+    telegramChatId: "",
+    antiTheftOtpRequired: true,
   });
 
   // Security Form
@@ -200,6 +214,9 @@ export default function AdminSettings() {
             instagramUrl: user.instagramUrl || "",
             facebookUrl: user.facebookUrl || "",
             starRating: user.starRating || "3-Star",
+            telegramAlertsEnabled: Boolean(user.telegramAlertsEnabled),
+            telegramChatId: user.telegramChatId || "",
+            antiTheftOtpRequired: user.antiTheftOtpRequired !== undefined ? Boolean(user.antiTheftOtpRequired) : true,
           });
           if (user.bankIfscCode && user.bankIfscCode.length === 11) {
             fetchIfscDetails(user.bankIfscCode);
@@ -255,6 +272,9 @@ export default function AdminSettings() {
             instagramUrl: user.instagramUrl || "",
             facebookUrl: user.facebookUrl || "",
             starRating: user.starRating || "3-Star",
+            telegramAlertsEnabled: Boolean(user.telegramAlertsEnabled),
+            telegramChatId: user.telegramChatId || "",
+            antiTheftOtpRequired: user.antiTheftOtpRequired !== undefined ? Boolean(user.antiTheftOtpRequired) : true,
           });
           if (user.bankIfscCode && user.bankIfscCode.length === 11) {
             fetchIfscDetails(user.bankIfscCode);
@@ -326,6 +346,95 @@ export default function AdminSettings() {
         color: '#1e293b',
         customClass: { confirmButton: 'bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-4 rounded border-none shadow' },
       });
+    }
+  };
+
+  const handleTestTelegram = async () => {
+    if (!profileData.telegramChatId) {
+      Swal.fire({
+        icon: "warning",
+        title: "Telegram Chat ID Required",
+        text: "Please enter your Telegram Chat ID first to test the alert.",
+        background: '#ffffff',
+        color: '#1e293b',
+      });
+      return;
+    }
+    setTestingTelegram(true);
+    try {
+      const res = await antiTheftAPI.testTelegramAlert(profileData.telegramChatId);
+      if (res.data.success) {
+        Swal.fire({
+          icon: "success",
+          title: "Test Alert Sent! 🚀",
+          text: "Check your Telegram app. A notification alert was delivered with sound!",
+          background: '#ffffff',
+          color: '#1e293b',
+        });
+      }
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Test Alert Failed",
+        text: err.response?.data?.message || "Make sure you started the bot on Telegram and your Chat ID is correct.",
+        background: '#ffffff',
+        color: '#1e293b',
+      });
+    } finally {
+      setTestingTelegram(false);
+    }
+  };
+
+  const handleDetectChatId = async () => {
+    setDetectingChatId(true);
+    try {
+      const res = await antiTheftAPI.detectChatId();
+      if (res.data.success && res.data.chatId) {
+        setProfileData((prev) => ({
+          ...prev,
+          telegramChatId: res.data.chatId,
+        }));
+        Swal.fire({
+          icon: "success",
+          title: "Chat ID Auto-Detected! 🎉",
+          html: `<div style="font-size: 14px; color: #1e293b;">
+                  Owner Chat ID <b>${res.data.chatId}</b> (${res.data.senderName}) mil gaya!<br/><br/>
+                  Niche <b>"Save Anti-Theft Preferences"</b> par click karein aur phir <b>"Send Test Alert"</b> test karein!
+                 </div>`,
+          background: '#ffffff',
+          color: '#1e293b',
+        });
+      }
+    } catch (err) {
+      Swal.fire({
+        icon: "info",
+        title: "Pehle Telegram Bot me 'START' dabayein",
+        html: `
+          <div style="text-align: left; font-size: 13px; line-height: 1.6; color: #334155;">
+            <p>Bot ko abhi tak aapka koi message nahi mila!</p>
+            <div style="background: #f1f5f9; padding: 12px; border-radius: 8px; margin: 10px 0; border: 1px solid #e2e8f0;">
+              <b>Aasan 2 Steps:</b>
+              <ol style="margin-top: 6px; padding-left: 18px;">
+                <li>Niche diye gaye link se official bot open karein: <br/><a href="https://t.me/e_annapurna_alerts_bot" target="_blank" style="color: #0284c7; font-weight: bold; text-decoration: underline;">@e_annapurna_alerts_bot</a></li>
+                <li>Telegram me niche <b>START</b> button dabayein.</li>
+              </ol>
+            </div>
+            <p style="margin: 0; font-size: 12px; color: #64748b;">START dabate hi wapas aakar <b>Auto-Detect</b> dabayein, aapka Chat ID bina type kiye automatic aa jayega!</p>
+          </div>
+        `,
+        confirmButtonText: "Open Telegram Bot (@e_annapurna_alerts_bot)",
+        showCancelButton: true,
+        cancelButtonText: "Cancel",
+        background: '#ffffff',
+        color: '#1e293b',
+        customClass: { confirmButton: 'bg-sky-500 hover:bg-sky-600 text-white font-bold py-2 px-4 rounded border-none shadow' }
+      }).then((result) => {
+        if (result.isConfirmed) {
+          window.open("https://t.me/e_annapurna_alerts_bot", "_blank");
+        }
+      });
+    } finally {
+      setDetectingChatId(false);
     }
   };
 
@@ -444,7 +553,7 @@ export default function AdminSettings() {
 
       <div className="glass border border-white/10 rounded-2xl overflow-hidden flex flex-col md:flex-row shadow-2xl backdrop-blur-xl">
         {/* Tabs Sidebar */}
-        <div className="w-full md:w-64 border-b md:border-b-0 md:border-r border-white/10 bg-slate-950/40 p-3 md:p-4 flex flex-row md:flex-col gap-2 overflow-x-auto shrink-0 custom-scrollbar">
+        <div className="settings-tabs-sidebar w-full md:w-64 border-b md:border-b-0 md:border-r border-white/10 bg-slate-950/40 p-3 md:p-4 flex flex-row md:flex-col gap-2 overflow-x-auto shrink-0 custom-scrollbar">
           <p className="text-[10px] uppercase font-black tracking-widest text-saffron-400 px-3 py-1 hidden md:block">
             Preferences Menu
           </p>
@@ -452,8 +561,8 @@ export default function AdminSettings() {
             onClick={() => setActiveTab("profile")}
             className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all whitespace-nowrap text-sm font-semibold cursor-pointer ${
               activeTab === "profile"
-                ? "bg-gradient-to-r from-saffron-500/25 to-saffron-500/10 text-white border border-saffron-400/50 shadow-md shadow-saffron-500/15"
-                : "text-slate-200 hover:text-white hover:bg-white/[0.06] border border-transparent"
+                ? "settings-tab-active bg-gradient-to-r from-saffron-500/25 to-saffron-500/10 text-white border border-saffron-400/50 shadow-sm"
+                : "settings-tab-inactive text-slate-300 hover:text-white hover:bg-white/[0.06] border border-transparent"
             }`}
           >
             <div className={`p-1.5 rounded-lg ${activeTab === "profile" ? "bg-saffron-500 text-slate-950 font-bold" : "bg-white/[0.06] text-saffron-300"}`}>
@@ -465,8 +574,8 @@ export default function AdminSettings() {
             onClick={() => setActiveTab("security")}
             className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all whitespace-nowrap text-sm font-semibold cursor-pointer ${
               activeTab === "security"
-                ? "bg-gradient-to-r from-saffron-500/25 to-saffron-500/10 text-white border border-saffron-400/50 shadow-md shadow-saffron-500/15"
-                : "text-slate-200 hover:text-white hover:bg-white/[0.06] border border-transparent"
+                ? "settings-tab-active bg-gradient-to-r from-saffron-500/25 to-saffron-500/10 text-white border border-saffron-400/50 shadow-sm"
+                : "settings-tab-inactive text-slate-300 hover:text-white hover:bg-white/[0.06] border border-transparent"
             }`}
           >
             <div className={`p-1.5 rounded-lg ${activeTab === "security" ? "bg-saffron-500 text-slate-950 font-bold" : "bg-white/[0.06] text-saffron-300"}`}>
@@ -478,8 +587,8 @@ export default function AdminSettings() {
             onClick={() => setActiveTab("staff")}
             className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all whitespace-nowrap text-sm font-semibold cursor-pointer ${
               activeTab === "staff"
-                ? "bg-gradient-to-r from-saffron-500/25 to-saffron-500/10 text-white border border-saffron-400/50 shadow-md shadow-saffron-500/15"
-                : "text-slate-200 hover:text-white hover:bg-white/[0.06] border border-transparent"
+                ? "settings-tab-active bg-gradient-to-r from-saffron-500/25 to-saffron-500/10 text-white border border-saffron-400/50 shadow-sm"
+                : "settings-tab-inactive text-slate-300 hover:text-white hover:bg-white/[0.06] border border-transparent"
             }`}
           >
             <div className={`p-1.5 rounded-lg ${activeTab === "staff" ? "bg-saffron-500 text-slate-950 font-bold" : "bg-white/[0.06] text-saffron-300"}`}>
@@ -491,14 +600,30 @@ export default function AdminSettings() {
             onClick={() => setActiveTab("lookups")}
             className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all whitespace-nowrap text-sm font-semibold cursor-pointer ${
               activeTab === "lookups"
-                ? "bg-gradient-to-r from-saffron-500/25 to-saffron-500/10 text-white border border-saffron-400/50 shadow-md shadow-saffron-500/15"
-                : "text-slate-200 hover:text-white hover:bg-white/[0.06] border border-transparent"
+                ? "settings-tab-active bg-gradient-to-r from-saffron-500/25 to-saffron-500/10 text-white border border-saffron-400/50 shadow-sm"
+                : "settings-tab-inactive text-slate-300 hover:text-white hover:bg-white/[0.06] border border-transparent"
             }`}
           >
             <div className={`p-1.5 rounded-lg ${activeTab === "lookups" ? "bg-saffron-500 text-slate-950 font-bold" : "bg-white/[0.06] text-saffron-300"}`}>
               <Database className="w-4 h-4" />
             </div>
             <span>Lookups Master</span>
+          </button>
+          <button
+            onClick={() => setActiveTab("anti-theft")}
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all whitespace-nowrap text-sm font-semibold cursor-pointer ${
+              activeTab === "anti-theft"
+                ? "settings-tab-active-rose bg-gradient-to-r from-rose-500/25 to-rose-500/10 text-white border border-rose-400/50 shadow-sm"
+                : "settings-tab-inactive text-slate-300 hover:text-white hover:bg-white/[0.06] border border-transparent"
+            }`}
+          >
+            <div className={`p-1.5 rounded-lg ${activeTab === "anti-theft" ? "bg-rose-500 text-white font-bold" : "bg-white/[0.06] text-rose-400"}`}>
+              <ShieldAlert className="w-4 h-4" />
+            </div>
+            <span className="flex items-center gap-1.5">
+              Anti-Theft OTP
+              <span className="text-[10px] bg-rose-500/20 text-rose-300 font-bold px-1.5 py-0.5 rounded-full border border-rose-400/30">Free</span>
+            </span>
           </button>
         </div>
 
@@ -1287,6 +1412,395 @@ export default function AdminSettings() {
           {activeTab === "lookups" && (
             <div className="animate-fade-in h-full">
               <AdminLookups isComponent={true} />
+            </div>
+          )}
+
+          {activeTab === "anti-theft" && (
+            <div className="animate-fade-in max-w-4xl space-y-6">
+              {/* Header Card */}
+              <div className="anti-theft-hero p-6 rounded-2xl bg-gradient-to-br from-rose-950/40 via-slate-900/60 to-slate-950 border border-rose-500/30 shadow-xl backdrop-blur-md">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-start gap-3.5">
+                    <div className="anti-theft-icon-box p-3 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-400 shrink-0">
+                      <ShieldAlert className="w-7 h-7" />
+                    </div>
+                    <div>
+                      <div className="anti-theft-badge inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-rose-500/20 border border-rose-500/40 text-rose-300 mb-2">
+                        🛡️ 100% Free Anti-Theft Engine
+                      </div>
+                      <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                        Cash Theft & KOT Fraud Prevention
+                      </h2>
+                      <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl leading-relaxed">
+                        Cashier customer se cash lene ke baad system me printed KOT ya item cancel/void na kar sake. Cancellation attempt par turant Owner ke phone par <b>Instant Telegram Alert & OTP</b> trigger hota hai.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Form Settings */}
+              <form onSubmit={handleProfileUpdate} className="space-y-6">
+                {/* Configuration Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  {/* Toggle: Anti-Theft OTP Required */}
+                  <div className="anti-theft-card p-5 rounded-xl bg-slate-900/50 border border-white/10 shadow-sm flex flex-col justify-between hover:border-white/20 transition-all">
+                    <div>
+                      <div className="flex items-center justify-between gap-3 mb-2">
+                        <span className="text-sm font-bold text-white flex items-center gap-2">
+                          <KeyRound className="w-4 h-4 text-amber-400" />
+                          Anti-Theft Manager OTP
+                        </span>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={profileData.antiTheftOtpRequired}
+                            onChange={(e) =>
+                              setProfileData((prev) => ({
+                                ...prev,
+                                antiTheftOtpRequired: e.target.checked,
+                              }))
+                            }
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-rose-500"></div>
+                        </label>
+                      </div>
+                      <p className="text-xs text-slate-400 leading-relaxed">
+                        Agar koi cashier printed KOT ya item cancel karega, toh system bina Owner OTP ke cancel nahi karne dega.
+                      </p>
+                    </div>
+                    <div className="mt-4 pt-3 border-t border-white/5 flex items-center gap-2 text-[11px] font-semibold text-emerald-400">
+                      <Check className="w-3.5 h-3.5" /> Recommended: Always Keep Enabled
+                    </div>
+                  </div>
+
+                  {/* Toggle: Telegram Alerts Enabled */}
+                  <div className="anti-theft-card p-5 rounded-xl bg-slate-900/50 border border-white/10 shadow-sm flex flex-col justify-between hover:border-white/20 transition-all">
+                    <div>
+                      <div className="flex items-center justify-between gap-3 mb-2">
+                        <span className="text-sm font-bold text-white flex items-center gap-2">
+                          <BellRing className="w-4 h-4 text-sky-400" />
+                          Telegram Push Alerts
+                        </span>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={profileData.telegramAlertsEnabled}
+                            onChange={(e) =>
+                              setProfileData((prev) => ({
+                                ...prev,
+                                telegramAlertsEnabled: e.target.checked,
+                              }))
+                            }
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sky-500"></div>
+                        </label>
+                      </div>
+                      <p className="text-xs text-slate-400 leading-relaxed">
+                        100% Free Forever. Owner ke mobile screen par turant notification sound ke saath alert aur 4-digit OTP aayega.
+                      </p>
+                    </div>
+                    <div className="mt-4 pt-3 border-t border-white/5 flex items-center gap-2 text-[11px] font-semibold text-sky-400">
+                      <Smartphone className="w-3.5 h-3.5" /> Instant Delivery (&lt; 1 Second)
+                    </div>
+                  </div>
+                </div>
+
+                {/* Telegram Chat ID & Test Alert */}
+                <div className="anti-theft-card p-6 rounded-2xl bg-slate-900/50 border border-white/10 shadow-sm space-y-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-4">
+                    <div>
+                      <h3 className="text-base font-bold text-white flex items-center gap-2">
+                        <Smartphone className="w-4 h-4 text-sky-400" />
+                        Owner's Telegram Settings
+                      </h3>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        Alerts receive karne ke liye apne Telegram account ko connect karein.
+                      </p>
+                    </div>
+
+                    <a
+                      href="https://t.me/e_annapurna_alerts_bot"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-sky-500/15 border border-sky-400/30 text-sky-300 hover:bg-sky-500/25 text-xs font-semibold transition-all"
+                    >
+                      <span>Default Bot: <b>@e_annapurna_alerts_bot</b></span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
+
+                  {/* Step 1 Highlight Notice */}
+                  <div className="anti-theft-notice p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-3 text-xs text-amber-200">
+                    <span className="text-base">⚠️</span>
+                    <div className="leading-relaxed">
+                      <b>Important (Bad Request: chat not found se bachne ke liye):</b> Telegram bots tab tak message nahi bhej sakte jab tak aap khud Telegram me jakar bot open karke <b>"START"</b> na dabayein.
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+                    <div className="md:col-span-6 space-y-1.5">
+                      <label className="text-xs font-semibold text-slate-300 flex items-center justify-between">
+                        <span>Owner Telegram Chat ID <span className="text-rose-500">*</span></span>
+                        <span className="text-[11px] text-slate-400 font-normal">Numeric ID (e.g. 582194821)</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={profileData.telegramChatId}
+                        onChange={(e) =>
+                          setProfileData((prev) => ({
+                            ...prev,
+                            telegramChatId: e.target.value.trim(),
+                          }))
+                        }
+                        placeholder="e.g. 582194821 (Not username)"
+                        className="anti-theft-input w-full bg-slate-950/80 border border-white/15 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 font-mono"
+                      />
+                    </div>
+
+                    <div className="md:col-span-3">
+                      <button
+                        type="button"
+                        onClick={handleDetectChatId}
+                        disabled={detectingChatId}
+                        className="w-full bg-slate-800 hover:bg-slate-700 text-sky-300 border border-sky-400/30 font-bold py-3 px-3 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 text-xs disabled:opacity-40 active:scale-95 shadow-sm"
+                        title="Telegram bot par 'START' dabane ke baad yahan click karein, Chat ID apne aap aa jayegi"
+                      >
+                        {detectingChatId ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-sky-400" />
+                            Detecting...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="w-3.5 h-3.5 text-sky-400" />
+                            Auto-Detect Chat ID
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    <div className="md:col-span-3">
+                      <button
+                        type="button"
+                        onClick={handleTestTelegram}
+                        disabled={testingTelegram || !profileData.telegramChatId}
+                        className="w-full bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-400/40 font-bold py-3 px-3 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed text-xs active:scale-95 shadow-sm"
+                      >
+                        {testingTelegram ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            Sending...
+                          </>
+                        ) : (
+                          <>
+                            <Send className="w-3.5 h-3.5" />
+                            Send Test Alert
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 flex justify-end">
+                    <MagneticButton
+                      type="submit"
+                      className="bg-gradient-to-r from-saffron-400 to-saffron-500 hover:from-saffron-300 hover:to-saffron-400 text-slate-950 font-black py-3 px-8 rounded-xl transition-all active:scale-95 shadow-lg shadow-saffron-500/20 text-xs sm:text-sm cursor-pointer flex items-center gap-2"
+                    >
+                      <CheckCircle2 className="w-4 h-4" />
+                      Save Anti-Theft Preferences
+                    </MagneticButton>
+                  </div>
+                </div>
+              </form>
+
+              {/* Step-by-Step Telegram Guide & Preview Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {/* 30-Second Setup Guide */}
+                <div className="anti-theft-card p-5 rounded-2xl bg-slate-900/50 border border-white/10 shadow-sm space-y-3">
+                  <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                    📱 30 Seconds Setup Guide (Owner ke liye)
+                  </h4>
+                  <ol className="text-xs text-slate-300 space-y-3 list-decimal list-inside leading-relaxed">
+                    <li>
+                      Apne phone me Telegram open karein aur bot link open karein:{" "}
+                      <a
+                        href="https://t.me/e_annapurna_alerts_bot"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 font-mono text-sky-400 hover:underline font-bold"
+                      >
+                        @e_annapurna_alerts_bot <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </li>
+                    <li>
+                      Niche <b>START</b> button par click karein.
+                    </li>
+                    <li>
+                      Upar diye gaye <b>"Auto-Detect Chat ID"</b> button par click karein. Aapka Chat ID apne aap aa jayegi!
+                    </li>
+                    <li>
+                      <b>Save Anti-Theft Preferences</b> dabayein, phir <b>Send Test Alert</b> se verify karein!
+                    </li>
+                  </ol>
+                  <p className="text-[11px] text-slate-400 pt-2 border-t border-white/5">
+                    💡 <i>Alternative:</i> Aap <a href="https://t.me/userinfobot" target="_blank" rel="noreferrer" className="text-sky-400 underline font-semibold">@userinfobot</a> se bhi numeric ID dekh kar paste kar sakte hain. Lekin <b>bot ko START karna zaroori hai</b>.
+                  </p>
+                </div>
+
+                {/* Mock Telegram Notification Preview */}
+                <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 shadow-xl space-y-3" style={{ backgroundColor: '#0b141a', color: '#e9edef' }}>
+                  <div className="flex items-center justify-between text-xs border-b border-white/10 pb-2">
+                    <span className="font-bold text-sky-400 flex items-center gap-1.5">
+                      💬 Telegram Alert Preview
+                    </span>
+                    <span className="text-[10px] text-slate-400">Just Now</span>
+                  </div>
+                  <div className="p-3.5 rounded-xl border border-white/10 text-xs space-y-1.5 font-sans" style={{ backgroundColor: '#111b21', color: '#e9edef' }}>
+                    <div className="text-rose-400 font-black">
+                      🚨 ANTI-THEFT ALERT: KOT CANCEL ATTEMPT
+                    </div>
+                    <div className="text-[11px] space-y-0.5" style={{ color: '#d1d7db' }}>
+                      <div>🏨 <b>Hotel:</b> {profileData.hotelName || "Grand Portico"}</div>
+                      <div>📍 <b>Location:</b> Table 3</div>
+                      <div>👤 <b>Cashier:</b> Ajay Kumar</div>
+                      <div>💰 <b>Total Amount:</b> ₹280</div>
+                      <div>🍲 <b>Item:</b> Paneer Tikka (1x)</div>
+                    </div>
+                    <div className="p-2 mt-2 rounded-lg bg-rose-500/20 border border-rose-500/40 text-center font-mono font-bold text-rose-300 tracking-wider">
+                      OTP: 5821
+                    </div>
+                    <div className="text-[10px] text-center italic" style={{ color: '#8696a0' }}>
+                      Valid for 5 minutes. Verify before sharing.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bot Creation Guide Accordion (NEW) */}
+              <div className="anti-theft-card p-5 rounded-2xl bg-slate-900/40 border border-white/10 shadow-sm space-y-3 transition-all">
+                <button
+                  type="button"
+                  onClick={() => setShowBotInstructions((prev) => !prev)}
+                  className="w-full flex items-center justify-between text-left cursor-pointer group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 rounded-xl bg-sky-500/15 border border-sky-500/30 text-sky-300">
+                      <Bot className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-white flex items-center gap-2 group-hover:text-sky-400 transition-colors">
+                        🤖 Apna Khud Ka Telegram Bot Kaise Banayein? (1 Minute Free Guide)
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                          100% Free
+                        </span>
+                      </h4>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        Agar aapko apne hotel ke naam ka personal Telegram bot banana hai, toh yeh aasan 5 steps follow karein.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="p-1 rounded-lg bg-white/5 text-slate-400">
+                    {showBotInstructions ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  </div>
+                </button>
+
+                {showBotInstructions && (
+                  <div className="pt-3 border-t border-white/10 space-y-4 animate-fade-in text-xs text-slate-300">
+                    <div className="anti-theft-ready-box p-3 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-200 flex items-center justify-between">
+                      <div>
+                        💡 <b>Already Ready Bot:</b> Aapko naya bot banane ki zaroorat nahi hai agar aap default bot use karna chahein! Default bot <b>@e_annapurna_alerts_bot</b> pehle se configure hai.
+                      </div>
+                      <a
+                        href="https://t.me/e_annapurna_alerts_bot"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="shrink-0 ml-3 px-3 py-1 bg-sky-600 hover:bg-sky-700 text-white rounded-lg font-bold text-[11px] inline-flex items-center gap-1 shadow-sm"
+                      >
+                        Open Bot <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                      {/* Step 1 */}
+                      <div className="anti-theft-subbox p-3.5 rounded-xl bg-slate-950/60 border border-white/10 space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-white flex items-center gap-1.5">
+                            <span className="w-5 h-5 rounded-full bg-sky-500/20 text-sky-300 flex items-center justify-center text-xs font-bold">1</span>
+                            BotFather Open Karein
+                          </span>
+                          <a
+                            href="https://t.me/BotFather"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-[11px] font-bold text-sky-400 hover:underline inline-flex items-center gap-0.5"
+                          >
+                            @BotFather <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
+                        <p className="text-[11px] text-slate-400">
+                          Telegram app me search karein <b>@BotFather</b> (verified blue tick bot) aur chat open karke <b>START</b> dabayein.
+                        </p>
+                      </div>
+
+                      {/* Step 2 */}
+                      <div className="anti-theft-subbox p-3.5 rounded-xl bg-slate-950/60 border border-white/10 space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-white flex items-center gap-1.5">
+                            <span className="w-5 h-5 rounded-full bg-sky-500/20 text-sky-300 flex items-center justify-center text-xs font-bold">2</span>
+                            Command Bhejein: /newbot
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleCopyCommand("/newbot")}
+                            className="text-[10px] font-bold px-2 py-0.5 rounded bg-white/10 text-slate-300 hover:bg-white/20 inline-flex items-center gap-1 cursor-pointer"
+                          >
+                            {copiedBotCommand ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                            {copiedBotCommand ? "Copied" : "Copy"}
+                          </button>
+                        </div>
+                        <p className="text-[11px] text-slate-400">
+                          BotFather ko message me <code>/newbot</code> type karke bhejein.
+                        </p>
+                      </div>
+
+                      {/* Step 3 */}
+                      <div className="anti-theft-subbox p-3.5 rounded-xl bg-slate-950/60 border border-white/10 space-y-1.5">
+                        <div className="font-bold text-white flex items-center gap-1.5">
+                          <span className="w-5 h-5 rounded-full bg-sky-500/20 text-sky-300 flex items-center justify-center text-xs font-bold">3</span>
+                          Bot Name & Username Dein
+                        </div>
+                        <p className="text-[11px] text-slate-400 leading-relaxed">
+                          • <b>Name:</b> Apne hotel ka naam (jaise: <i>Grand Palace Alerts</i>)<br/>
+                          • <b>Username:</b> Ek unique username jo <code>_bot</code> se end ho (jaise: <i>grand_palace_kot_bot</i>).
+                        </p>
+                      </div>
+
+                      {/* Step 4 */}
+                      <div className="anti-theft-subbox p-3.5 rounded-xl bg-slate-950/60 border border-white/10 space-y-1.5">
+                        <div className="font-bold text-white flex items-center gap-1.5">
+                          <span className="w-5 h-5 rounded-full bg-sky-500/20 text-sky-300 flex items-center justify-center text-xs font-bold">4</span>
+                          Token Copy & Paste Karein
+                        </div>
+                        <p className="text-[11px] text-slate-400 leading-relaxed">
+                          BotFather aapko ek <b>HTTP API Token</b> dega (jaise <code>8963016276:AA...</code>).<br/>
+                          Use project ke <b><code>backend/.env</code></b> file me daalein:<br/>
+                          <code className="text-sky-400 font-bold">TELEGRAM_BOT_TOKEN=your_token</code>
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+                      <span>
+                        <b>Done!</b> Ab apne banaye naye bot ko Telegram me open karke <b>START</b> dabayein aur upar <b>"Auto-Detect Chat ID"</b> click karein!
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>

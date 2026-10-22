@@ -21,52 +21,53 @@ const getRazorpayInstance = () => {
 };
 
 const PLANS = {
-  Starter: {
-    id: "Starter",
-    name: "Starter",
-    monthlyPrice: 3499,
-    yearlyPrice: 34990,
-    durationDays: { monthly: 30, yearly: 365 },
-    description: "10 rooms tak ke chhote hotel/guest house ke liye",
+  Hotel: {
+    id: "Hotel",
+    name: "Hotel Only",
+    monthlyPrice: 2499,
+    durationDays: { monthly: 30 },
+    description: "Sirf hotel & room booking manage karne ke liye",
     features: [
       "Room booking & Front desk",
+      "Guest Check-in / Check-out & GRC",
       "Billing & GST Invoice generation",
-      "Up to 2 Staff accounts",
-      "Reports & Daily revenue stats",
-      "Standard Email Support",
+      "Advance Room Booking Calendar",
+      "Daily Occupancy & Revenue reports",
+      "Staff logins & role permissions",
+      "Standard Email & Chat Support",
     ],
   },
-  Growth: {
-    id: "Growth",
-    name: "Growth",
-    monthlyPrice: 3999,
-    yearlyPrice: 39990,
+  Restaurant: {
+    id: "Restaurant",
+    name: "Restaurant Only",
+    monthlyPrice: 2499,
+    durationDays: { monthly: 30 },
+    description: "Standalone restaurant, café, dhaba ya bar ke liye",
+    features: [
+      "Restaurant Table Map & POS Billing",
+      "Instant Kitchen Order Ticket (KOT)",
+      "Live Kitchen Display System (KDS)",
+      "QR Code Scan & Order for Tables",
+      "Menu Management & Food Items",
+      "Daily Food Sales & Revenue analytics",
+      "Standard Email & Chat Support",
+    ],
+  },
+  Combo: {
+    id: "Combo",
+    name: "Combo (Hotel + Restaurant)",
+    monthlyPrice: 3499,
     popular: true,
-    durationDays: { monthly: 30, yearly: 365 },
-    description: "Restaurant & Bar wale hotels ke liye complete setup",
+    durationDays: { monthly: 30 },
+    description: "Hotel aur Restaurant dono ka complete all-in-one setup",
     features: [
-      "Starter ka sab kuch",
-      "Restaurant POS & KOT billing",
-      "Kitchen Display (KDS) & QR Ordering",
-      "Up to 10 Staff accounts",
-      "Inventory & Stock tracking",
+      "Hotel + Restaurant ke saare features",
+      "Room booking + Table POS + KOT",
+      "Room Service Food Billing (Transfer to Room)",
+      "Live KDS & Guest QR Scan & Order",
+      "Inventory, Stock & Re-order Alerts",
+      "Unlimited Staff Accounts & Permissions",
       "Priority WhatsApp & Phone Support",
-    ],
-  },
-  Enterprise: {
-    id: "Enterprise",
-    name: "Enterprise",
-    monthlyPrice: 9999,
-    yearlyPrice: 99990,
-    durationDays: { monthly: 30, yearly: 365 },
-    description: "Chain aur bade luxury resorts ke liye",
-    features: [
-      "Growth ka sab kuch",
-      "Multi-property management",
-      "Unlimited Staff accounts",
-      "Advanced Analytics & Custom Excel Exports",
-      "24/7 Dedicated Account Manager",
-      "Custom Branding & API access",
     ],
   },
 };
@@ -138,7 +139,7 @@ const createOrder = async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid subscription plan selected." });
     }
 
-    const price = billingCycle === "yearly" ? planConfig.yearlyPrice : planConfig.monthlyPrice;
+    const price = planConfig.monthlyPrice;
     const amountInPaise = Math.round(price * 100);
 
     const razorpay = getRazorpayInstance();
@@ -232,8 +233,8 @@ const verifyPayment = async (req, res) => {
     }
 
     // Payment is authentic!
-    const planConfig = PLANS[planName] || PLANS.Starter;
-    const daysToAdd = billingCycle === "yearly" ? 365 : 30;
+    const planConfig = PLANS[planName] || PLANS.Combo;
+    const daysToAdd = 30;
 
     const hotel = await Hotel.findById(req.user.hotelId);
     if (!hotel) {

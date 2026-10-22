@@ -195,5 +195,11 @@ export const waitlistAPI = {
   updateStatus: (id, status) => api.put(`/api/public/admin/waitlist/${id}/status`, { status }),
 };
 
+export const antiTheftAPI = {
+  testTelegramAlert: (chatId) => api.post("/api/orders/telegram-test", { chatId }),
+  detectChatId: () => api.get("/api/orders/telegram-detect-chat-id"),
+  getCancellationAudits: (params) => api.get("/api/orders/cancellation-audits", { params }),
+};
+
 export default api;
 

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import api from "../../api";
-import { UtensilsCrossed, Search, ChevronLeft, ChevronRight, AlertCircle, X, FileText, Printer, QrCode } from "lucide-react";
+import { UtensilsCrossed, Search, ChevronLeft, ChevronRight, AlertCircle, X, FileText, Printer, QrCode, ShieldAlert, CheckCircle2, Clock, Ban, RefreshCw } from "lucide-react";
 import ThermalReceipt from "../../components/ThermalReceipt";
 
 export default function AdminKotReports() {
+  const [activeView, setActiveView] = useState("orders"); // "orders" or "audits"
   const [orders, setOrders] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -21,9 +22,40 @@ export default function AdminKotReports() {
   const [showPrint, setShowPrint] = useState(false);
   const [printIsKot, setPrintIsKot] = useState(false);
 
+  // Anti-theft cancellation audits state
+  const [audits, setAudits] = useState([]);
+  const [auditPage, setAuditPage] = useState(1);
+  const [auditTotalPages, setAuditTotalPages] = useState(1);
+  const [auditTotal, setAuditTotal] = useState(0);
+  const [auditLoading, setAuditLoading] = useState(false);
+
   useEffect(() => {
     fetchOrders();
   }, [page, search, paymentMode, orderType, statusFilter, sourceFilter, fromDate, toDate]);
+
+  useEffect(() => {
+    if (activeView === "audits") {
+      fetchAudits();
+    }
+  }, [activeView, auditPage]);
+
+  const fetchAudits = async () => {
+    setAuditLoading(true);
+    try {
+      const res = await api.get("api/orders/cancellation-audits", {
+        params: { page: auditPage, limit: 10 }
+      });
+      if (res.data.success) {
+        setAudits(res.data.data);
+        setAuditTotalPages(res.data.pages);
+        setAuditTotal(res.data.total);
+      }
+    } catch (err) {
+      console.error("Error fetching cancellation audits:", err);
+    } finally {
+      setAuditLoading(false);
+    }
+  };
 
   // Real-time SSE listener so status changes (preparing -> ready -> delivered -> billed) reflect instantly
   useEffect(() => {
@@ -82,15 +114,54 @@ export default function AdminKotReports() {
     <div className="flex-1 p-6 space-y-8 overflow-x-hidden">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-amber-500 flex items-center gap-3">
-            <UtensilsCrossed className="w-8 h-8" />
-            KOT Billing Data
+          <h1 className="text-3xl font-bold flex items-center gap-3">
+            {activeView === "orders" ? (
+              <>
+                <UtensilsCrossed className="w-8 h-8 text-amber-500" />
+                <span className="text-amber-500">KOT Billing Data</span>
+              </>
+            ) : (
+              <>
+                <ShieldAlert className="w-8 h-8 text-rose-500" />
+                <span className="text-rose-500">Anti-Theft Void & Cancellation Audits</span>
+              </>
+            )}
           </h1>
-          <p className="text-slate-400 mt-1">
-            View all Kitchen Order Tickets (Dine-in, Parcel, Swiggy, Zomato, QR Orders)
+          <p className="text-slate-400 mt-1 text-sm">
+            {activeView === "orders"
+              ? "View all Kitchen Order Tickets (Dine-in, Parcel, Swiggy, Zomato, QR Orders)"
+              : "Review all voided food items & cancelled KOTs with cashier details, void amounts, and OTP status."}
           </p>
         </div>
+
+        {/* View Switch Tabs */}
+        <div className="flex items-center gap-2 bg-slate-900/90 p-1.5 rounded-2xl border border-white/10 shadow-lg">
+          <button
+            onClick={() => setActiveView("orders")}
+            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+              activeView === "orders"
+                ? "bg-amber-500 text-slate-950 shadow font-black"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <UtensilsCrossed className="w-4 h-4" />
+            KOT Orders ({totalOrders})
+          </button>
+          <button
+            onClick={() => setActiveView("audits")}
+            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+              activeView === "audits"
+                ? "bg-rose-500 text-white shadow shadow-rose-500/25 font-black"
+                : "text-slate-400 hover:text-rose-300"
+            }`}
+          >
+            <ShieldAlert className="w-4 h-4 text-rose-400" />
+            Void Audits ({auditTotal})
+          </button>
+        </div>
       </div>
+
+      {activeView === "orders" ? (
 
       <div className="glass-card rounded-2xl overflow-hidden">
         <div className="p-6 border-b border-slate-800/80 bg-slate-900/20 flex flex-col xl:flex-row gap-4 justify-between items-stretch xl:items-center">
@@ -330,6 +401,168 @@ export default function AdminKotReports() {
           </div>
         )}
       </div>
+      ) : (
+        /* ANTI-THEFT AUDIT LOGS CARD */
+        <div className="glass-card rounded-2xl overflow-hidden border border-rose-500/20 shadow-xl">
+          <div className="p-6 border-b border-white/10 bg-rose-950/20 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <ShieldAlert className="w-5 h-5 text-rose-400" />
+                KOT Cancellation & Item Void Logs
+              </h2>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Full chronological audit trail of all KOT cancellations with Owner authorization status.
+              </p>
+            </div>
+            <button
+              onClick={fetchAudits}
+              disabled={auditLoading}
+              className="px-3.5 py-2 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer border border-white/10 active:scale-95"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${auditLoading ? "animate-spin text-rose-400" : ""}`} />
+              Refresh Logs
+            </button>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="border-b border-white/10 bg-slate-900/40 text-slate-400 uppercase font-bold tracking-wider text-[11px]">
+                  <th className="py-3.5 px-4">Date & Time</th>
+                  <th className="py-3.5 px-4">Location</th>
+                  <th className="py-3.5 px-4">Action Type</th>
+                  <th className="py-3.5 px-4">Cancelled Items</th>
+                  <th className="py-3.5 px-4 text-right">Void Amount</th>
+                  <th className="py-3.5 px-4">Cashier</th>
+                  <th className="py-3.5 px-4">Reason</th>
+                  <th className="py-3.5 px-4 text-center">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {auditLoading ? (
+                  <tr>
+                    <td colSpan="8" className="py-12 text-center text-slate-400">
+                      <RefreshCw className="w-6 h-6 animate-spin mx-auto text-rose-400 mb-2" />
+                      Loading void audit logs...
+                    </td>
+                  </tr>
+                ) : audits.length === 0 ? (
+                  <tr>
+                    <td colSpan="8" className="py-12 text-center text-slate-400">
+                      <ShieldAlert className="w-8 h-8 text-slate-600 mx-auto mb-2" />
+                      No cancellation or void records found. All KOTs are clean!
+                    </td>
+                  </tr>
+                ) : (
+                  audits.map((audit) => (
+                    <tr key={audit._id} className="hover:bg-white/[0.02] transition-colors">
+                      <td className="py-3.5 px-4 whitespace-nowrap text-slate-300 font-mono text-[11px]">
+                        {new Date(audit.createdAt).toLocaleDateString("en-IN", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        })}{" "}
+                        <span className="text-slate-500">
+                          {new Date(audit.createdAt).toLocaleTimeString("en-IN", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                      </td>
+
+                      <td className="py-3.5 px-4 whitespace-nowrap font-bold text-white">
+                        <span className="px-2 py-1 rounded-md bg-white/5 border border-white/10">
+                          {audit.tableNo}
+                        </span>
+                      </td>
+
+                      <td className="py-3.5 px-4 whitespace-nowrap">
+                        {audit.cancellationType === "full_order" ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                            🚨 Full KOT Cancel
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                            ⚠️ Item Void
+                          </span>
+                        )}
+                      </td>
+
+                      <td className="py-3.5 px-4 text-slate-300">
+                        <div className="space-y-1 max-w-xs">
+                          {audit.cancelledItems?.map((it, i) => (
+                            <div key={i} className="text-xs">
+                              <span className="font-semibold text-white">{it.name}</span>{" "}
+                              <span className="text-slate-400 font-mono">({it.quantity}x)</span>
+                              <span className="text-slate-500 ml-1 font-mono">₹{it.price * it.quantity}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </td>
+
+                      <td className="py-3.5 px-4 text-right font-mono font-bold text-rose-400 text-sm whitespace-nowrap">
+                        ₹{audit.totalAmount}
+                      </td>
+
+                      <td className="py-3.5 px-4 whitespace-nowrap text-slate-300">
+                        <div className="font-semibold text-white">{audit.cashierName}</div>
+                        <div className="text-[10px] text-slate-500">Staff / Cashier</div>
+                      </td>
+
+                      <td className="py-3.5 px-4 text-slate-400 max-w-xs truncate" title={audit.reason}>
+                        {audit.reason || "Not specified"}
+                      </td>
+
+                      <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                        {audit.status === "approved" && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-400" /> Authorized
+                          </span>
+                        )}
+                        {audit.status === "pending_otp" && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                            <Clock className="w-3 h-3 text-amber-400" /> Pending OTP
+                          </span>
+                        )}
+                        {audit.status === "rejected" && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                            <Ban className="w-3 h-3 text-rose-400" /> Expired / Rejected
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Audits Pagination */}
+          {auditTotalPages > 1 && (
+            <div className="p-4 border-t border-white/10 bg-slate-900/30 flex justify-between items-center text-xs text-slate-400">
+              <span>
+                Page {auditPage} of {auditTotalPages} ({auditTotal} total records)
+              </span>
+              <div className="flex gap-2">
+                <button
+                  disabled={auditPage <= 1}
+                  onClick={() => setAuditPage(auditPage - 1)}
+                  className="px-3 py-1.5 rounded-lg border border-white/10 hover:bg-white/5 disabled:opacity-30 disabled:hover:bg-transparent"
+                >
+                  Previous
+                </button>
+                <button
+                  disabled={auditPage >= auditTotalPages}
+                  onClick={() => setAuditPage(auditPage + 1)}
+                  className="px-3 py-1.5 rounded-lg border border-white/10 hover:bg-white/5 disabled:opacity-30 disabled:hover:bg-transparent"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* THERMAL RECEIPT */}
       {showPrint && selectedOrder && (

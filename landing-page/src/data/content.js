@@ -22,9 +22,52 @@ export const features = [
 ]
 
 export const plans = [
-  { name: 'Starter', monthly: 3499, desc: '10 rooms tak ke chhote hotel/guest house ke liye', perks: ['Room booking', 'Billing & GST invoice', '2 staff logins', 'Email support'] },
-  { name: 'Growth', monthly: 3999, popular: true, desc: 'Restaurant wale hotels ke liye poora setup', perks: ['Starter ka sab kuch', 'Restaurant POS + KOT', 'KDS aur QR scan & order', 'Staff app (10 logins)', 'WhatsApp support'] },
-  { name: 'Enterprise', monthly: 9999, desc: 'Chain aur bade resorts ke liye', perks: ['Growth ka sab kuch', 'Multi-property', 'Unlimited staff', 'Custom reports & API', 'Dedicated manager'] },
+  { 
+    name: 'Hotel Only', 
+    monthly: 2499, 
+    badge: 'Hotel Management',
+    desc: 'Sirf hotel & room booking manage karne ke liye', 
+    perks: [
+      'Room booking & Front desk',
+      'Guest Check-in / Check-out & GRC',
+      'Billing & GST invoice generation',
+      'Advance room booking calendar',
+      'Daily occupancy & revenue reports',
+      'Staff logins & role permissions',
+      'Standard support'
+    ] 
+  },
+  { 
+    name: 'Restaurant Only', 
+    monthly: 2499, 
+    badge: 'Restaurant POS',
+    desc: 'Standalone restaurant, café, dhaba ya bar ke liye', 
+    perks: [
+      'Restaurant POS & Table management',
+      'Instant Kitchen Order Ticket (KOT)',
+      'Live Kitchen Display System (KDS)',
+      'QR code scan & order for tables',
+      'Menu management & Food items',
+      'Daily food sales & revenue analytics',
+      'Standard support'
+    ] 
+  },
+  { 
+    name: 'Combo (Hotel + Restaurant)', 
+    monthly: 3499, 
+    popular: true, 
+    badge: 'Best Value',
+    desc: 'Hotel aur Restaurant dono ka complete all-in-one setup', 
+    perks: [
+      'Hotel + Restaurant ke saare features',
+      'Room booking + Restaurant POS + KOT',
+      'Room Service Food Billing (Transfer to Room)',
+      'Live KDS & Guest QR Scan & Order',
+      'Inventory, Stock & Re-order alerts',
+      'Unlimited staff logins & permissions',
+      'Priority WhatsApp & Phone support'
+    ] 
+  },
 ]
 
 export const steps = [

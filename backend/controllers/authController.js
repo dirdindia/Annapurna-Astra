@@ -294,7 +294,8 @@ const updateProfile = async (req, res) => {
     checkInTime, checkOutTime, invoicePrefixRestaurant, invoicePrefixRoom, invoiceTerms,
     foodGstRate, roomGstRate, idProofPolicy,
     upiId, bankName, bankAccountNumber, bankIfscCode, bankAccountName,
-    receptionPhone, websiteUrl, googleMapsUrl, instagramUrl, facebookUrl, starRating
+    receptionPhone, websiteUrl, googleMapsUrl, instagramUrl, facebookUrl, starRating,
+    telegramAlertsEnabled, telegramChatId, antiTheftOtpRequired
   } = req.body;
   try {
     const user = await User.findById(req.user._id);
@@ -368,6 +369,11 @@ const updateProfile = async (req, res) => {
       if (facebookUrl !== undefined) hotel.facebookUrl = facebookUrl;
       if (starRating !== undefined) hotel.starRating = starRating;
 
+      // Anti-theft & Telegram Alerts
+      if (telegramAlertsEnabled !== undefined) hotel.telegramAlertsEnabled = Boolean(telegramAlertsEnabled);
+      if (telegramChatId !== undefined) hotel.telegramChatId = String(telegramChatId).trim();
+      if (antiTheftOtpRequired !== undefined) hotel.antiTheftOtpRequired = Boolean(antiTheftOtpRequired);
+
       await hotel.save();
     }
 
@@ -419,6 +425,9 @@ const updateProfile = async (req, res) => {
         subscriptionPlan: hotel && hotel.subscription ? hotel.subscription.plan : 'none',
         subscriptionStatus: hotel && hotel.subscription ? (hotel.subscription.isActive ? 'active' : 'inactive') : 'inactive',
         subscriptionExpiresAt: hotel && hotel.subscription ? hotel.subscription.validUntil : null,
+        telegramAlertsEnabled: hotel ? Boolean(hotel.telegramAlertsEnabled) : false,
+        telegramChatId: hotel ? hotel.telegramChatId || '' : '',
+        antiTheftOtpRequired: hotel && hotel.antiTheftOtpRequired !== undefined ? Boolean(hotel.antiTheftOtpRequired) : true,
       }
     });
   } catch (error) {
@@ -485,6 +494,9 @@ const getProfile = async (req, res) => {
         subscriptionPlan: hotel && hotel.subscription ? hotel.subscription.plan : 'none',
         subscriptionStatus: hotel && hotel.subscription ? (hotel.subscription.isActive ? 'active' : 'inactive') : 'inactive',
         subscriptionExpiresAt: hotel && hotel.subscription ? hotel.subscription.validUntil : null,
+        telegramAlertsEnabled: hotel ? Boolean(hotel.telegramAlertsEnabled) : false,
+        telegramChatId: hotel ? hotel.telegramChatId || '' : '',
+        antiTheftOtpRequired: hotel && hotel.antiTheftOtpRequired !== undefined ? Boolean(hotel.antiTheftOtpRequired) : true,
       }
     });
   } catch (error) {

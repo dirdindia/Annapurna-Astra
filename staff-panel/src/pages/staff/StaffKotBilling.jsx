@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import api, { tableAPI, orderAPI, tableBookingAPI, waitlistAPI } from "../../api";
-import { UtensilsCrossed, Users, Plus, Minus, Trash2, Search, ArrowUpRight, ArrowLeft, Bike, ShoppingBag, Truck, X, BedDouble, CalendarClock, Calendar, Clock, Phone, AlertCircle, CalendarDays, CheckCircle, Hotel, Ticket, UserPlus, PhoneCall, Check, RefreshCw, UserCheck } from "lucide-react";
+import { UtensilsCrossed, Users, Plus, Minus, Trash2, Search, ArrowUpRight, ArrowLeft, Bike, ShoppingBag, Truck, X, BedDouble, CalendarClock, Calendar, Clock, Phone, AlertCircle, CalendarDays, CheckCircle, Hotel, Ticket, UserPlus, PhoneCall, Check, RefreshCw, UserCheck, ShieldAlert, KeyRound, ShieldCheck } from "lucide-react";
 import { showError, showSuccess, showConfirm } from "../../utils/alerts";
 import ThermalReceipt from "../../components/ThermalReceipt";
 import MagneticButton from "../../components/MagneticButton";
@@ -64,6 +64,23 @@ export default function StaffKotBilling() {
 
   const [activeBookings, setActiveBookings] = useState([]);
   const [showRoomSelectModal, setShowRoomSelectModal] = useState(false);
+
+  // Anti-Theft KOT & Void OTP Modal State
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [otpModalData, setOtpModalData] = useState({
+    type: "full_order", // "full_order" or "item_void"
+    auditId: "",
+    orderId: "",
+    otp: "",
+    reason: "Customer cancelled",
+    tableNo: "",
+    dishId: "",
+    quantityToVoid: 1,
+    itemName: "",
+    amount: 0,
+    isSubmitting: false,
+    error: "",
+  });
 
   useEffect(() => {
     fetchTables();
@@ -463,16 +480,16 @@ export default function StaffKotBilling() {
           createdAt: new Date().toISOString()
         });
 
-        // // Update backend printed quantities for these new items
-        // try {
-        //   const updateData = newKotItems.map(item => ({
-        //     dishId: item.dishId,
-        //     quantity: item.quantity // the diffQty
-        //   }));
-        //   await orderAPI.markKotPrinted(savedOrder._id, updateData);
-        // } catch (e) {
-        //   console.error("Failed to mark KOT as printed", e);
-        // }
+        // Update backend printed quantities for these new items
+        try {
+          const updateData = newKotItems.map(item => ({
+            dishId: item.dishId,
+            quantity: item.quantity // the diffQty
+          }));
+          await orderAPI.markKotPrinted(savedOrder._id, updateData);
+        } catch (e) {
+          console.error("Failed to mark KOT as printed", e);
+        }
 
       } else {
         showSuccess("Saved", "Order updated! No new items to print for KOT.");
@@ -490,7 +507,7 @@ export default function StaffKotBilling() {
     
     showConfirm(
       "Cancel KOT?",
-      "Are you sure you want to cancel this KOT? This will clear the order and make the table available.",
+      "Are you sure you want to cancel this KOT? If items were printed, Owner authorization OTP will be triggered.",
       "Yes, Cancel KOT",
       "No",
       "#ef4444"
@@ -498,10 +515,28 @@ export default function StaffKotBilling() {
       if (result.isConfirmed) {
         setLoading(true);
         try {
-          await api.delete(`/api/orders/${activeOrderId}`);
-          showSuccess("Cancelled", "KOT cancelled successfully");
-          setCart([]);
-          goBackToTables();
+          const res = await orderAPI.requestCancelOrder(activeOrderId, "KOT Cancelled by Staff");
+          if (res.data.requiresOtp) {
+            setOtpModalData({
+              type: "full_order",
+              auditId: res.data.auditId,
+              orderId: activeOrderId,
+              otp: "",
+              reason: "Customer changed mind / mistake",
+              tableNo: res.data.tableNo || (selectedTable?.tableNo ? `Table ${selectedTable.tableNo}` : "Takeaway"),
+              amount: res.data.totalAmount || subTotal,
+              dishId: "",
+              quantityToVoid: 1,
+              itemName: "Entire KOT Order",
+              isSubmitting: false,
+              error: "",
+            });
+            setShowOtpModal(true);
+          } else {
+            showSuccess("Cancelled", "KOT cancelled successfully");
+            setCart([]);
+            goBackToTables();
+          }
         } catch (error) {
           showError("Error", error.response?.data?.message || "Failed to cancel KOT");
         } finally {
@@ -509,6 +544,117 @@ export default function StaffKotBilling() {
         }
       }
     });
+  };
+
+  const handleItemVoidAttempt = async (dishId, amt) => {
+    const item = cart.find(i => i.dishId === dishId);
+    if (!item) return;
+
+    const isPrinted = (item.printedQuantity || 0) > 0;
+    const nextQty = amt === -999 ? 0 : (item.quantity + amt);
+    const willReduceBelowPrinted = nextQty < (item.printedQuantity || 0);
+
+    // If item was already printed in the kitchen and active order exists
+    if (isPrinted && willReduceBelowPrinted && activeOrderId) {
+      const confirm = await showConfirm(
+        `Void ${item.name}?`,
+        `This item has already been printed for the kitchen! Voiding it requires Owner Authorization OTP via Telegram.`,
+        "Request Owner OTP",
+        "Keep Item",
+        "#f59e0b"
+      );
+      if (!confirm || !confirm.isConfirmed) return;
+
+      const qtyToVoid = amt === -999 ? item.quantity : Math.abs(amt);
+      try {
+        setLoading(true);
+        const res = await orderAPI.requestItemVoid(activeOrderId, {
+          dishId,
+          quantityToVoid: qtyToVoid,
+          reason: "Item Void Request",
+        });
+
+        if (res.data.requiresOtp) {
+          setOtpModalData({
+            type: "item_void",
+            auditId: res.data.auditId,
+            orderId: activeOrderId,
+            otp: "",
+            reason: "Customer cancelled dish",
+            tableNo: selectedTable?.tableNo ? `Table ${selectedTable.tableNo}` : "Takeaway",
+            dishId,
+            quantityToVoid: qtyToVoid,
+            itemName: item.name,
+            amount: res.data.voidAmount || (item.price * qtyToVoid),
+            isSubmitting: false,
+            error: "",
+          });
+          setShowOtpModal(true);
+        } else {
+          if (amt === -999 || item.quantity <= 1) {
+            removeFromCart(dishId);
+          } else {
+            updateQuantity(dishId, amt);
+          }
+          showSuccess("Updated", `${item.name} removed from order.`);
+        }
+      } catch (err) {
+        showError("Void Failed", err.response?.data?.message || "Could not void item.");
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    // Normal unprinted modification
+    if (amt === -999) {
+      removeFromCart(dishId);
+    } else {
+      updateQuantity(dishId, amt);
+    }
+  };
+
+  const handleVerifyOtpSubmit = async (e) => {
+    e.preventDefault();
+    if (!otpModalData.otp || otpModalData.otp.trim().length < 4) {
+      setOtpModalData(prev => ({ ...prev, error: "Please enter the 4-digit OTP sent to Owner's Telegram." }));
+      return;
+    }
+
+    setOtpModalData(prev => ({ ...prev, isSubmitting: true, error: "" }));
+    try {
+      if (otpModalData.type === "full_order") {
+        const res = await orderAPI.verifyCancelOrder(otpModalData.orderId, otpModalData.auditId, otpModalData.otp.trim());
+        if (res.data.success) {
+          setShowOtpModal(false);
+          showSuccess("Authorized & Cancelled", "Owner OTP verified! KOT has been cancelled.");
+          setCart([]);
+          goBackToTables();
+        }
+      } else {
+        const res = await orderAPI.verifyItemVoid(otpModalData.orderId, {
+          auditId: otpModalData.auditId,
+          otp: otpModalData.otp.trim(),
+          dishId: otpModalData.dishId,
+          quantityToVoid: otpModalData.quantityToVoid,
+        });
+        if (res.data.success) {
+          setShowOtpModal(false);
+          showSuccess("Item Voided", `${otpModalData.itemName} removed successfully.`);
+          if (res.data.data) {
+            setCart(res.data.data.items || []);
+          } else {
+            setCart(prev => prev.filter(i => i.dishId !== otpModalData.dishId));
+          }
+        }
+      }
+    } catch (err) {
+      setOtpModalData(prev => ({
+        ...prev,
+        error: err.response?.data?.message || "Incorrect OTP. Verification failed.",
+        isSubmitting: false,
+      }));
+    }
   };
 
   const handleCheckout = async (e) => {
@@ -1576,14 +1722,21 @@ export default function StaffKotBilling() {
               cart.map((item) => (
                 <div key={item.dishId} className="py-2.5 flex justify-between items-center gap-2">
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-slate-900 dark:text-slate-200 line-clamp-2">{item.name}</p>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <p className="text-xs font-bold text-slate-900 dark:text-slate-200 line-clamp-2">{item.name}</p>
+                      {item.printedQuantity > 0 && (
+                        <span className="px-1.5 py-0.5 bg-amber-500/20 border border-amber-500/30 text-amber-500 dark:text-amber-400 rounded text-[9px] font-bold">
+                          KOT Printed ({item.printedQuantity})
+                        </span>
+                      )}
+                    </div>
                     <p className="text-[10px] text-saffron-700 dark:text-saffron-400 font-mono font-black">₹{item.price}</p>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <button onClick={() => updateQuantity(item.dishId, -1)} className="p-1 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded hover:border-saffron-500/40"><Minus className="w-3 h-3" /></button>
+                    <button onClick={() => handleItemVoidAttempt(item.dishId, -1)} className="p-1 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded hover:border-saffron-500/40 cursor-pointer"><Minus className="w-3 h-3" /></button>
                     <span className="text-xs font-bold font-mono w-4 text-center text-slate-900 dark:text-slate-200">{item.quantity}</span>
-                    <button onClick={() => updateQuantity(item.dishId, 1)} className="p-1 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded hover:border-saffron-500/40"><Plus className="w-3 h-3" /></button>
-                    <button onClick={() => removeFromCart(item.dishId)} className="p-1 text-rose-600 dark:text-red-400 hover:bg-red-500/20 rounded ml-1"><Trash2 className="w-3 h-3" /></button>
+                    <button onClick={() => updateQuantity(item.dishId, 1)} className="p-1 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded hover:border-saffron-500/40 cursor-pointer"><Plus className="w-3 h-3" /></button>
+                    <button onClick={() => handleItemVoidAttempt(item.dishId, -999)} className="p-1 text-rose-600 dark:text-red-400 hover:bg-red-500/20 rounded ml-1 cursor-pointer"><Trash2 className="w-3 h-3" /></button>
                   </div>
                 </div>
               ))
@@ -1651,9 +1804,10 @@ export default function StaffKotBilling() {
                     <button 
                       onClick={handleCancelKOT}
                       disabled={loading}
-                      className="w-full mt-1 py-2.5 bg-rose-50 dark:bg-red-500/10 border border-rose-200 dark:border-red-500/20 text-rose-700 dark:text-red-400 font-bold rounded-xl hover:bg-rose-100 dark:hover:bg-red-500/20 transition-all flex justify-center items-center text-xs disabled:opacity-50 cursor-pointer"
+                      className="w-full mt-2 py-2.5 px-4 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white font-bold rounded-xl transition-all shadow-md shadow-rose-600/25 flex justify-center items-center gap-2 text-xs disabled:opacity-50 cursor-pointer border border-rose-700"
                     >
-                      Cancel KOT
+                      <Trash2 className="w-3.5 h-3.5 text-white" />
+                      Cancel Order / KOT
                     </button>
                   </MagneticButton>
                 </>
@@ -1750,6 +1904,111 @@ export default function StaffKotBilling() {
                   {loading ? 'Processing...' : (checkoutData.paymentMode === 'Added to Room' ? 'Post to Room & Complete' : 'Complete Checkout & Print')}
                 </button>
               </MagneticButton>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Anti-Theft KOT & Void OTP Modal */}
+      {showOtpModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fade-in">
+          <div className="bg-slate-900 border border-rose-500/30 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden p-6 relative">
+            <button
+              onClick={() => setShowOtpModal(false)}
+              className="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-3 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-400 shrink-0">
+                <ShieldAlert className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                  Owner Authorization OTP
+                </h3>
+                <p className="text-xs text-rose-400 font-semibold">
+                  Anti-Theft Fraud Prevention Active
+                </p>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-xl bg-slate-950/70 border border-white/10 mb-4 space-y-1.5 text-xs">
+              <div className="flex justify-between text-slate-300">
+                <span className="text-slate-400">Action:</span>
+                <span className="font-bold text-white uppercase">
+                  {otpModalData.type === "full_order" ? "Cancel Entire KOT" : "Void Food Item"}
+                </span>
+              </div>
+              <div className="flex justify-between text-slate-300">
+                <span className="text-slate-400">Location:</span>
+                <span className="font-bold text-amber-400">{otpModalData.tableNo}</span>
+              </div>
+              {otpModalData.type === "item_void" && (
+                <div className="flex justify-between text-slate-300">
+                  <span className="text-slate-400">Voiding Item:</span>
+                  <span className="font-bold text-white">{otpModalData.itemName} ({otpModalData.quantityToVoid}x)</span>
+                </div>
+              )}
+              <div className="flex justify-between text-slate-300">
+                <span className="text-slate-400">Void Amount:</span>
+                <span className="font-mono font-bold text-rose-400 text-sm">₹{otpModalData.amount}</span>
+              </div>
+            </div>
+
+            <div className="p-3 rounded-xl bg-sky-950/40 border border-sky-500/30 text-sky-200 text-xs flex items-start gap-2 mb-4">
+              <KeyRound className="w-4 h-4 text-sky-400 shrink-0 mt-0.5" />
+              <p>
+                Owner ke <b>Telegram</b> par instant alert aur 4-digit OTP bhej diya gaya hai. Owner se OTP lekar enter karein.
+              </p>
+            </div>
+
+            <form onSubmit={handleVerifyOtpSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider text-center">
+                  Enter 4-Digit Owner OTP
+                </label>
+                <input
+                  type="text"
+                  maxLength={4}
+                  value={otpModalData.otp}
+                  onChange={(e) =>
+                    setOtpModalData((prev) => ({
+                      ...prev,
+                      otp: e.target.value.replace(/[^0-9]/g, "").slice(0, 4),
+                      error: "",
+                    }))
+                  }
+                  autoFocus
+                  placeholder="• • • •"
+                  className="w-full text-center text-3xl font-mono font-black tracking-widest bg-slate-950 border border-white/20 focus:border-rose-400 focus:ring-2 focus:ring-rose-400/20 text-rose-300 rounded-xl py-3 outline-none transition-all placeholder:text-slate-600"
+                />
+              </div>
+
+              {otpModalData.error && (
+                <div className="p-2.5 rounded-lg bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs font-semibold text-center">
+                  {otpModalData.error}
+                </div>
+              )}
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowOtpModal(false)}
+                  className="w-1/3 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={otpModalData.isSubmitting || otpModalData.otp.length < 4}
+                  className="flex-1 py-3 bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-400 hover:to-rose-500 text-white font-black rounded-xl shadow-lg shadow-rose-500/30 text-xs transition-all active:scale-[0.98] disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <ShieldCheck className="w-4 h-4" />
+                  {otpModalData.isSubmitting ? "Verifying..." : "Verify & Authorize"}
+                </button>
+              </div>
             </form>
           </div>
         </div>

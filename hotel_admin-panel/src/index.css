@@ -304,6 +304,159 @@ body.light .border-gold-800\/10 {
   border-color: #CFE3DF !important; /* lagoon-100 */
 }
 
+/* White/translucent border overrides in light mode */
+body.light .border-white\/5,
+body.light .border-white\/10,
+body.light .border-white\/15,
+body.light .border-white\/20,
+body.light .border-white\/25,
+body.light .border-white\/30 {
+  border-color: #CFE3DF !important;
+}
+
+/* Light mode card containers & dark background overrides */
+body.light .bg-white\/\[0\.02\],
+body.light .bg-white\/\[0\.03\],
+body.light .bg-white\/\[0\.04\],
+body.light .bg-white\/\[0\.06\],
+body.light .bg-white\/5,
+body.light .bg-white\/10 {
+  background-color: #FFFFFF !important;
+  border-color: #CFE3DF !important;
+}
+
+body.light .bg-slate-950\/40,
+body.light .bg-slate-950\/50,
+body.light .bg-slate-950\/80,
+body.light .bg-slate-950\/90 {
+  background-color: #F8FAF9 !important;
+  color: #0A2F2F !important;
+  border-color: #CFE3DF !important;
+}
+
+body.light .bg-\[\#061C1C\]\/80,
+body.light .bg-\[\#061C1C\] {
+  background-color: #FFFFFF !important;
+  color: #0A2F2F !important;
+  border-color: #CFE3DF !important;
+}
+
+/* Accent text color contrast enhancements in light mode */
+body.light .text-sky-300,
+body.light .text-sky-400 {
+  color: #0369A1 !important; /* sky-700 */
+}
+
+body.light .text-rose-300,
+body.light .text-rose-400 {
+  color: #BE123C !important; /* rose-700 */
+}
+
+body.light .text-amber-200,
+body.light .text-amber-300,
+body.light .text-amber-400 {
+  color: #B45309 !important; /* amber-700 */
+}
+
+body.light .text-saffron-300,
+body.light .text-saffron-400 {
+  color: #B45309 !important; /* amber-700 */
+}
+
+body.light .text-emerald-300,
+body.light .text-emerald-400 {
+  color: #047857 !important; /* emerald-700 */
+}
+
+/* ==========================================================================
+   Anti-Theft Component Theme Adaptive (Dark & Light Mode)
+   ========================================================================== */
+body.light .anti-theft-hero {
+  background: linear-gradient(135deg, #FFF1F2 0%, #FFFFFF 50%, #FFF1F2 100%) !important;
+  border-color: #FECDD3 !important;
+  box-shadow: 0 4px 16px -2px rgba(244, 63, 94, 0.08) !important;
+}
+body.light .anti-theft-hero h2 {
+  color: #881337 !important;
+}
+body.light .anti-theft-hero p {
+  color: #4C0519 !important;
+}
+body.light .anti-theft-icon-box {
+  background-color: #FFE4E6 !important;
+  border-color: #FECDD3 !important;
+  color: #E11D48 !important;
+}
+body.light .anti-theft-badge {
+  background-color: #FFE4E6 !important;
+  border-color: #FECDD3 !important;
+  color: #BE123C !important;
+}
+body.light .anti-theft-card {
+  background-color: #FFFFFF !important;
+  border-color: #CFE3DF !important;
+  color: #0A2F2F !important;
+  box-shadow: 0 4px 16px -2px rgba(10, 47, 47, 0.05) !important;
+}
+body.light .anti-theft-card h3,
+body.light .anti-theft-card h4 {
+  color: #0A2F2F !important;
+}
+body.light .anti-theft-card p,
+body.light .anti-theft-card li {
+  color: #1F6F6B !important;
+}
+body.light .anti-theft-card span:not([class*="bg-emerald-"]):not([class*="bg-rose-"]):not([class*="bg-sky-"]) {
+  color: #0A2F2F !important;
+}
+body.light .anti-theft-subbox {
+  background-color: #F8FAFA !important;
+  border-color: #CFE3DF !important;
+  color: #0A2F2F !important;
+}
+body.light .anti-theft-subbox span {
+  color: #0A2F2F !important;
+}
+body.light .anti-theft-subbox p {
+  color: #1F6F6B !important;
+}
+body.light .anti-theft-notice {
+  background-color: #FEF3C7 !important;
+  border-color: #FDE68A !important;
+  color: #78350F !important;
+}
+body.light .anti-theft-ready-box {
+  background-color: #E0F2FE !important;
+  border-color: #BAE6FD !important;
+  color: #0369A1 !important;
+}
+body.light .anti-theft-input {
+  background-color: #FFFFFF !important;
+  border-color: #CFE3DF !important;
+  color: #0A2F2F !important;
+}
+body.light .settings-tabs-sidebar {
+  background-color: #F8FAFA !important;
+  border-color: #CFE3DF !important;
+}
+body.light .settings-tab-active {
+  background: rgba(242, 163, 58, 0.16) !important;
+  border-color: rgba(217, 138, 31, 0.4) !important;
+  color: #663B0E !important;
+}
+body.light .settings-tab-active-rose {
+  background: #FFE4E6 !important;
+  border-color: #FDA4AF !important;
+  color: #881337 !important;
+}
+body.light .settings-tab-inactive {
+  color: #1F6F6B !important;
+}
+body.light .settings-tab-inactive:hover {
+  background-color: #EAF3F1 !important;
+  color: #0A2F2F !important;
+}
+
 body.light .divide-y > * + * {
   border-color: #CFE3DF !important;
 }

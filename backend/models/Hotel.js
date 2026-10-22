@@ -138,9 +138,22 @@ const hotelSchema = new mongoose.Schema(
       default: '3-Star',
     },
     subscription: {
-      plan: { type: String, enum: ['none', 'Starter', 'Growth', 'Enterprise'], default: 'none' },
+      plan: { type: String, enum: ['none', 'Hotel', 'Restaurant', 'Combo', 'Starter', 'Growth', 'Enterprise'], default: 'none' },
       validUntil: { type: Date, default: null },
       isActive: { type: Boolean, default: false },
+    },
+    // Anti-theft & Telegram Alerts
+    telegramAlertsEnabled: {
+      type: Boolean,
+      default: false,
+    },
+    telegramChatId: {
+      type: String,
+      default: '',
+    },
+    antiTheftOtpRequired: {
+      type: Boolean,
+      default: true,
     }
   },
   { timestamps: true }

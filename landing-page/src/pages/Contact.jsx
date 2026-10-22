@@ -76,7 +76,7 @@ export default function Contact() {
               </div>
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-lagoon-100/60">Email Support</p>
-                <p className="text-base font-semibold text-white">contact@e-annapurna.co.in</p>
+                <p className="text-base font-semibold text-white">dird.india@gmail.com</p>
               </div>
             </motion.div>
 
@@ -89,7 +89,7 @@ export default function Contact() {
               </div>
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-lagoon-100/60">Office</p>
-                <p className="text-base font-semibold text-white">Connaught Place, New Delhi</p>
+                <p className="text-base font-semibold text-white">Ranchi, Jharkhand 834008</p>
               </div>
             </motion.div>
           </div>

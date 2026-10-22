@@ -36,49 +36,50 @@ const loadRazorpayScript = () => {
 };
 
 const DEFAULT_PLANS = {
-  Starter: {
-    id: "Starter",
-    name: "Starter",
-    monthlyPrice: 3499,
-    yearlyPrice: 34990,
-    description: "10 rooms tak ke chhote hotel/guest house ke liye",
+  Hotel: {
+    id: "Hotel",
+    name: "Hotel Only",
+    monthlyPrice: 2499,
+    description: "Sirf hotel & room booking manage karne ke liye",
     features: [
       "Room booking & Management",
+      "Guest Check-in / Check-out & GRC",
       "Billing & GST Invoice generation",
-      "Up to 2 Staff accounts",
-      "Reports & Daily revenue stats",
-      "Standard Email Support",
+      "Advance Room Booking Calendar",
+      "Daily Occupancy & Revenue stats",
+      "Staff Logins & Role Permissions",
+      "Standard Email & Chat Support",
     ],
   },
-  Growth: {
-    id: "Growth",
-    name: "Growth",
-    monthlyPrice: 3999,
-    yearlyPrice: 39990,
+  Restaurant: {
+    id: "Restaurant",
+    name: "Restaurant Only",
+    monthlyPrice: 2499,
+    description: "Standalone restaurant, café, dhaba ya bar ke liye",
+    features: [
+      "Restaurant Table Map & POS Billing",
+      "Instant Kitchen Order Ticket (KOT)",
+      "Live Kitchen Display System (KDS)",
+      "QR Code Scan & Order for Tables",
+      "Menu Management & Food Items",
+      "Daily Food Sales & Revenue analytics",
+      "Standard Email & Chat Support",
+    ],
+  },
+  Combo: {
+    id: "Combo",
+    name: "Combo (Hotel + Restaurant)",
+    monthlyPrice: 3499,
     popular: true,
-    description: "Restaurant & Bar wale hotels ke liye complete setup",
+    description: "Hotel aur Restaurant dono ka complete all-in-one setup",
     features: [
-      "Starter ka sab kuch",
-      "Restaurant POS & KOT billing",
-      "Kitchen Display (KDS) & QR Ordering",
-      "Up to 10 Staff accounts",
-      "Inventory & Stock tracking",
+      "Hotel + Restaurant ke saare features",
+      "Room booking + Table POS + KOT",
+      "Room Service Food Billing (Transfer to Room)",
+      "Live KDS & Guest QR Scan & Order",
+      "Inventory, Stock & Re-order Alerts",
+      "Unlimited Staff Logins & Permissions",
       "Priority WhatsApp & Phone Support",
-    ],
-  },
-  Enterprise: {
-    id: "Enterprise",
-    name: "Enterprise",
-    monthlyPrice: 9999,
-    yearlyPrice: 99990,
-    description: "Chain aur bade luxury resorts ke liye",
-    features: [
-      "Growth ka sab kuch",
-      "Multi-property management",
-      "Unlimited Staff accounts",
-      "Advanced Analytics & Custom Excel Exports",
-      "24/7 Dedicated Account Manager",
-      "Custom Branding & API access",
     ],
   },
 };
@@ -403,38 +404,11 @@ export default function AdminBilling() {
         </div>
       )}
 
-      {/* Billing Cycle Toggle */}
+      {/* Pricing Header Strip */}
       <div id="plans-section" className="flex flex-col items-center justify-center my-8">
-        <div className="inline-flex items-center gap-2 p-1.5 bg-slate-900/90 border border-slate-800 rounded-2xl shadow-inner">
-          <MagneticButton>
-            <button
-              type="button"
-              onClick={() => setBillingCycle("monthly")}
-              className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer ${
-                billingCycle === "monthly"
-                  ? "bg-gradient-to-r from-saffron-400 to-saffron-500 text-slate-950 shadow-md shadow-saffron-500/20"
-                  : "text-slate-400 hover:text-white"
-              }`}
-            >
-              Monthly Billing
-            </button>
-          </MagneticButton>
-          <MagneticButton>
-            <button
-              type="button"
-              onClick={() => setBillingCycle("yearly")}
-              className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 cursor-pointer ${
-                billingCycle === "yearly"
-                  ? "bg-gradient-to-r from-saffron-400 to-saffron-500 text-slate-950 shadow-md shadow-saffron-500/20"
-                  : "text-slate-400 hover:text-white"
-              }`}
-            >
-              Yearly Billing
-              <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                Save 17%
-              </span>
-            </button>
-          </MagneticButton>
+        <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-900/90 border border-slate-800 rounded-2xl shadow-inner text-sm font-bold text-saffron-400">
+          <Sparkles className="w-4 h-4 text-saffron-400" />
+          <span>Transparent Monthly Subscription • Cancel or Switch Anytime</span>
         </div>
         <p className="text-xs text-slate-400 mt-2">
           Payments powered by Razorpay. UPI, NetBanking, Debit/Credit Cards & Wallets supported.
@@ -446,7 +420,7 @@ export default function AdminBilling() {
         {Object.entries(plans).map(([key, plan]) => {
           const isActive = isCurrentPlanActive(key);
           const isPopular = plan.popular;
-          const price = billingCycle === "yearly" ? plan.yearlyPrice : plan.monthlyPrice;
+          const price = plan.monthlyPrice || 2499;
           const isProcessing = processingPlan === key;
 
           return (
@@ -463,7 +437,7 @@ export default function AdminBilling() {
               {/* Badges */}
               {isPopular && !isActive && (
                 <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-saffron-500 to-amber-500 text-slate-950 font-bold px-4 py-1 rounded-full text-xs flex items-center gap-1 shadow-lg shadow-saffron-500/30 tracking-wide uppercase">
-                  <Crown className="w-3.5 h-3.5" /> Most Popular
+                  <Crown className="w-3.5 h-3.5" /> Most Popular • Combo
                 </div>
               )}
 
@@ -478,8 +452,7 @@ export default function AdminBilling() {
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-xl font-display font-bold text-slate-100 flex items-center gap-2">
                     {plan.name}
-                    {key === "Growth" && <Zap className="w-5 h-5 text-saffron-500" />}
-                    {key === "Enterprise" && <Sparkles className="w-5 h-5 text-amber-400" />}
+                    {key === "Combo" && <Crown className="w-5 h-5 text-saffron-500" />}
                   </h3>
                 </div>
                 <p className="text-xs text-slate-400 min-h-[32px]">{plan.description}</p>
@@ -487,15 +460,8 @@ export default function AdminBilling() {
                 {/* Price Display */}
                 <div className="mt-5 pt-4 border-t border-slate-800/80 flex items-baseline gap-2">
                   <span className="text-4xl font-black text-white font-display">₹{price.toLocaleString("en-IN")}</span>
-                  <span className="text-xs text-slate-400 font-medium">
-                    / {billingCycle === "yearly" ? "year" : "month"}
-                  </span>
+                  <span className="text-xs text-slate-400 font-medium">/month</span>
                 </div>
-                {billingCycle === "yearly" && (
-                  <p className="text-[11px] text-emerald-400 font-medium mt-1">
-                    Equivalent to ₹{Math.round(price / 12).toLocaleString("en-IN")}/mo (Billed annually)
-                  </p>
-                )}
               </div>
 
               {/* Features List */}

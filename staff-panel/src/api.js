@@ -142,6 +142,10 @@ export const orderAPI = {
   checkoutOrder: (orderId) => api.post(`/api/orders/${orderId}/checkout`),
   markKotPrinted: (orderId, items) => api.put(`/api/orders/${orderId}/mark-printed`, { items }),
   printKOT: (data) => api.post("/api/orders/print-kot", data),
+  requestCancelOrder: (orderId, reason) => api.post(`/api/orders/${orderId}/request-cancel`, { reason }),
+  verifyCancelOrder: (orderId, auditId, otp) => api.post(`/api/orders/${orderId}/verify-cancel`, { auditId, otp }),
+  requestItemVoid: (orderId, data) => api.post(`/api/orders/${orderId}/request-item-void`, data),
+  verifyItemVoid: (orderId, data) => api.post(`/api/orders/${orderId}/verify-item-void`, data),
 };
 
 export const tableBookingAPI = {

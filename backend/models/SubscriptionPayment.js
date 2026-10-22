@@ -32,7 +32,7 @@ const subscriptionPaymentSchema = new mongoose.Schema(
     },
     planName: {
       type: String,
-      enum: ["Starter", "Growth", "Enterprise"],
+      enum: ["Hotel", "Restaurant", "Combo", "Starter", "Growth", "Enterprise"],
       required: true,
     },
     billingCycle: {

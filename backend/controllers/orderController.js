@@ -1,10 +1,35 @@
+const axios = require("axios");
 const Order = require("../models/Order");
 const Table = require("../models/Table");
 const Invoice = require("../models/Invoice");
 const Dish = require("../models/Dish");
 const InventoryItem = require("../models/InventoryItem");
 const RoomBooking = require("../models/RoomBooking");
+const Hotel = require("../models/Hotel");
+const CancellationAudit = require("../models/CancellationAudit");
 const { broadcastKDSUpdate } = require("./kdsController");
+const {
+  sendCancelAlertOtp,
+  sendCancelApprovedNotification,
+  sendTestAlert,
+} = require("../services/telegramService");
+
+// Helper to preserve printed quantities when updating items
+const mergeItemsWithPrintedQty = (existingItems = [], newItems = []) => {
+  return newItems.map((newItem) => {
+    const rawDishId = newItem.dishId?._id || newItem.dishId;
+    const existing = existingItems.find(
+      (ei) => (ei.dishId?._id || ei.dishId)?.toString() === rawDishId?.toString()
+    );
+    return {
+      ...newItem,
+      printedQuantity:
+        newItem.printedQuantity !== undefined
+          ? newItem.printedQuantity
+          : existing?.printedQuantity || 0,
+    };
+  });
+};
 
 // @desc    Create or update order
 // @route   POST /api/orders
@@ -26,7 +51,7 @@ exports.createOrUpdateOrder = async (req, res) => {
       if (table.currentOrderId) {
         order = await Order.findOne({ _id: table.currentOrderId, hotelId: req.user.hotelId });
         if (order) {
-          order.items = items;
+          order.items = mergeItemsWithPrintedQty(order.items, items);
           order.subTotal = subTotal;
           order.tax = tax;
           order.grandTotal = grandTotal;
@@ -67,7 +92,7 @@ exports.createOrUpdateOrder = async (req, res) => {
         // Update existing virtual order
         order = await Order.findOne({ _id: orderId, hotelId: req.user.hotelId });
         if (order) {
-          order.items = items;
+          order.items = mergeItemsWithPrintedQty(order.items, items);
           order.subTotal = subTotal;
           order.tax = tax;
           order.grandTotal = grandTotal;
@@ -338,12 +363,13 @@ exports.getAllOrders = async (req, res) => {
   }
 };
 
-// @desc    Cancel an order (KOT)
-// @route   DELETE /api/orders/:orderId
+// @desc    Request KOT cancellation (Triggers Anti-Theft Telegram Alert & OTP if required)
+// @route   POST /api/orders/:orderId/request-cancel
 // @access  Private (Staff/Admin)
-exports.cancelOrder = async (req, res) => {
+exports.requestCancelOrder = async (req, res) => {
   try {
-    const order = await Order.findOne({ _id: req.params.orderId, hotelId: req.user.hotelId });
+    const { reason } = req.body;
+    const order = await Order.findOne({ _id: req.params.orderId, hotelId: req.user.hotelId }).populate("table");
     if (!order) {
       return res.status(404).json({ success: false, message: "Order not found" });
     }
@@ -352,9 +378,78 @@ exports.cancelOrder = async (req, res) => {
       return res.status(400).json({ success: false, message: "Cannot cancel an already billed order" });
     }
 
-    // Free table if it's a table order
+    const hotel = await Hotel.findById(req.user.hotelId);
+    const tableNo = order.table ? `Table ${order.table.tableNo}` : (order.orderDisplayId || order.orderType || "Takeaway");
+
+    // Check if any item in the order has already been printed in kitchen
+    const hasPrintedItems = order.items.some((item) => (item.printedQuantity || 0) > 0);
+    const antiTheftActive = Boolean(hotel?.antiTheftOtpRequired && hotel?.telegramAlertsEnabled && hotel?.telegramChatId);
+
+    // If items were printed OR anti-theft OTP is strictly enforced with telegram configured:
+    if ((hasPrintedItems || hotel?.antiTheftOtpRequired) && antiTheftActive) {
+      const otp = Math.floor(1000 + Math.random() * 9000).toString();
+      const otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 min validity
+
+      const audit = await CancellationAudit.create({
+        hotelId: req.user.hotelId,
+        orderId: order._id,
+        orderDisplayId: order.orderDisplayId || "",
+        tableNo,
+        orderType: order.orderType,
+        cancelledItems: order.items,
+        totalAmount: order.subTotal || 0,
+        cancellationType: "full_order",
+        cancelledBy: req.user._id,
+        cashierName: req.user.name || "Cashier",
+        reason: reason || "KOT Cancellation Attempt",
+        otp,
+        otpExpiresAt,
+        status: "pending_otp",
+      });
+
+      // Send Instant Telegram Notification & OTP to Owner
+      const tgResult = await sendCancelAlertOtp({
+        chatId: hotel.telegramChatId,
+        hotelName: hotel.name,
+        tableOrOrder: tableNo,
+        items: order.items,
+        totalAmount: order.subTotal || 0,
+        cashierName: req.user.name || "Cashier",
+        reason: reason || "Customer refused / mistake",
+        otp,
+        cancellationType: "full_order",
+      });
+
+      return res.status(200).json({
+        success: true,
+        requiresOtp: true,
+        auditId: audit._id,
+        tableNo,
+        totalAmount: order.subTotal,
+        message: "Anti-Theft Protection Active: OTP has been sent to Owner's Telegram.",
+        telegramDelivered: tgResult.success,
+      });
+    }
+
+    // Direct Cancellation (if no printed items or no Telegram configured)
+    await CancellationAudit.create({
+      hotelId: req.user.hotelId,
+      orderId: order._id,
+      orderDisplayId: order.orderDisplayId || "",
+      tableNo,
+      orderType: order.orderType,
+      cancelledItems: order.items,
+      totalAmount: order.subTotal || 0,
+      cancellationType: "full_order",
+      cancelledBy: req.user._id,
+      cashierName: req.user.name || "Cashier",
+      reason: reason || "KOT Cancelled (Direct)",
+      status: "approved",
+      approvedAt: new Date(),
+    });
+
     if (order.orderType === "Table" && order.table) {
-      const table = await Table.findOne({ _id: order.table, hotelId: req.user.hotelId });
+      const table = await Table.findOne({ _id: order.table._id || order.table, hotelId: req.user.hotelId });
       if (table && table.currentOrderId?.toString() === order._id.toString()) {
         table.status = "Available";
         table.currentOrderId = null;
@@ -363,15 +458,398 @@ exports.cancelOrder = async (req, res) => {
     }
 
     await Order.deleteOne({ _id: order._id });
+    broadcastKDSUpdate(req.user.hotelId, { type: "order_cancelled" });
 
-    // Broadcast to KDS that an order was cancelled
-    broadcastKDSUpdate(req.user.hotelId, { type: 'order_cancelled' });
-
-    res.status(200).json({ success: true, message: "Order cancelled successfully" });
+    return res.status(200).json({
+      success: true,
+      requiresOtp: false,
+      message: "Order cancelled successfully.",
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// @desc    Verify OTP and finalize KOT cancellation
+// @route   POST /api/orders/:orderId/verify-cancel
+// @access  Private (Staff/Admin)
+exports.verifyCancelOrder = async (req, res) => {
+  try {
+    const { auditId, otp } = req.body;
+    if (!auditId || !otp) {
+      return res.status(400).json({ success: false, message: "Audit ID and OTP are required" });
+    }
+
+    const audit = await CancellationAudit.findOne({
+      _id: auditId,
+      hotelId: req.user.hotelId,
+      status: "pending_otp",
+    });
+
+    if (!audit) {
+      return res.status(404).json({ success: false, message: "Cancellation request expired or already processed" });
+    }
+
+    if (new Date() > new Date(audit.otpExpiresAt)) {
+      audit.status = "rejected";
+      await audit.save();
+      return res.status(400).json({ success: false, message: "OTP has expired. Please request a new one." });
+    }
+
+    if (audit.otp.trim() !== String(otp).trim()) {
+      return res.status(400).json({ success: false, message: "Incorrect OTP. Please enter the valid code sent to Owner's Telegram." });
+    }
+
+    const order = await Order.findOne({ _id: req.params.orderId, hotelId: req.user.hotelId }).populate("table");
+    if (order) {
+      if (order.orderType === "Table" && order.table) {
+        const table = await Table.findOne({ _id: order.table._id || order.table, hotelId: req.user.hotelId });
+        if (table && table.currentOrderId?.toString() === order._id.toString()) {
+          table.status = "Available";
+          table.currentOrderId = null;
+          await table.save();
+        }
+      }
+      await Order.deleteOne({ _id: order._id });
+    }
+
+    audit.status = "approved";
+    audit.approvedAt = new Date();
+    await audit.save();
+
+    // Send Confirmation to Owner Telegram
+    const hotel = await Hotel.findById(req.user.hotelId);
+    if (hotel?.telegramChatId) {
+      await sendCancelApprovedNotification({
+        chatId: hotel.telegramChatId,
+        hotelName: hotel.name,
+        tableOrOrder: audit.tableNo,
+        totalAmount: audit.totalAmount,
+        cashierName: audit.cashierName,
+        reason: audit.reason,
+      });
+    }
+
+    broadcastKDSUpdate(req.user.hotelId, { type: "order_cancelled" });
+
+    res.status(200).json({
+      success: true,
+      message: "KOT cancellation authorized and successfully processed.",
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Request Item Void from active KOT
+// @route   POST /api/orders/:orderId/request-item-void
+// @access  Private (Staff/Admin)
+exports.requestItemVoid = async (req, res) => {
+  try {
+    const { dishId, quantityToVoid, reason } = req.body;
+    const order = await Order.findOne({ _id: req.params.orderId, hotelId: req.user.hotelId }).populate("table");
+    if (!order) {
+      return res.status(404).json({ success: false, message: "Order not found" });
+    }
+
+    const item = order.items.find((i) => i.dishId.toString() === dishId.toString());
+    if (!item) {
+      return res.status(404).json({ success: false, message: "Item not found in order" });
+    }
+
+    const voidQty = Number(quantityToVoid) || 1;
+    const voidAmount = item.price * voidQty;
+    const hotel = await Hotel.findById(req.user.hotelId);
+    const tableNo = order.table ? `Table ${order.table.tableNo}` : (order.orderDisplayId || order.orderType || "Takeaway");
+    const antiTheftActive = Boolean(hotel?.antiTheftOtpRequired && hotel?.telegramAlertsEnabled && hotel?.telegramChatId);
+
+    // If item was already printed and anti-theft is active, require OTP
+    if ((item.printedQuantity || 0) > 0 && antiTheftActive) {
+      const otp = Math.floor(1000 + Math.random() * 9000).toString();
+      const otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
+
+      const audit = await CancellationAudit.create({
+        hotelId: req.user.hotelId,
+        orderId: order._id,
+        orderDisplayId: order.orderDisplayId || "",
+        tableNo,
+        orderType: order.orderType,
+        cancelledItems: [{
+          dishId: item.dishId,
+          name: item.name,
+          price: item.price,
+          quantity: voidQty,
+          printedQuantity: item.printedQuantity || 0,
+        }],
+        totalAmount: voidAmount,
+        cancellationType: "item_void",
+        cancelledBy: req.user._id,
+        cashierName: req.user.name || "Cashier",
+        reason: reason || "Item Void Request",
+        otp,
+        otpExpiresAt,
+        status: "pending_otp",
+      });
+
+      await sendCancelAlertOtp({
+        chatId: hotel.telegramChatId,
+        hotelName: hotel.name,
+        tableOrOrder: tableNo,
+        items: [{ name: item.name, price: item.price, quantity: voidQty }],
+        totalAmount: voidAmount,
+        cashierName: req.user.name || "Cashier",
+        reason: reason || "Customer cancelled item",
+        otp,
+        cancellationType: "item_void",
+      });
+
+      return res.status(200).json({
+        success: true,
+        requiresOtp: true,
+        auditId: audit._id,
+        voidAmount,
+        itemName: item.name,
+        message: `Anti-Theft Active: OTP sent to Owner's Telegram to void ${item.name}.`,
+      });
+    }
+
+    // Direct Void without OTP (if item wasn't printed or no Telegram configured)
+    if (item.quantity <= voidQty) {
+      order.items = order.items.filter((i) => i.dishId.toString() !== dishId.toString());
+    } else {
+      item.quantity -= voidQty;
+      if (item.printedQuantity > item.quantity) {
+        item.printedQuantity = item.quantity;
+      }
+    }
+
+    order.subTotal = order.items.reduce((sum, it) => sum + it.price * it.quantity, 0);
+    order.tax = Math.round(order.subTotal * 0.05 * 100) / 100;
+    order.grandTotal = order.subTotal + order.tax;
+    await order.save();
+
+    await CancellationAudit.create({
+      hotelId: req.user.hotelId,
+      orderId: order._id,
+      orderDisplayId: order.orderDisplayId || "",
+      tableNo,
+      orderType: order.orderType,
+      cancelledItems: [{
+        dishId: item.dishId,
+        name: item.name,
+        price: item.price,
+        quantity: voidQty,
+      }],
+      totalAmount: voidAmount,
+      cancellationType: "item_void",
+      cancelledBy: req.user._id,
+      cashierName: req.user.name || "Cashier",
+      reason: reason || "Direct Item Void",
+      status: "approved",
+      approvedAt: new Date(),
+    });
+
+    broadcastKDSUpdate(req.user.hotelId, { type: "order_updated", orderId: order._id });
+
+    res.status(200).json({
+      success: true,
+      requiresOtp: false,
+      message: `${item.name} removed from order.`,
+      data: order,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Verify OTP and void item
+// @route   POST /api/orders/:orderId/verify-item-void
+// @access  Private (Staff/Admin)
+exports.verifyItemVoid = async (req, res) => {
+  try {
+    const { auditId, otp, dishId, quantityToVoid } = req.body;
+    const audit = await CancellationAudit.findOne({
+      _id: auditId,
+      hotelId: req.user.hotelId,
+      status: "pending_otp",
+    });
+
+    if (!audit) {
+      return res.status(404).json({ success: false, message: "Void request not found or expired" });
+    }
+
+    if (new Date() > new Date(audit.otpExpiresAt)) {
+      audit.status = "rejected";
+      await audit.save();
+      return res.status(400).json({ success: false, message: "OTP has expired" });
+    }
+
+    if (audit.otp.trim() !== String(otp).trim()) {
+      return res.status(400).json({ success: false, message: "Incorrect OTP. Verification failed." });
+    }
+
+    const order = await Order.findOne({ _id: req.params.orderId, hotelId: req.user.hotelId });
+    if (!order) {
+      return res.status(404).json({ success: false, message: "Order not found" });
+    }
+
+    const item = order.items.find((i) => i.dishId.toString() === dishId.toString());
+    const voidQty = Number(quantityToVoid) || 1;
+
+    if (item) {
+      if (item.quantity <= voidQty) {
+        order.items = order.items.filter((i) => i.dishId.toString() !== dishId.toString());
+      } else {
+        item.quantity -= voidQty;
+        if (item.printedQuantity > item.quantity) {
+          item.printedQuantity = item.quantity;
+        }
+      }
+      order.subTotal = order.items.reduce((sum, it) => sum + it.price * it.quantity, 0);
+      order.tax = Math.round(order.subTotal * 0.05 * 100) / 100;
+      order.grandTotal = order.subTotal + order.tax;
+      await order.save();
+    }
+
+    audit.status = "approved";
+    audit.approvedAt = new Date();
+    await audit.save();
+
+    const hotel = await Hotel.findById(req.user.hotelId);
+    if (hotel?.telegramChatId) {
+      await sendCancelApprovedNotification({
+        chatId: hotel.telegramChatId,
+        hotelName: hotel.name,
+        tableOrOrder: audit.tableNo,
+        totalAmount: audit.totalAmount,
+        cashierName: audit.cashierName,
+        reason: audit.reason,
+      });
+    }
+
+    broadcastKDSUpdate(req.user.hotelId, { type: "order_updated", orderId: order._id });
+
+    res.status(200).json({
+      success: true,
+      message: "Item void authorized and updated successfully.",
+      data: order,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Get all cancellation & void audit logs (Admin Reports)
+// @route   GET /api/orders/cancellation-audits
+// @access  Private (Admin)
+exports.getCancellationAudits = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 15;
+    const status = req.query.status || "";
+
+    const query = { hotelId: req.user.hotelId };
+    if (status) {
+      query.status = status;
+    }
+
+    const total = await CancellationAudit.countDocuments(query);
+    const audits = await CancellationAudit.find(query)
+      .populate("cancelledBy", "name email role")
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    res.status(200).json({
+      success: true,
+      data: audits,
+      total,
+      pages: Math.ceil(total / limit),
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Test Telegram Alert directly from Admin Settings
+// @route   POST /api/orders/telegram-test
+// @access  Private (Admin)
+exports.testTelegramAlert = async (req, res) => {
+  try {
+    const { chatId } = req.body;
+    const hotel = await Hotel.findById(req.user.hotelId);
+    const targetChatId = chatId || hotel?.telegramChatId;
+
+    if (!targetChatId) {
+      return res.status(400).json({
+        success: false,
+        message: "Please enter your Telegram Chat ID first.",
+      });
+    }
+
+    const result = await sendTestAlert(targetChatId, hotel?.name || "Annapurna Astra");
+    if (!result.success) {
+      return res.status(400).json({
+        success: false,
+        message: result.error || result.message || "Failed to send Telegram test message.",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Test message sent successfully to your Telegram!",
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Auto-detect chat ID from latest message sent to the bot
+// @route   GET /api/orders/telegram-detect-chat-id
+// @access  Private (Admin)
+exports.detectTelegramChatId = async (req, res) => {
+  try {
+    const token = process.env.TELEGRAM_BOT_TOKEN;
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: "TELEGRAM_BOT_TOKEN is missing in backend/.env",
+      });
+    }
+
+    const response = await axios.get(`https://api.telegram.org/bot${token}/getUpdates`, { timeout: 8000 });
+    const updates = response.data?.result || [];
+    if (updates.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Abhi tak koi message nahi mila! Kripya apne Telegram bot (@e_annapurna_alerts_bot) par jakar 'START' dabayein.",
+      });
+    }
+
+    const lastUpdate = [...updates].reverse().find((u) => u.message?.chat?.id);
+    if (!lastUpdate) {
+      return res.status(404).json({
+        success: false,
+        message: "Bot ko koi recent message nahi mila. Kripya Telegram bot par 'START' dabayein.",
+      });
+    }
+
+    const chat = lastUpdate.message.chat;
+    res.status(200).json({
+      success: true,
+      chatId: String(chat.id),
+      senderName: `${chat.first_name || ""} ${chat.last_name || ""}`.trim() || chat.username || "User",
+      message: `Chat ID mil gaya: ${chat.id} (${chat.first_name || "User"})`,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Legacy / direct Cancel order (Maintains backward compatibility)
+// @route   DELETE /api/orders/:orderId
+// @access  Private (Staff/Admin)
+exports.cancelOrder = exports.requestCancelOrder;
 
 // @desc    Mark items as printed for KOT
 // @route   PUT /api/orders/:orderId/mark-printed
@@ -391,10 +869,10 @@ exports.markOrderPrinted = async (req, res) => {
 
     // Update printed quantities
     items.forEach(updateItem => {
-      const existingItem = order.items.find(i => i.dishId.toString() === updateItem.dishId);
+      const rawDishId = updateItem.dishId?._id || updateItem.dishId;
+      const existingItem = order.items.find(i => (i.dishId?._id || i.dishId)?.toString() === rawDishId?.toString());
       if (existingItem) {
-        // Increment the printed quantity by what was just printed
-        existingItem.printedQuantity = (existingItem.printedQuantity || 0) + updateItem.quantity;
+        existingItem.printedQuantity = (existingItem.printedQuantity || 0) + (updateItem.quantity || 1);
       }
     });
 
