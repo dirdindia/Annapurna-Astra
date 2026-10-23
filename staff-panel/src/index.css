@@ -677,3 +677,186 @@ body.light option {
   background-color: #FFFFFF !important;
   color: #0A2F2F !important;
 }
+
+/* ==========================================================================
+   GLOBAL SWEETALERT2 HIGH-CONTRAST & VISIBLE BUTTON STYLES
+   Ensures buttons are ALWAYS clearly visible, readable, and properly padded
+   ========================================================================== */
+
+/* Popup Container & Card */
+div.swal2-container,
+div:where(.swal2-container),
+.swal2-container {
+  z-index: 99999999 !important;
+}
+
+div:where(.swal2-container) .swal2-popup,
+.swal-custom-popup {
+  background: #0A2F2F !important;
+  color: #FFFFFF !important;
+  border: 1px solid rgba(242, 163, 58, 0.45) !important;
+  border-radius: 20px !important;
+  padding: 1.75rem !important;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.85) !important;
+  font-family: inherit !important;
+}
+
+body.light div:where(.swal2-container) .swal2-popup,
+body.light .swal-custom-popup {
+  background: #FFFFFF !important;
+  color: #0A2F2F !important;
+  border: 1px solid #CBD5E1 !important;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15) !important;
+}
+
+div:where(.swal2-container) .swal2-title,
+.swal-custom-title {
+  color: #FFFFFF !important;
+  font-size: 1.25rem !important;
+  font-weight: 800 !important;
+  margin-bottom: 0.5rem !important;
+}
+
+body.light div:where(.swal2-container) .swal2-title,
+body.light .swal-custom-title {
+  color: #0A2F2F !important;
+}
+
+div:where(.swal2-container) .swal2-html-container,
+.swal-custom-html {
+  color: #E2EFEA !important;
+  font-size: 0.875rem !important;
+  line-height: 1.5 !important;
+  margin-top: 0.5rem !important;
+}
+
+body.light div:where(.swal2-container) .swal2-html-container,
+body.light .swal-custom-html {
+  color: #475569 !important;
+}
+
+/* Actions Container */
+div:where(.swal2-container) .swal2-actions,
+.swal-custom-actions {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 12px !important;
+  margin-top: 1.5rem !important;
+  width: 100% !important;
+}
+
+/* CONFIRM BUTTON (Primary / OK / Yes) */
+div:where(.swal2-container) button.swal2-confirm,
+.swal-custom-confirm-btn {
+  background: linear-gradient(135deg, #F2A33A 0%, #D98A1F 100%) !important;
+  color: #061C1C !important;
+  font-weight: 800 !important;
+  font-size: 0.875rem !important;
+  letter-spacing: 0.02em !important;
+  padding: 12px 28px !important;
+  border-radius: 12px !important;
+  border: none !important;
+  min-width: 110px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  box-shadow: 0 4px 14px 0 rgba(242, 163, 58, 0.45) !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  outline: none !important;
+}
+
+div:where(.swal2-container) button.swal2-confirm:hover,
+.swal-custom-confirm-btn:hover {
+  background: linear-gradient(135deg, #F6B445 0%, #F2A33A 100%) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 20px 0 rgba(242, 163, 58, 0.6) !important;
+}
+
+div:where(.swal2-container) button.swal2-confirm:active,
+.swal-custom-confirm-btn:active {
+  transform: translateY(0) !important;
+}
+
+/* CANCEL BUTTON */
+div:where(.swal2-container) button.swal2-cancel,
+.swal-custom-cancel-btn {
+  background: #155B58 !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+  font-size: 0.875rem !important;
+  padding: 12px 24px !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  min-width: 95px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.25) !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  outline: none !important;
+}
+
+body.light div:where(.swal2-container) button.swal2-cancel,
+body.light .swal-custom-cancel-btn {
+  background: #F1F5F9 !important;
+  color: #475569 !important;
+  border-color: #CBD5E1 !important;
+}
+
+div:where(.swal2-container) button.swal2-cancel:hover,
+.swal-custom-cancel-btn:hover {
+  background: #1F6F6B !important;
+  color: #FFFFFF !important;
+  transform: translateY(-1px) !important;
+}
+
+body.light div:where(.swal2-container) button.swal2-cancel:hover,
+body.light .swal-custom-cancel-btn:hover {
+  background: #E2E8F0 !important;
+}
+
+/* DENY BUTTON */
+div:where(.swal2-container) button.swal2-deny {
+  background: #E11D48 !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+  padding: 12px 24px !important;
+  border-radius: 12px !important;
+  border: none !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 4px 14px 0 rgba(225, 29, 72, 0.35) !important;
+}
+
+/* INPUT BOX INSIDE SWEETALERT (e.g. phone number prompt or reason) */
+div:where(.swal2-container) .swal2-input {
+  background: #061C1C !important;
+  color: #FFFFFF !important;
+  border: 1.5px solid rgba(242, 163, 58, 0.4) !important;
+  border-radius: 12px !important;
+  font-size: 1rem !important;
+  padding: 0.75rem 1rem !important;
+  margin: 1.25rem auto 0.5rem !important;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4) !important;
+  outline: none !important;
+}
+
+body.light div:where(.swal2-container) .swal2-input {
+  background: #F8FAFC !important;
+  color: #0F172A !important;
+  border-color: #CBD5E1 !important;
+}
+
+div:where(.swal2-container) .swal2-input:focus {
+  border-color: #F2A33A !important;
+  box-shadow: 0 0 0 3px rgba(242, 163, 58, 0.25) !important;
+}

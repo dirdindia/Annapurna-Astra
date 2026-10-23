@@ -103,9 +103,13 @@ export default function AdminKotPrint() {
       await orderAPI.markKotPrinted(selectedOrder._id, updateData);
 
       setGeneratedKOT({
+        _id: selectedOrder._id,
+        orderId: selectedOrder._id,
         invoiceNumber: selectedOrder.orderDisplayId || "KOT",
         table: { tableNo: selectedOrder.displayNo },
         items: finalPrintItems,
+        customerName: selectedOrder.customerName,
+        customerMobile: selectedOrder.customerMobile,
         createdAt: new Date().toISOString(),
         createdBy: selectedOrder.createdBy
       });

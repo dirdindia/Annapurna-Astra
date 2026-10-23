@@ -1,5 +1,7 @@
 import React, { useState } from "react";
-import { Printer, X, CheckCircle } from "lucide-react";
+import { Printer, X, CheckCircle, Send } from "lucide-react";
+import Swal from "sweetalert2";
+import api from "../api";
 
 // Helper to convert number to words
 function numberToWords(num) {
@@ -29,6 +31,75 @@ export default function PremiumRoomInvoice({ booking, onClose, isSplit = false }
   const hLogo = currentUser?.hotelLogo || "";
   const hGst = currentUser?.hotelGstNo || "";
   const hCin = currentUser?.hotelCinNo || "";
+
+  const [isSendingWa, setIsSendingWa] = useState(false);
+
+  const handleSendWhatsApp = async () => {
+    let defaultPhone = (booking.guests && booking.guests[0] && booking.guests[0].phone) ? booking.guests[0].phone : "";
+    const cleanDefault = defaultPhone.replace(/\D/g, "").slice(-10);
+
+    const { value: inputMobile } = await Swal.fire({
+      title: "Send Room Bill on WhatsApp",
+      text: "Guest ka 10-digit WhatsApp number dalein ya confirm karein:",
+      input: "tel",
+      inputValue: cleanDefault,
+      inputPlaceholder: "9876543210",
+      showCancelButton: true,
+      confirmButtonText: "📲 Send Bill",
+      cancelButtonText: "Cancel",
+      didOpen: (modal) => {
+        const container = modal.closest(".swal2-container") || modal.parentElement;
+        if (container) container.style.zIndex = "99999999";
+      }
+    });
+    if (!inputMobile) return;
+    const mobile = inputMobile.trim();
+
+    setIsSendingWa(true);
+    try {
+      const res = await api.post(`/api/invoices/${booking._id}/send-whatsapp`, {
+        targetMobile: mobile,
+      });
+
+      if (res.data?.waLink) {
+        window.open(res.data.waLink, "_blank");
+        Swal.fire({
+          icon: "success",
+          title: "Opening WhatsApp Web 📲",
+          text: `WhatsApp chat opened for ${mobile}. Bas WhatsApp me Send button dabayein!`,
+          timer: 3500,
+          showConfirmButton: false,
+          didOpen: (modal) => {
+            const container = modal.closest(".swal2-container") || modal.parentElement;
+            if (container) container.style.zIndex = "99999999";
+          }
+        });
+      } else {
+        Swal.fire({
+          icon: "info",
+          title: "WhatsApp Bill Ready",
+          text: res.data?.message || "Bill processed.",
+          didOpen: (modal) => {
+            const container = modal.closest(".swal2-container") || modal.parentElement;
+            if (container) container.style.zIndex = "99999999";
+          }
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      Swal.fire({
+        icon: "error",
+        title: "Failed to Send",
+        text: err.response?.data?.message || "Could not send room invoice via WhatsApp.",
+        didOpen: (modal) => {
+          const container = modal.closest(".swal2-container") || modal.parentElement;
+          if (container) container.style.zIndex = "99999999";
+        }
+      });
+    } finally {
+      setIsSendingWa(false);
+    }
+  };
 
   const handlePrint = () => {
     window.print();
@@ -307,11 +378,20 @@ export default function PremiumRoomInvoice({ booking, onClose, isSplit = false }
           )}
         </div>
 
-        <div className="p-4 border-t border-slate-400 bg-slate-900 flex items-center justify-end gap-3 rounded-b-2xl shrink-0">
-          <button onClick={onClose} className="px-4 py-2 border border-slate-700 hover:bg-slate-800 text-slate-300 rounded-xl text-sm font-medium transition-all">
+        <div className="p-4 border-t border-slate-400 bg-slate-900 flex items-center justify-end gap-3 rounded-b-2xl shrink-0 flex-wrap">
+          <button onClick={onClose} className="px-4 py-2.5 border border-slate-700 hover:bg-slate-800 text-slate-300 rounded-xl text-sm font-medium transition-all cursor-pointer">
             Close
           </button>
-          <button onClick={handlePrint} className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-amber-600 to-yellow-500 hover:from-amber-500 hover:to-yellow-400 text-slate-950 font-bold rounded-xl text-sm transition-all shadow-lg shadow-amber-600/20 active:scale-95">
+          <button
+            type="button"
+            onClick={handleSendWhatsApp}
+            disabled={isSendingWa}
+            className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold rounded-xl text-sm transition-all shadow-lg shadow-emerald-600/20 active:scale-95 disabled:opacity-50 cursor-pointer"
+          >
+            <Send className="w-4 h-4" />
+            <span>{isSendingWa ? "Sending..." : "WhatsApp Bill"}</span>
+          </button>
+          <button onClick={handlePrint} className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-amber-600 to-yellow-500 hover:from-amber-500 hover:to-yellow-400 text-slate-950 font-bold rounded-xl text-sm transition-all shadow-lg shadow-amber-600/20 active:scale-95 cursor-pointer">
             <Printer className="w-4 h-4" />
             <span>Print Invoice</span>
           </button>

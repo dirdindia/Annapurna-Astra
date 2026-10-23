@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { BookOpen, FileText, Image as ImageIcon, Search, Download } from "lucide-react";
+import { BookOpen, FileText, Image as ImageIcon, Search, Download, Send } from "lucide-react";
 import api, { roomBookingAPI } from "../../api";
 import Swal from "sweetalert2";
 import { showError, showAlert, getSwalConfig } from "../../utils/alerts";
@@ -65,6 +65,87 @@ export default function AdminRoomReports() {
       setShowInvoice(true);
     } else {
       showAlert("Info", "Invoice is only available after Check-Out.", "info");
+    }
+  };
+
+  const handleSendWhatsAppFromTable = async (booking) => {
+    if (booking.status !== "Checked-Out") {
+      showAlert("Info", "Room Bill WhatsApp is only available after Check-Out.", "info");
+      return;
+    }
+
+    const defaultPhone = (booking.guests && booking.guests[0] && booking.guests[0].phone) ? booking.guests[0].phone : "";
+    const cleanDefault = defaultPhone.replace(/\D/g, "").slice(-10);
+
+    const { value: inputMobile } = await Swal.fire({
+      title: "Send Room Bill on WhatsApp",
+      text: "Guest ka 10-digit WhatsApp phone number dalein ya confirm karein:",
+      input: "tel",
+      inputValue: cleanDefault,
+      inputPlaceholder: "9876543210",
+      showCancelButton: true,
+      confirmButtonText: "📲 Send Bill",
+      cancelButtonText: "Cancel",
+      didOpen: (modal) => {
+        const container = modal.closest(".swal2-container") || modal.parentElement;
+        if (container) container.style.zIndex = "99999999";
+      }
+    });
+
+    if (!inputMobile) return;
+    const mobile = inputMobile.trim();
+
+    try {
+      Swal.fire({
+        title: "Sending Bill...",
+        text: "Delivering room invoice via WhatsApp API...",
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+          const container = document.querySelector(".swal2-container");
+          if (container) container.style.zIndex = "99999999";
+        }
+      });
+
+      const res = await api.post(`/api/invoices/${booking._id}/send-whatsapp`, {
+        targetMobile: mobile,
+      });
+
+      if (res.data?.waLink) {
+        window.open(res.data.waLink, "_blank");
+        Swal.fire({
+          icon: "success",
+          title: "Opening WhatsApp Web 📲",
+          text: `WhatsApp chat opened for ${mobile}. Bas WhatsApp me Send button dabayein!`,
+          timer: 3500,
+          showConfirmButton: false,
+          didOpen: (modal) => {
+            const container = modal.closest(".swal2-container") || modal.parentElement;
+            if (container) container.style.zIndex = "99999999";
+          }
+        });
+      } else {
+        Swal.fire({
+          icon: "info",
+          title: "WhatsApp Bill Ready",
+          text: res.data?.message || "Bill processed.",
+          didOpen: (modal) => {
+            const container = modal.closest(".swal2-container") || modal.parentElement;
+            if (container) container.style.zIndex = "99999999";
+          }
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      Swal.fire({
+        icon: "error",
+        title: "Failed to Send",
+        text: err.response?.data?.message || "Could not send WhatsApp bill.",
+        didOpen: (modal) => {
+          const container = modal.closest(".swal2-container") || modal.parentElement;
+          if (container) container.style.zIndex = "99999999";
+        }
+      });
     }
   };
 
@@ -295,6 +376,17 @@ export default function AdminRoomReports() {
                         >
                           <FileText className="w-4 h-4" />
                         </button>
+                        <button
+                          onClick={() => handleSendWhatsAppFromTable(booking)}
+                          className={`p-1.5 rounded-lg transition-all border border-transparent ${
+                            booking.status === 'Checked-Out' 
+                              ? 'text-emerald-400 hover:bg-emerald-500/10 hover:border-emerald-500/25 cursor-pointer'
+                              : 'text-slate-600 cursor-not-allowed opacity-40'
+                          }`}
+                          title={booking.status === 'Checked-Out' ? "Send WhatsApp Bill" : "Bill available after check-out"}
+                        >
+                          <Send className="w-4 h-4" />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -346,12 +438,23 @@ export default function AdminRoomReports() {
                     Room <span className="text-slate-900 dark:text-white font-bold">{selectedGuestBooking.room?.roomNumber}</span> ({selectedGuestBooking.room?.type})
                   </p>
                 </div>
-                <button 
-                  onClick={() => setShowGuestModal(false)} 
-                  className="bg-slate-100 hover:bg-red-100 dark:bg-slate-800/50 dark:hover:bg-red-500/20 text-slate-500 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400 p-2 rounded-full transition-colors"
-                >
-                  ✕
-                </button>
+                <div className="flex items-center gap-2">
+                  {selectedGuestBooking.status === "Checked-Out" && (
+                    <button
+                      onClick={() => handleSendWhatsAppFromTable(selectedGuestBooking)}
+                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow transition-all cursor-pointer"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      <span>WhatsApp Bill</span>
+                    </button>
+                  )}
+                  <button 
+                    onClick={() => setShowGuestModal(false)} 
+                    className="bg-slate-100 hover:bg-red-100 dark:bg-slate-800/50 dark:hover:bg-red-500/20 text-slate-500 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400 p-2 rounded-full transition-colors"
+                  >
+                    ✕
+                  </button>
+                </div>
               </div>
             </div>
             

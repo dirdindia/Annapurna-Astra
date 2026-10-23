@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import api from "../../api";
-import { UtensilsCrossed, Search, ChevronLeft, ChevronRight, AlertCircle, X, FileText, Printer, QrCode, ShieldAlert, CheckCircle2, Clock, Ban, RefreshCw } from "lucide-react";
+import { UtensilsCrossed, Search, ChevronLeft, ChevronRight, AlertCircle, X, FileText, Printer, QrCode, ShieldAlert, CheckCircle2, Clock, Ban, RefreshCw, Send } from "lucide-react";
+import Swal from "sweetalert2";
 import ThermalReceipt from "../../components/ThermalReceipt";
 
 export default function AdminKotReports() {
@@ -108,6 +109,84 @@ export default function AdminKotReports() {
   const handleSearchChange = (e) => {
     setSearch(e.target.value);
     setPage(1);
+  };
+
+  const handleSendWhatsAppFromKot = async (order) => {
+    if (!order) return;
+
+    const defaultPhone = order.customerMobile || order.customerPhone || "";
+    const cleanDefault = defaultPhone.replace(/\D/g, "").slice(-10);
+
+    const { value: inputMobile } = await Swal.fire({
+      title: "Send KOT Bill on WhatsApp",
+      text: "Customer ka 10-digit WhatsApp number dalein ya confirm karein:",
+      input: "tel",
+      inputValue: cleanDefault,
+      inputPlaceholder: "9876543210",
+      showCancelButton: true,
+      confirmButtonText: "📲 Send Bill",
+      cancelButtonText: "Cancel",
+      didOpen: (modal) => {
+        const container = modal.closest(".swal2-container") || modal.parentElement;
+        if (container) container.style.zIndex = "99999999";
+      }
+    });
+
+    if (!inputMobile) return;
+    const mobile = inputMobile.trim();
+
+    try {
+      Swal.fire({
+        title: "Preparing WhatsApp Bill...",
+        text: "Opening WhatsApp chat...",
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+          const container = document.querySelector(".swal2-container");
+          if (container) container.style.zIndex = "99999999";
+        }
+      });
+
+      const res = await api.post(`/api/invoices/${order._id}/send-whatsapp`, {
+        targetMobile: mobile,
+      });
+
+      if (res.data?.waLink) {
+        window.open(res.data.waLink, "_blank");
+        Swal.fire({
+          icon: "success",
+          title: "Opening WhatsApp Web 📲",
+          text: `WhatsApp chat opened for ${mobile}. Bas WhatsApp me Send button dabayein!`,
+          timer: 3500,
+          showConfirmButton: false,
+          didOpen: (modal) => {
+            const container = modal.closest(".swal2-container") || modal.parentElement;
+            if (container) container.style.zIndex = "99999999";
+          }
+        });
+      } else {
+        Swal.fire({
+          icon: "info",
+          title: "WhatsApp Bill Ready",
+          text: res.data?.message || "Bill processed.",
+          didOpen: (modal) => {
+            const container = modal.closest(".swal2-container") || modal.parentElement;
+            if (container) container.style.zIndex = "99999999";
+          }
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      Swal.fire({
+        icon: "error",
+        title: "Failed to Send",
+        text: err.response?.data?.message || "Could not generate WhatsApp bill.",
+        didOpen: (modal) => {
+          const container = modal.closest(".swal2-container") || modal.parentElement;
+          if (container) container.style.zIndex = "99999999";
+        }
+      });
+    }
   };
 
   return (
@@ -603,6 +682,13 @@ export default function AdminKotReports() {
                   className="flex items-center gap-2 px-3 py-1.5 bg-amber-500/10 text-amber-600 dark:text-amber-500 hover:bg-amber-500/20 rounded-lg font-bold text-xs transition-colors"
                 >
                   <Printer className="w-4 h-4" /> Print Bill
+                </button>
+                <button
+                  onClick={() => handleSendWhatsAppFromKot(selectedOrder)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold text-xs shadow transition-all cursor-pointer"
+                  title="WhatsApp par digital bill send karein"
+                >
+                  <Send className="w-3.5 h-3.5" /> WhatsApp Bill
                 </button>
                 <button 
                   onClick={() => setSelectedOrder(null)}

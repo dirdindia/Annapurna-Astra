@@ -30,11 +30,13 @@ const {
   addManualWaitlist,
   updateWaitlistStatus,
 } = require("../controllers/waitlistController");
+const { getPublicInvoiceById } = require("../controllers/invoiceController");
 
 // ===================================
 // PUBLIC GUEST ROUTES (NO AUTH REQUIRED)
 // ===================================
 router.get("/hotel/:hotelId", getHotelPublicMenu);
+router.get("/bill/:invoiceId", getPublicInvoiceById);
 router.post("/order", createPublicOrder);
 router.get("/order/:orderId", getPublicOrderStatus);
 router.get("/orders/by-mobile", getOrdersByMobile);

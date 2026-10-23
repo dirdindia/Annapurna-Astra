@@ -23,6 +23,10 @@ app.get("/", (req, res) => {
   res.send("E-Annapurna API is running...");
 });
 
+// Direct Public HTML Digital Bill Route
+app.get("/bill/:invoiceId", require("./controllers/invoiceController").renderPublicInvoiceHtml);
+
+
 // Routes
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/upload", require("./routes/uploadRoutes"));

@@ -20,6 +20,7 @@ import AdminLookups from "./pages/admin/AdminLookups";
 import AdminKotPrint from "./pages/admin/AdminKotPrint";
 import AdminQrOrders from "./pages/admin/AdminQrOrders";
 import PublicGuestPortal from "./pages/public/PublicGuestPortal";
+import PublicBillView from "./pages/public/PublicBillView";
 
 
 // Guard for Admin Routes
@@ -266,6 +267,7 @@ export default function App() {
         {/* Public Scan & Order / Table Booking Portal (No Login Required) */}
         <Route path="/menu/:hotelId" element={<PublicGuestPortal />} />
         <Route path="/scan/:hotelId" element={<PublicGuestPortal />} />
+        <Route path="/bill/:invoiceId" element={<PublicBillView />} />
 
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="*" element={<Navigate to="/login" replace />} />

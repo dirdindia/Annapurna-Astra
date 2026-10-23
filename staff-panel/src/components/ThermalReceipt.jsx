@@ -1,10 +1,12 @@
-import React, { useEffect, useRef } from "react";
-import { Printer, X, CheckCircle } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import { Printer, X, CheckCircle, Send } from "lucide-react";
 import html2canvas from "html2canvas";
-import { orderAPI } from "../api";
+import Swal from "sweetalert2";
+import api, { orderAPI } from "../api";
 
 export default function ThermalReceipt({ invoice, onClose, isKot = false }) {
   const receiptRef = useRef(null);
+  const [isSendingWa, setIsSendingWa] = useState(false);
   useEffect(() => {
     const timer = setTimeout(() => {
       window.print();
@@ -182,10 +184,10 @@ export default function ThermalReceipt({ invoice, onClose, isKot = false }) {
   );
 
   return (
-    <div className="fixed inset-0 z-[99999] bg-white text-black flex justify-center items-start overflow-auto pb-10 print-receipt-wrapper">
+    <div className="fixed inset-0 z-[80] bg-white text-black flex justify-center items-start overflow-auto pb-10 print-receipt-wrapper">
       
       {/* Non-print UI buttons */}
-      <div className="fixed top-4 right-4 no-print flex gap-2 z-[100000] flex-wrap justify-end">
+      <div className="fixed top-4 right-4 no-print flex gap-2 z-[85] flex-wrap justify-end">
         {isKot && (
           <button
             onClick={async () => {
@@ -209,13 +211,97 @@ export default function ThermalReceipt({ invoice, onClose, isKot = false }) {
         )}
         <button
           onClick={() => window.print()}
-          className="px-4 py-2 bg-blue-600 text-white rounded font-bold shadow-lg"
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold shadow-lg transition-colors cursor-pointer"
         >
           Normal Print
         </button>
         <button
+          type="button"
+          onClick={async () => {
+            let mobile = invoice.customerMobile;
+            const hasValidMobile = mobile && mobile !== "N/A" && mobile.replace(/\D/g, "").length >= 10;
+            
+            // Prompt for mobile number (prefill if available)
+            const { value: inputMobile } = await Swal.fire({
+              title: "Send WhatsApp Bill",
+              text: "Customer ka 10-digit WhatsApp number dalein:",
+              input: "tel",
+              inputValue: hasValidMobile ? mobile.replace(/\D/g, "").slice(-10) : "",
+              inputPlaceholder: "9876543210",
+              showCancelButton: true,
+              confirmButtonText: "Send Bill",
+              cancelButtonText: "Cancel",
+              customClass: {
+                container: "swal2-topmost"
+              },
+              didOpen: (modal) => {
+                const container = modal.closest(".swal2-container") || modal.parentElement;
+                if (container) container.style.zIndex = "99999999";
+              }
+            });
+            if (!inputMobile) return;
+            mobile = inputMobile;
+
+              setIsSendingWa(true);
+              try {
+                if (invoice._id && invoice._id !== "PROFORMA") {
+                  const res = await api.post(`/api/invoices/${invoice._id}/send-whatsapp`, {
+                    targetMobile: mobile,
+                  });
+
+                  if (res.data?.waLink) {
+                    window.open(res.data.waLink, "_blank");
+                    Swal.fire({
+                      icon: "success",
+                      title: "Opening WhatsApp Web 📲",
+                      text: `WhatsApp chat opened for ${mobile}. Bas WhatsApp me Send button dabayein!`,
+                      timer: 3500,
+                      showConfirmButton: false,
+                      didOpen: (modal) => {
+                        const container = modal.closest(".swal2-container") || modal.parentElement;
+                        if (container) container.style.zIndex = "99999999";
+                      }
+                    });
+                  } else {
+                    Swal.fire({
+                      icon: "info",
+                      title: "WhatsApp Bill Ready",
+                      text: res.data?.message || "Bill processed.",
+                      didOpen: (modal) => {
+                        const container = modal.closest(".swal2-container") || modal.parentElement;
+                        if (container) container.style.zIndex = "99999999";
+                      }
+                    });
+                  }
+                } else {
+                  const text = `🏨 *${hName}* - Tax Invoice\nBill No: #${billNo}\nTotal: ₹${netAmount.toFixed(2)}\nThank you for visiting!`;
+                  const link = `https://wa.me/91${mobile.replace(/\D/g, "")}?text=${encodeURIComponent(text)}`;
+                  window.open(link, "_blank");
+                }
+              } catch (err) {
+                console.error(err);
+                Swal.fire({
+                  icon: "error",
+                  title: "Failed to Send",
+                  text: err.response?.data?.message || "Could not send WhatsApp bill.",
+                  didOpen: (modal) => {
+                    const container = modal.closest(".swal2-container") || modal.parentElement;
+                    if (container) container.style.zIndex = "99999999";
+                  }
+                });
+              } finally {
+                setIsSendingWa(false);
+              }
+            }}
+            disabled={isSendingWa}
+            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded font-bold shadow-lg flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+          >
+            <Send className="w-4 h-4" />
+            <span>{isSendingWa ? "Sending..." : "WhatsApp Bill"}</span>
+          </button>
+        <button
           onClick={onClose}
-          className="px-4 py-2 bg-red-600 text-white rounded font-bold shadow-lg"
+          className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded font-bold shadow-lg transition-colors cursor-pointer"
         >
           Close
         </button>
