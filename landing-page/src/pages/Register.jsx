@@ -1,7 +1,7 @@
 import { useState, lazy, Suspense } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { CheckCircle2, Sparkles, Building2, ShieldCheck, Clock, ArrowRight } from 'lucide-react'
+import { CheckCircle2, Sparkles, Building2, ShieldCheck, Clock, ArrowRight, Gift } from 'lucide-react'
 import { api, showToast } from '../api'
 
 const Register3DScene = lazy(() => import('../components/Register3DScene'))
@@ -9,6 +9,10 @@ const Register3DScene = lazy(() => import('../components/Register3DScene'))
 const initial = { hotel: '', owner: '', email: '', phone: '', city: '', type: 'Hotel', password: '' }
 
 export default function Register() {
+  const [searchParams] = useSearchParams()
+  const requestedPlan = searchParams.get('plan') || 'Trial'
+  const isTrial = requestedPlan === 'Trial' || requestedPlan === '7-Day Free Trial'
+
   const [form, setForm] = useState(initial)
   const [done, setDone] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -19,9 +23,14 @@ export default function Register() {
     e.preventDefault()
     setLoading(true)
     try {
-      const res = await api.post('/auth/register-hotel', form);
+      const payload = {
+        ...form,
+        plan: requestedPlan,
+        claimTrial: isTrial,
+      }
+      const res = await api.post('/auth/register-hotel', payload);
       if (res.data.success) {
-        showToast('Hotel registered successfully!');
+        showToast(isTrial ? '7-Day Free Trial activated successfully!' : 'Hotel registered successfully!');
         setDone(true);
       } else {
         showToast(res.data.message || 'Error registering hotel', 'error');
@@ -46,7 +55,9 @@ export default function Register() {
             <CheckCircle2 size={40} />
           </div>
           <h1 className="text-3xl font-extrabold text-lagoon-900 font-display">{form.hotel} register ho gaya!</h1>
-          <p className="mt-3 text-lagoon-900/70 font-sans">Aapka hotel account ready hai. Ab sign in karke setup shuru karein.</p>
+          <p className="mt-3 text-lagoon-900/70 font-sans">
+            Aapka hotel account create ho gaya hai. Ab portal mein sign in karke apna <b className="text-emerald-700">7-din ka Free Trial claim karein</b> aur software chalana shuru karein.
+          </p>
           <a href="http://localhost:5174/login" className="btn btn-primary mt-8 w-full py-3.5 text-base font-bold shadow-lg shadow-saffron-500/30 flex items-center justify-center gap-2">
             Sign in to Hotel Portal <ArrowRight size={18} />
           </a>
@@ -96,7 +107,7 @@ export default function Register() {
             transition={{ delay: 0.1 }}
             className="text-4xl font-extrabold leading-tight font-display"
           >
-            14 din free trial. <br />
+            7 din free trial. <br />
             <span className="text-saffron-400">Card ki zaroorat nahi.</span>
           </motion.h2>
 
@@ -146,8 +157,23 @@ export default function Register() {
           <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-saffron-400 via-amber-400 to-saffron-500" />
 
           <div className="mb-8">
+            {isTrial ? (
+              <div className="mb-3 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-800 text-xs font-bold">
+                <Gift className="w-4 h-4 text-emerald-600" />
+                <span>🎁 7 Din Ka Free Trial Plan Included (₹0 Cost)</span>
+              </div>
+            ) : (
+              <div className="mb-3 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-saffron-500/10 border border-saffron-500/30 text-saffron-800 text-xs font-bold">
+                <Sparkles className="w-4 h-4 text-saffron-600" />
+                <span>Selected Plan: {requestedPlan}</span>
+              </div>
+            )}
             <h1 className="text-3xl font-extrabold text-lagoon-900 font-display">Hotel registration</h1>
-            <p className="mt-1 text-sm text-lagoon-900/70 font-sans">Apne hotel ki basic details bharein aur free trial shuru karein.</p>
+            <p className="mt-1 text-sm text-lagoon-900/70 font-sans">
+              {isTrial 
+                ? 'Apne hotel ki basic details bharein aur 7 din ka free trial shuru karein.'
+                : 'Apne hotel ki basic details bharein aur setup shuru karein.'}
+            </p>
           </div>
 
           <form onSubmit={submit} className="flex flex-col gap-4">

@@ -33,7 +33,41 @@ exports.getHotelPublicMenu = async (req, res) => {
     }
 
     const dishes = await Dish.find({ hotelId, available: true }).sort({ category: 1, name: 1 });
-    const tables = await Table.find({ hotelId }).select("tableNo capacity type status").sort({ tableNo: 1 });
+    const tables = await Table.find({ hotelId }).select("tableNo capacity type status currentOrderId").sort({ tableNo: 1 });
+
+    // Check in real-time which tables have active running dining orders or pending QR orders
+    const pendingQrOrders = await Order.find({
+      hotelId,
+      status: "Active",
+      orderType: "Table",
+      approvalStatus: "pending",
+    }).select("tableNo table");
+
+    const pendingTableNos = new Set(
+      pendingQrOrders.map((o) => String(o.tableNo || "").trim().toLowerCase()).filter(Boolean)
+    );
+    const pendingTableIds = new Set(
+      pendingQrOrders.map((o) => String(o.table || "")).filter(Boolean)
+    );
+
+    const tablesWithLiveStatus = tables.map((tbl) => {
+      // Direct table occupancy from POS / Staff table management
+      const isMarkedBusy = tbl.status === "Occupied" || tbl.status === "Booked" || Boolean(tbl.currentOrderId);
+      // Or if a QR order is pending confirmation by staff
+      const hasPendingQr =
+        pendingTableNos.has(String(tbl.tableNo || "").trim().toLowerCase()) ||
+        pendingTableIds.has(String(tbl._id));
+
+      const isOccupied = isMarkedBusy || hasPendingQr;
+
+      return {
+        _id: tbl._id,
+        tableNo: tbl.tableNo,
+        capacity: tbl.capacity,
+        type: tbl.type,
+        status: isOccupied ? "Occupied" : "Available",
+      };
+    });
 
     // Extract unique categories
     const categories = Array.from(new Set(dishes.map((d) => d.category || "General")));
@@ -44,7 +78,7 @@ exports.getHotelPublicMenu = async (req, res) => {
         hotel,
         categories,
         dishes,
-        tables,
+        tables: tablesWithLiveStatus,
       },
     });
   } catch (error) {
@@ -94,43 +128,51 @@ exports.createPublicOrder = async (req, res) => {
     let resolvedTableId = null;
     let resolvedTableNo = tableNo || "";
 
+    let targetTableDoc = null;
     if (orderType === "Table") {
       if (tableId) {
-        const table = await Table.findOne({ _id: tableId, hotelId });
-        if (table) {
-          resolvedTableId = table._id;
-          resolvedTableNo = table.tableNo;
-        }
+        targetTableDoc = await Table.findOne({ _id: tableId, hotelId });
       } else if (tableNo) {
-        const table = await Table.findOne({ tableNo: String(tableNo).trim(), hotelId });
-        if (table) {
-          resolvedTableId = table._id;
-          resolvedTableNo = table.tableNo;
-        }
+        targetTableDoc = await Table.findOne({ tableNo: String(tableNo).trim(), hotelId });
+      }
+
+      if (targetTableDoc) {
+        resolvedTableId = targetTableDoc._id;
+        resolvedTableNo = targetTableDoc.tableNo;
       }
 
       // Check if table already has an active running order
       if (resolvedTableId || resolvedTableNo) {
+        const isTableActuallyBusy = targetTableDoc && (targetTableDoc.status === "Occupied" || targetTableDoc.status === "Booked" || Boolean(targetTableDoc.currentOrderId));
+
         const activeTableOrder = await Order.findOne({
           hotelId,
-          tableNo: resolvedTableNo,
+          $or: [
+            { tableNo: resolvedTableNo },
+            ...(resolvedTableId ? [{ table: resolvedTableId }] : []),
+          ],
           orderType: "Table",
           status: "Active",
           approvalStatus: { $in: ["approved", "pending"] },
         }).sort({ createdAt: -1 });
 
         if (activeTableOrder) {
-          // Verify customer identity with mobile number to prevent unauthorized additions
-          const existingMobile = String(activeTableOrder.customerMobile || "").trim();
-          if (existingMobile && existingMobile !== cleanMobile) {
-            return res.status(403).json({
-              success: false,
-              message: `Table ${resolvedTableNo} already has a running session with a different mobile number. Please check your mobile or contact restaurant staff.`,
-            });
-          }
+          // If table doc is marked Available and order was already approved (stale order), auto-archive it
+          if (targetTableDoc && targetTableDoc.status === "Available" && !targetTableDoc.currentOrderId && activeTableOrder.approvalStatus === "approved") {
+            activeTableOrder.status = "Billed";
+            await activeTableOrder.save();
+          } else if (isTableActuallyBusy || activeTableOrder.approvalStatus === "pending") {
+            // Verify customer identity with mobile number to prevent unauthorized additions
+            const existingMobile = String(activeTableOrder.customerMobile || "").trim();
+            if (existingMobile && existingMobile !== cleanMobile) {
+              return res.status(403).json({
+                success: false,
+                message: `Table ${resolvedTableNo} is currently occupied with active diners. Please select an available table, switch to Takeaway (Parcel), or join our live queue.`,
+              });
+            }
 
-          // Case A: Initial order is still pending approval -> Directly merge into pending items
-          if (activeTableOrder.approvalStatus === "pending") {
+            // Case A: Initial order is still pending approval -> Directly merge into pending items
+            if (activeTableOrder.approvalStatus === "pending") {
             const mappedItems = items.map((item) => ({
               dishId: item.dishId,
               name: item.name,
@@ -210,6 +252,17 @@ exports.createPublicOrder = async (req, res) => {
             isAddon: true,
             message: `Additional items requested for Table ${resolvedTableNo}! Waiting for staff approval.`,
             data: activeTableOrder,
+          });
+          }
+        } else if (
+          targetTableDoc &&
+          (targetTableDoc.status === "Occupied" ||
+            targetTableDoc.status === "Booked" ||
+            Boolean(targetTableDoc.currentOrderId))
+        ) {
+          return res.status(400).json({
+            success: false,
+            message: `Table ${resolvedTableNo} is currently occupied with active diners. Please select an available table, switch to Takeaway (Parcel), or join our live waitlist queue!`,
           });
         }
       }

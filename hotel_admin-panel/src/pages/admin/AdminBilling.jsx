@@ -15,6 +15,7 @@ import {
   Sparkles,
   ArrowRight,
   RefreshCw,
+  Gift,
 } from "lucide-react";
 import api from "../../api";
 import Swal from "sweetalert2";
@@ -36,6 +37,22 @@ const loadRazorpayScript = () => {
 };
 
 const DEFAULT_PLANS = {
+  Trial: {
+    id: "Trial",
+    name: "7-Day Free Trial",
+    monthlyPrice: 0,
+    isFree: true,
+    description: "Annapurna Astra ke sabhi features 7 din bilkul free chalayein",
+    features: [
+      "Full Combo (Hotel + Restaurant) access",
+      "Room booking & Guest Check-in/GRC",
+      "Restaurant Table Map & POS Billing",
+      "Instant Kitchen Order Ticket (KOT)",
+      "Live Kitchen Display System (KDS)",
+      "Guest Table QR Scan & Order",
+      "Unlimited Staff Logins & Counter Access",
+    ],
+  },
   Hotel: {
     id: "Hotel",
     name: "Hotel Only",
@@ -99,6 +116,7 @@ export default function AdminBilling() {
   const [invoices, setInvoices] = useState([]);
   const [printingInvoice, setPrintingInvoice] = useState(null);
   const [processingPlan, setProcessingPlan] = useState(null);
+  const [claimingTrial, setClaimingTrial] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // Fetch initial details
@@ -157,7 +175,98 @@ export default function AdminBilling() {
     loadRazorpayScript();
   }, []);
 
+  const handleClaimTrial = async () => {
+    try {
+      const confirmResult = await Swal.fire({
+        title: "Claim 7-Day Free Trial?",
+        html: `
+          <div class="text-left text-sm text-slate-300 space-y-2">
+            <p>Aapko <b>7 din ke liye Annapurna Astra ke sabhi features</b> bilkul free milenge:</p>
+            <ul class="list-disc pl-5 space-y-1 text-slate-400 text-xs">
+              <li>Hotel Room Booking & Front Desk</li>
+              <li>Restaurant Table POS & Live KOT / KDS</li>
+              <li>Staff Logins & Role Permissions Unlocked</li>
+              <li>Guest QR Code Scan & Order for Tables</li>
+            </ul>
+            <p class="text-emerald-400 font-semibold mt-2">✓ Koi credit card ya payment ki zaroorat nahi hai!</p>
+          </div>
+        `,
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "Haan, 7-Din Trial Activate Karein!",
+        cancelButtonText: "Nahi, Baad Mein",
+        confirmButtonColor: "#10B981",
+        cancelButtonColor: "#475569",
+        background: "#0f172a",
+        color: "#f8fafc",
+      });
+
+      if (!confirmResult.isConfirmed) return;
+
+      setClaimingTrial(true);
+
+      const res = await api.post("/api/payment/claim-trial");
+
+      if (res.data?.success) {
+        if (res.data.subscription) {
+          setSubscription(res.data.subscription);
+        }
+
+        const storedUser = JSON.parse(localStorage.getItem("user") || "null");
+        if (storedUser) {
+          storedUser.subscriptionPlan = "Trial";
+          storedUser.subscriptionStatus = "active";
+          storedUser.subscriptionExpiresAt = res.data.subscription?.validUntil;
+          localStorage.setItem("user", JSON.stringify(storedUser));
+          setCurrentUser(storedUser);
+        }
+
+        await Swal.fire({
+          icon: "success",
+          title: "🎉 7-Day Free Trial Activated!",
+          html: `
+            <div class="text-sm text-slate-300">
+              <p class="mb-2">Mubaarak ho! Aapka <b>7 din ka Free Trial</b> activate ho gaya hai.</p>
+              <p class="text-emerald-400 font-semibold">Ab aapke sabhi counters, features aur staff logins puri tarah active hain!</p>
+              <p class="text-xs text-slate-400 mt-3">Valid Until: <b>${new Date(res.data.subscription?.validUntil).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</b></p>
+            </div>
+          `,
+          confirmButtonColor: "#10B981",
+          background: "#0f172a",
+          color: "#f8fafc",
+        });
+
+        try {
+          const invoicesRes = await api.get("/api/payment/my-invoices");
+          setInvoices(invoicesRes.data || []);
+        } catch (_) {}
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Activation Failed",
+          text: res.data?.message || "Could not claim free trial",
+          background: "#0f172a",
+          color: "#f8fafc",
+        });
+      }
+    } catch (err) {
+      console.error("Trial claim error:", err);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: err.response?.data?.message || "Failed to claim free trial. Please try again.",
+        background: "#0f172a",
+        color: "#f8fafc",
+      });
+    } finally {
+      setClaimingTrial(false);
+    }
+  };
+
   const handleSubscribe = async (planKey) => {
+    if (planKey === "Trial") {
+      return handleClaimTrial();
+    }
     const isScriptLoaded = await loadRazorpayScript();
     if (!isScriptLoaded) {
       Swal.fire({
@@ -356,12 +465,23 @@ export default function AdminBilling() {
               </p>
             </div>
           </div>
-          <a
-            href="#plans-section"
-            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-saffron-500 to-amber-500 hover:from-saffron-400 hover:to-amber-400 text-slate-950 font-bold text-sm shrink-0 shadow-lg shadow-saffron-500/20 transition-transform active:scale-95 flex items-center gap-2"
-          >
-            Choose a Plan <ArrowRight className="w-4 h-4" />
-          </a>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
+            {!subscription.hasClaimedTrial && (
+              <button
+                onClick={handleClaimTrial}
+                disabled={claimingTrial}
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 hover:brightness-110 text-slate-950 font-black text-sm shadow-lg shadow-emerald-500/20 transition-transform active:scale-95 flex items-center justify-center gap-2"
+              >
+                <Gift className="w-4 h-4" /> {claimingTrial ? "Activating..." : "Claim 7-Day Free Trial"}
+              </button>
+            )}
+            <a
+              href="#plans-section"
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-saffron-500 to-amber-500 hover:from-saffron-400 hover:to-amber-400 text-slate-950 font-bold text-sm shadow-lg shadow-saffron-500/20 transition-transform active:scale-95 flex items-center justify-center gap-2"
+            >
+              Choose a Plan <ArrowRight className="w-4 h-4" />
+            </a>
+          </div>
         </div>
       ) : (
         <div className="mb-8 p-5 rounded-2xl bg-gradient-to-r from-lagoon-950/60 via-lagoon-900/40 to-slate-900 border border-emerald-500/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
@@ -408,101 +528,162 @@ export default function AdminBilling() {
       <div id="plans-section" className="flex flex-col items-center justify-center my-8">
         <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-900/90 border border-slate-800 rounded-2xl shadow-inner text-sm font-bold text-saffron-400">
           <Sparkles className="w-4 h-4 text-saffron-400" />
-          <span>Transparent Monthly Subscription • Cancel or Switch Anytime</span>
+          <span>Transparent Pricing • All Taxes & 18% GST Included • No Extra Charges</span>
         </div>
         <p className="text-xs text-slate-400 mt-2">
           Payments powered by Razorpay. UPI, NetBanking, Debit/Credit Cards & Wallets supported.
         </p>
       </div>
 
-      {/* Plans Pricing Cards */}
-      <div className="grid md:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
-        {Object.entries(plans).map(([key, plan]) => {
-          const isActive = isCurrentPlanActive(key);
-          const isPopular = plan.popular;
-          const price = plan.monthlyPrice || 2499;
-          const isProcessing = processingPlan === key;
+      {/* Plans Pricing Cards (2x2 Grid) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 max-w-5xl mx-auto">
+        {Object.entries(plans)
+          .sort(([a], [b]) => {
+            const order = ["Trial", "Combo", "Hotel", "Restaurant"];
+            const idxA = order.indexOf(a);
+            const idxB = order.indexOf(b);
+            return (idxA === -1 ? 99 : idxA) - (idxB === -1 ? 99 : idxB);
+          })
+          .map(([key, plan]) => {
+            const isActive = isCurrentPlanActive(key);
+            const isPopular = plan.popular;
+            const isTrial = key === "Trial" || plan.isFree;
+            const price = plan.monthlyPrice || 0;
+            const isProcessing = processingPlan === key;
+            const isTrialUsed = isTrial && subscription.hasClaimedTrial && !isActive;
 
           return (
             <div
               key={key}
-              className={`rounded-3xl p-7 relative flex flex-col transition-all duration-300 ${
+              className={`rounded-3xl p-6 lg:p-7 relative flex flex-col justify-between transition-all duration-300 ${
                 isActive
                   ? "bg-gradient-to-b from-lagoon-900/40 to-slate-900 border-2 border-emerald-500 shadow-xl shadow-emerald-500/10"
+                  : isTrial && !isTrialUsed
+                  ? "bg-gradient-to-b from-emerald-950/30 via-slate-900 to-slate-950 border-2 border-emerald-500/60 shadow-xl shadow-emerald-500/10 hover:border-emerald-400"
                   : isPopular
                   ? "bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 border-2 border-saffron-500/60 shadow-xl shadow-saffron-500/10 transform lg:-translate-y-2"
                   : "bg-slate-900/60 border border-slate-800/80 hover:border-slate-700 hover:bg-slate-900/80"
               }`}
             >
               {/* Badges */}
-              {isPopular && !isActive && (
-                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-saffron-500 to-amber-500 text-slate-950 font-bold px-4 py-1 rounded-full text-xs flex items-center gap-1 shadow-lg shadow-saffron-500/30 tracking-wide uppercase">
+              {isTrial && (
+                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-950 font-black px-4 py-1 rounded-full text-xs flex items-center gap-1 shadow-lg shadow-emerald-500/30 tracking-wide uppercase whitespace-nowrap">
+                  <Gift className="w-3.5 h-3.5" /> {isActive ? "Active Free Trial" : isTrialUsed ? "Trial Used" : "7 Days Free • Claim"}
+                </div>
+              )}
+
+              {isPopular && !isActive && !isTrial && (
+                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-saffron-500 to-amber-500 text-slate-950 font-bold px-4 py-1 rounded-full text-xs flex items-center gap-1 shadow-lg shadow-saffron-500/30 tracking-wide uppercase whitespace-nowrap">
                   <Crown className="w-3.5 h-3.5" /> Most Popular • Combo
                 </div>
               )}
 
-              {isActive && (
-                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-emerald-500 text-slate-950 font-bold px-4 py-1 rounded-full text-xs flex items-center gap-1 shadow-lg shadow-emerald-500/30 tracking-wide uppercase">
+              {isActive && !isTrial && (
+                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-emerald-500 text-slate-950 font-bold px-4 py-1 rounded-full text-xs flex items-center gap-1 shadow-lg shadow-emerald-500/30 tracking-wide uppercase whitespace-nowrap">
                   <CheckCircle2 className="w-3.5 h-3.5" /> Your Current Plan
                 </div>
               )}
 
-              {/* Card Header */}
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-xl font-display font-bold text-slate-100 flex items-center gap-2">
-                    {plan.name}
-                    {key === "Combo" && <Crown className="w-5 h-5 text-saffron-500" />}
-                  </h3>
-                </div>
-                <p className="text-xs text-slate-400 min-h-[32px]">{plan.description}</p>
+              <div>
+                {/* Card Header */}
+                <div className="mb-6 mt-1">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-xl font-display font-bold text-slate-100 flex items-center gap-2">
+                      {plan.name}
+                      {key === "Combo" && <Crown className="w-5 h-5 text-saffron-500" />}
+                      {isTrial && <Gift className="w-5 h-5 text-emerald-400" />}
+                    </h3>
+                  </div>
+                  <p className="text-xs text-slate-400 min-h-[32px]">{plan.description}</p>
 
-                {/* Price Display */}
-                <div className="mt-5 pt-4 border-t border-slate-800/80 flex items-baseline gap-2">
-                  <span className="text-4xl font-black text-white font-display">₹{price.toLocaleString("en-IN")}</span>
-                  <span className="text-xs text-slate-400 font-medium">/month</span>
+                  {/* Price Display */}
+                  <div className="mt-5 pt-4 border-t border-slate-800/80 flex flex-wrap items-baseline gap-2">
+                    <span className={`text-3xl lg:text-4xl font-black font-display ${isTrial ? "text-emerald-400" : "text-white"}`}>
+                      ₹{price.toLocaleString("en-IN")}
+                    </span>
+                    <span className="text-xs text-slate-400 font-medium">
+                      {isTrial ? "/ 7 days free" : "/month"}
+                    </span>
+                    <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                      {isTrial ? "100% Free" : "GST Included"}
+                    </span>
+                  </div>
                 </div>
-              </div>
 
-              {/* Features List */}
-              <div className="flex-1 my-4">
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Included Features:</p>
-                <ul className="space-y-3">
-                  {plan.features.map((feature, i) => (
-                    <li key={i} className="flex items-start gap-2.5 text-slate-300 text-sm">
-                      <Check className="w-4 h-4 text-saffron-500 shrink-0 mt-0.5" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
+                {/* Features List */}
+                <div className="my-4">
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Included Features:</p>
+                  <ul className="space-y-2.5">
+                    {plan.features.map((feature, i) => (
+                      <li key={i} className="flex items-start gap-2.5 text-slate-300 text-xs sm:text-sm">
+                        <Check className={`w-4 h-4 shrink-0 mt-0.5 ${isTrial ? "text-emerald-400" : "text-saffron-500"}`} />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
 
               {/* Action Button */}
-              <button
-                disabled={isProcessing}
-                onClick={() => handleSubscribe(key)}
-                className={`mt-6 w-full py-3.5 px-6 rounded-2xl font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-lg ${
-                  isActive
-                    ? "bg-emerald-600/20 border border-emerald-500/40 text-emerald-300 hover:bg-emerald-600/30"
-                    : isPopular
-                    ? "bg-gradient-to-r from-saffron-500 via-amber-500 to-yellow-500 text-slate-950 hover:brightness-110 active:scale-95 shadow-saffron-500/20"
-                    : "bg-slate-800 hover:bg-slate-700 text-white active:scale-95 border border-slate-700"
-                }`}
-              >
-                {isProcessing ? (
-                  <>
-                    <RefreshCw className="w-4 h-4 animate-spin" /> Processing...
-                  </>
-                ) : isActive ? (
-                  <>
-                    <RefreshCw className="w-4 h-4" /> Renew / Extend Plan
-                  </>
+              {isTrial ? (
+                isActive ? (
+                  <button
+                    disabled
+                    className="mt-6 w-full py-3.5 px-6 rounded-2xl font-bold text-sm bg-emerald-600/20 border border-emerald-500/40 text-emerald-300 cursor-default flex items-center justify-center gap-2"
+                  >
+                    <CheckCircle2 className="w-4 h-4" /> Trial Active ({subscription.daysRemaining}d left)
+                  </button>
+                ) : isTrialUsed ? (
+                  <button
+                    disabled
+                    className="mt-6 w-full py-3.5 px-6 rounded-2xl font-bold text-sm bg-slate-800/80 text-slate-500 border border-slate-700/50 cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    Trial Already Used
+                  </button>
                 ) : (
-                  <>
-                    <CreditCard className="w-4 h-4" /> Subscribe with Razorpay
-                  </>
-                )}
-              </button>
+                  <button
+                    disabled={claimingTrial}
+                    onClick={handleClaimTrial}
+                    className="mt-6 w-full py-3.5 px-6 rounded-2xl font-black text-sm bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-500 hover:brightness-110 active:scale-95 text-slate-950 shadow-lg shadow-emerald-500/25 transition-all flex items-center justify-center gap-2"
+                  >
+                    {claimingTrial ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" /> Activating Trial...
+                      </>
+                    ) : (
+                      <>
+                        <Gift className="w-4 h-4" /> Claim 7-Day Free Trial
+                      </>
+                    )}
+                  </button>
+                )
+              ) : (
+                <button
+                  disabled={isProcessing}
+                  onClick={() => handleSubscribe(key)}
+                  className={`mt-6 w-full py-3.5 px-6 rounded-2xl font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-lg ${
+                    isActive
+                      ? "bg-emerald-600/20 border border-emerald-500/40 text-emerald-300 hover:bg-emerald-600/30"
+                      : isPopular
+                      ? "bg-gradient-to-r from-saffron-500 via-amber-500 to-yellow-500 text-slate-950 hover:brightness-110 active:scale-95 shadow-saffron-500/20"
+                      : "bg-slate-800 hover:bg-slate-700 text-white active:scale-95 border border-slate-700"
+                  }`}
+                >
+                  {isProcessing ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" /> Processing...
+                    </>
+                  ) : isActive ? (
+                    <>
+                      <RefreshCw className="w-4 h-4" /> Renew / Extend Plan
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="w-4 h-4" /> Subscribe with Razorpay
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           );
         })}

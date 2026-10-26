@@ -12,6 +12,8 @@ import StaffGRC from "./pages/staff/StaffGRC";
 import StaffKDS from "./pages/staff/StaffKDS";
 import StaffHallDisplay from "./pages/staff/StaffHallDisplay";
 
+import { authAPI } from "./api";
+
 // Guard for Staff Routes
 const StaffRoute = ({ children, currentUser, handleLogout, theme, toggleTheme }) => {
   if (!currentUser) return <Navigate to="/login" replace />;
@@ -49,22 +51,46 @@ export default function App() {
   };
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    const storedToken = localStorage.getItem("token");
-    if (storedUser && storedToken) {
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        if (parsedUser.role === "admin" || parsedUser.role === "staff") {
-          setCurrentUser(parsedUser);
-        } else {
+    const initUser = async () => {
+      const storedUser = localStorage.getItem("user");
+      const storedToken = localStorage.getItem("token");
+      if (storedUser && storedToken) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          if (parsedUser.role === "admin" || parsedUser.role === "staff") {
+            setCurrentUser(parsedUser);
+            // Fetch latest hotel settings dynamically (tax rates, prefixes, UPI, terms)
+            try {
+              const res = await authAPI.getProfile();
+              if (res.data?.success && res.data.user) {
+                const refreshed = { ...parsedUser, ...res.data.user };
+                localStorage.setItem("user", JSON.stringify(refreshed));
+                setCurrentUser(refreshed);
+              }
+            } catch (apiErr) {
+              // Ignore network error on profile sync, continue with cached user
+            }
+          } else {
+            localStorage.removeItem("user");
+          }
+        } catch (err) {
           localStorage.removeItem("user");
+          localStorage.removeItem("token");
         }
-      } catch (err) {
-        localStorage.removeItem("user");
-        localStorage.removeItem("token");
       }
-    }
-    setLoading(false);
+      setLoading(false);
+    };
+
+    initUser();
+
+    const handleUserUpdated = () => {
+      const u = localStorage.getItem("user");
+      if (u) {
+        try { setCurrentUser(JSON.parse(u)); } catch (e) {}
+      }
+    };
+    window.addEventListener("user-updated", handleUserUpdated);
+    return () => window.removeEventListener("user-updated", handleUserUpdated);
   }, []);
 
   const handleLoginSuccess = (user) => {

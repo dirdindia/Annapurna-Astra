@@ -21,6 +21,23 @@ const getRazorpayInstance = () => {
 };
 
 const PLANS = {
+  Trial: {
+    id: "Trial",
+    name: "7-Day Free Trial",
+    monthlyPrice: 0,
+    isFree: true,
+    durationDays: { monthly: 7 },
+    description: "Annapurna Astra ke sabhi features 7 din bilkul free chalayein",
+    features: [
+      "Complete Combo (Hotel + Restaurant) access",
+      "Room booking, Front desk & Guest GRC",
+      "Restaurant Table POS & Instant KOT",
+      "Live Kitchen Display System (KDS)",
+      "Guest QR Code Scan & Order for Tables",
+      "Unlimited Staff Logins & Operations Unlocked",
+      "No Credit Card Required • Instant Free Setup",
+    ],
+  },
   Hotel: {
     id: "Hotel",
     name: "Hotel Only",
@@ -120,6 +137,7 @@ const getSubscriptionStatus = async (req, res) => {
         validUntil: sub.validUntil,
         daysRemaining,
         isExpired,
+        hasClaimedTrial: Boolean(sub.hasClaimedTrial),
       },
     });
   } catch (error) {
@@ -327,9 +345,79 @@ const getMyInvoices = async (req, res) => {
   }
 };
 
+// @desc    Claim 7-Day Free Trial for Hotel
+// @route   POST /api/payment/claim-trial
+// @access  Private (Hotel Admin)
+const claimFreeTrial = async (req, res) => {
+  try {
+    const hotel = await Hotel.findById(req.user.hotelId);
+    if (!hotel) {
+      return res.status(404).json({ success: false, message: "Hotel not found" });
+    }
+
+    if (hotel.subscription?.hasClaimedTrial) {
+      return res.status(400).json({
+        success: false,
+        message: "Aapka hotel pehle hi 7-din ka free trial claim kar chuka hai.",
+      });
+    }
+
+    const now = new Date();
+    const validUntil = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+    hotel.subscription = {
+      plan: "Trial",
+      isActive: true,
+      validUntil,
+      hasClaimedTrial: true,
+      trialClaimedAt: now,
+    };
+    await hotel.save();
+
+    // Create SubscriptionPayment audit record
+    const user = await User.findById(req.user._id);
+    const orderId = `trial_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+    await SubscriptionPayment.create({
+      hotelId: hotel._id,
+      userId: req.user._id,
+      orderId,
+      paymentId: "FREE_TRIAL_ACTIVATION",
+      signature: "FREE_TRIAL",
+      txnid: orderId,
+      planName: "Trial",
+      billingCycle: "trial",
+      amount: 0,
+      currency: "INR",
+      status: "success",
+      validFrom: now,
+      validUntil,
+      customerName: user ? user.name : "Admin",
+      customerEmail: user ? user.email : "",
+      customerPhone: user ? user.mobile : (hotel.phone || ""),
+    });
+
+    res.json({
+      success: true,
+      message: "Mubaarak ho! 7 din ka Free Trial plan activate ho gaya hai. Ab aapke sabhi staff logins aur operations active hain.",
+      subscription: {
+        plan: "Trial",
+        isActive: true,
+        validUntil,
+        daysRemaining: 7,
+        isExpired: false,
+        hasClaimedTrial: true,
+      },
+    });
+  } catch (error) {
+    console.error("Error claiming free trial:", error);
+    res.status(500).json({ success: false, message: error.message || "Failed to claim free trial" });
+  }
+};
+
 module.exports = {
   getPlans,
   getSubscriptionStatus,
+  claimFreeTrial,
   createOrder,
   verifyPayment,
   getMyInvoices,

@@ -26,17 +26,23 @@ export default function ThermalReceipt({ invoice, onClose, isKot = false }) {
   const hEmail = currentUser?.hotelEmail || "";
   const hCashier = invoice.createdBy?.name || currentUser?.name || "STAFF";
   const hLogo = currentUser?.hotelLogo || "";
-  const hGst = currentUser?.hotelGstNo || "20BYUPR1894L1ZN";
+  const hGst = currentUser?.gstin || currentUser?.hotelGstNo || "";
   const hCin = currentUser?.hotelCinNo || "";
+  const hUpiId = currentUser?.upiId || "";
+  const hTerms = currentUser?.invoiceTerms || "1. All Disputes are Subject to local Jurisdiction only.\n2. If you are satisfied tell others, If not tell us.";
 
   const checkInDate = new Date(invoice.createdAt || Date.now());
   const dateStr = checkInDate.toLocaleDateString("en-GB", { day: '2-digit', month: '2-digit', year: '2-digit' });
   const timeStr = checkInDate.toLocaleTimeString("en-GB", { hour: '2-digit', minute: '2-digit' });
   
   const safeId = invoice._id ? invoice._id.toString() : "NEW123";
+  const defaultPrefix = currentUser?.invoicePrefixRestaurant || "REST-";
   const kotNo = invoice.kotNumber || invoice.invoiceNumber || safeId.substring(Math.max(0, safeId.length - 6)).toUpperCase();
-  const billNo = invoice.invoiceNumber || safeId.substring(Math.max(0, safeId.length - 6)).toUpperCase();
+  const billNo = invoice.invoiceNumber || `${defaultPrefix}${safeId.substring(Math.max(0, safeId.length - 6)).toUpperCase()}`;
   const tableNo = (invoice.table && invoice.table.tableNo) ? invoice.table.tableNo : invoice.tableNo || 'N/A';
+
+  const foodTaxRate = Number(invoice.taxRate !== undefined ? invoice.taxRate : (currentUser?.foodGstRate !== undefined ? currentUser.foodGstRate : 5));
+  const halfTaxRate = (foodTaxRate / 2).toFixed(1).replace(/\.0$/, '');
 
   let subTotal = 0;
   if (invoice.items) {
@@ -128,11 +134,11 @@ export default function ThermalReceipt({ invoice, onClose, isKot = false }) {
             {invoice.tax > 0 && (
               <>
                 <div className="flex justify-end w-full">
-                  <div className="w-[60%] text-right pr-4">CGST 2.5%:</div>
+                  <div className="w-[60%] text-right pr-4">CGST {halfTaxRate}%:</div>
                   <div className="w-[40%] text-right">{cgst.toFixed(2)}</div>
                 </div>
                 <div className="flex justify-end w-full">
-                  <div className="w-[60%] text-right pr-4">SGST 2.5%:</div>
+                  <div className="w-[60%] text-right pr-4">SGST {halfTaxRate}%:</div>
                   <div className="w-[40%] text-right">{sgst.toFixed(2)}</div>
                 </div>
               </>
@@ -148,23 +154,24 @@ export default function ThermalReceipt({ invoice, onClose, isKot = false }) {
             <span className="uppercase">{hCashier}</span>
           </div>
 
-          <div className="mt-4 mb-2 flex flex-col items-center justify-center border-t border-b border-black border-dashed py-2">
-            <div className="font-bold text-sm mb-1 uppercase tracking-wider">Scan & Pay</div>
-            <img 
-              src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=1&data=${encodeURIComponent(`upi://pay?pa=341262503463702@cnrb&pn=${hName}&am=${netAmount.toFixed(2)}`)}`} 
-              alt="UPI QR Code" 
-              className="w-24 h-24 object-contain mix-blend-multiply"
-              crossOrigin="anonymous"
-            />
-            <div className="text-[10px] mt-1 font-semibold">UPI: 341262503463702@cnrb</div>
-          </div>
+          {hUpiId && (
+            <div className="mt-4 mb-2 flex flex-col items-center justify-center border-t border-b border-black border-dashed py-2">
+              <div className="font-bold text-sm mb-1 uppercase tracking-wider">Scan & Pay</div>
+              <img 
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=1&data=${encodeURIComponent(`upi://pay?pa=${hUpiId}&pn=${encodeURIComponent(hName)}&am=${netAmount.toFixed(2)}&cu=INR`)}`} 
+                alt="UPI QR Code" 
+                className="w-24 h-24 object-contain mix-blend-multiply"
+                crossOrigin="anonymous"
+              />
+              <div className="text-[10px] mt-1 font-semibold">UPI: {hUpiId}</div>
+            </div>
+          )}
 
           <div className="mt-2 font-bold underline text-sm">
             Terms & Conditions
           </div>
-          <div className="text-[11px] leading-tight mt-1">
-            <p>1.All Disputes are Subject to DUMKA<br/>Jurisdiction only.</p>
-            <p className="mt-1">2.If you are satisfied tell others, If not tell us</p>
+          <div className="text-[11px] leading-tight mt-1 whitespace-pre-line">
+            {hTerms}
           </div>
         </>
       )}

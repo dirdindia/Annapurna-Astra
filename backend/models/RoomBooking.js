@@ -82,7 +82,36 @@ const roomBookingSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
-
+  invoiceNumber: {
+    type: String,
+    default: null
+  },
+  roomGstRate: {
+    type: Number,
+    default: 12
+  }
 }, { timestamps: true });
+
+// Auto-generate room invoice number when checking out
+roomBookingSchema.pre("save", async function (next) {
+  if (!this.invoiceNumber && this.status === 'Checked-Out') {
+    try {
+      const Hotel = mongoose.model('Hotel');
+      const hotel = await Hotel.findById(this.hotelId);
+      const prefix = (hotel && hotel.invoicePrefixRoom) ? hotel.invoicePrefixRoom.trim() : "ROOM-";
+      const count = await mongoose.model('RoomBooking').countDocuments({
+        hotelId: this.hotelId,
+        invoiceNumber: { $exists: true, $ne: null }
+      });
+      this.invoiceNumber = `${prefix}${1001 + count}`;
+      if (this.roomGstRate === undefined && hotel && hotel.roomGstRate !== undefined) {
+        this.roomGstRate = hotel.roomGstRate;
+      }
+    } catch (err) {
+      this.invoiceNumber = `ROOM-${Date.now().toString().slice(-6)}`;
+    }
+  }
+  next();
+});
 
 module.exports = mongoose.model('RoomBooking', roomBookingSchema);

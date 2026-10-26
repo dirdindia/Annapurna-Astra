@@ -32,12 +32,12 @@ const subscriptionPaymentSchema = new mongoose.Schema(
     },
     planName: {
       type: String,
-      enum: ["Hotel", "Restaurant", "Combo", "Starter", "Growth", "Enterprise"],
+      enum: ["Trial", "Hotel", "Restaurant", "Combo", "Starter", "Growth", "Enterprise"],
       required: true,
     },
     billingCycle: {
       type: String,
-      enum: ["monthly", "yearly"],
+      enum: ["trial", "monthly", "yearly"],
       default: "monthly",
     },
     amount: {

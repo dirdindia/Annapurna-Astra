@@ -27,10 +27,12 @@ export default function PremiumSubscriptionInvoice({ invoice, onClose }) {
   const invoiceDate = new Date(invoice.createdAt);
   const totalAmount = invoice.amount || 0;
   
-  // Calculate base and platform fee (assuming 2% platform fee was added)
-  // Let's deduce base from total: base = total / 1.02
-  const baseAmount = totalAmount / 1.02;
-  const platformFee = totalAmount - baseAmount;
+  // Calculate All-Inclusive 18% GST breakdown (SAC: 998313)
+  // totalAmount = baseAmount * 1.18
+  const baseAmount = totalAmount > 0 ? totalAmount / 1.18 : 0;
+  const gstAmount = totalAmount - baseAmount;
+  const cgst = gstAmount / 2;
+  const sgst = gstAmount / 2;
   
   const amountInWords = numberToWords(Math.round(totalAmount));
 
@@ -121,17 +123,30 @@ export default function PremiumSubscriptionInvoice({ invoice, onClose }) {
               <td className="border border-black p-2 text-right">{baseAmount.toFixed(2)}</td>
               <td className="border border-black p-2 text-right font-bold">{baseAmount.toFixed(2)}</td>
             </tr>
-            <tr>
-              <td className="border border-black p-2 text-center">2</td>
-              <td className="border border-black p-2 font-semibold">
-                Platform Processing Fee (2%)
-              </td>
-              <td className="border border-black p-2 text-center">-</td>
-              <td className="border border-black p-2 text-right">-</td>
-              <td className="border border-black p-2 text-right font-bold">{platformFee.toFixed(2)}</td>
-            </tr>
+            {totalAmount > 0 ? (
+              <>
+                <tr>
+                  <td className="border border-black p-2 text-center">2</td>
+                  <td className="border border-black p-2 font-semibold">
+                    Central GST (CGST @ 9%)
+                  </td>
+                  <td className="border border-black p-2 text-center">-</td>
+                  <td className="border border-black p-2 text-right">9%</td>
+                  <td className="border border-black p-2 text-right font-bold">{cgst.toFixed(2)}</td>
+                </tr>
+                <tr>
+                  <td className="border border-black p-2 text-center">3</td>
+                  <td className="border border-black p-2 font-semibold">
+                    State GST (SGST @ 9%)
+                  </td>
+                  <td className="border border-black p-2 text-center">-</td>
+                  <td className="border border-black p-2 text-right">9%</td>
+                  <td className="border border-black p-2 text-right font-bold">{sgst.toFixed(2)}</td>
+                </tr>
+              </>
+            ) : null}
             {/* Empty rows to fill space */}
-            {Array.from({ length: 3 }).map((_, i) => (
+            {Array.from({ length: totalAmount > 0 ? 1 : 3 }).map((_, i) => (
               <tr key={i}>
                 <td className="border border-black p-2">&nbsp;</td>
                 <td className="border border-black p-2">&nbsp;</td>
@@ -144,7 +159,7 @@ export default function PremiumSubscriptionInvoice({ invoice, onClose }) {
           <tfoot>
             <tr>
               <td colSpan="4" className="border border-black p-2 text-right font-bold text-xs uppercase bg-gray-100">
-                Total Amount
+                Total Amount (All Taxes & 18% GST Included)
               </td>
               <td className="border border-black p-2 text-right font-bold text-sm bg-gray-100">
                 ₹{totalAmount.toFixed(2)}

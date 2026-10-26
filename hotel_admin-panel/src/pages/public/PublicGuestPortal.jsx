@@ -174,8 +174,20 @@ export default function PublicGuestPortal() {
           setHotel(res.data.data.hotel);
           setDishes(res.data.data.dishes || []);
           setCategories(res.data.data.categories || []);
-          setTables(res.data.data.tables || []);
-          if (preselectedTable) setSelectedTable(preselectedTable);
+          const fetchedTables = res.data.data.tables || [];
+          setTables(fetchedTables);
+
+          if (preselectedTable) {
+            const match = fetchedTables.find(
+              (t) => String(t.tableNo).trim().toLowerCase() === String(preselectedTable).trim().toLowerCase()
+            );
+            const storedOrderId = localStorage.getItem("active_qr_order_id");
+            if (match && (match.status === "Occupied" || match.status === "Booked") && !storedOrderId) {
+              setSelectedTable("");
+            } else {
+              setSelectedTable(preselectedTable);
+            }
+          }
         } else {
           setError(res.data.message || "Could not load menu");
         }
@@ -346,6 +358,17 @@ export default function PublicGuestPortal() {
     });
   }, [dishes, selectedCategory, searchQuery]);
 
+  // Available vs Occupied tables calculation
+  const availableTables = useMemo(
+    () => tables.filter((t) => t.status !== "Occupied" && t.status !== "Booked"),
+    [tables]
+  );
+  const occupiedTables = useMemo(
+    () => tables.filter((t) => t.status === "Occupied" || t.status === "Booked"),
+    [tables]
+  );
+  const allTablesOccupied = tables.length > 0 && availableTables.length === 0;
+
   // Handle Order Submission
   const handlePlaceOrder = async () => {
     if (totalItemsCount === 0) {
@@ -353,13 +376,37 @@ export default function PublicGuestPortal() {
       return;
     }
 
-    if (activeTab === "dine_in" && !selectedTable) {
-      Swal.fire({
-        icon: "warning",
-        title: "Select Your Table",
-        text: "Please select your Table number so our staff knows where to serve!",
-      });
-      return;
+    if (activeTab === "dine_in") {
+      if (!selectedTable) {
+        Swal.fire({
+          icon: "warning",
+          title: allTablesOccupied ? "All Tables Occupied" : "Select Your Table",
+          text: allTablesOccupied
+            ? "All dining tables are currently occupied. Please join our live queue or select Takeaway (Parcel)!"
+            : "Please select an available Table number so our staff knows where to serve!",
+        });
+        return;
+      }
+
+      const selectedTblObj = tables.find((t) => String(t.tableNo) === String(selectedTable));
+      if (selectedTblObj && (selectedTblObj.status === "Occupied" || selectedTblObj.status === "Booked")) {
+        if (!trackedOrder || String(trackedOrder.tableNo) !== String(selectedTable)) {
+          Swal.fire({
+            icon: "error",
+            title: "Table Currently Occupied",
+            text: `Table ${selectedTable} is currently busy with dining guests. Please select an available table, switch to Takeaway (Parcel), or join our Live Queue!`,
+            confirmButtonText: "Join Live Queue",
+            showCancelButton: true,
+            cancelButtonText: "OK",
+          }).then((result) => {
+            if (result.isConfirmed) {
+              setActiveTab("waitlist");
+              setIsCartOpen(false);
+            }
+          });
+          return;
+        }
+      }
     }
 
     if (!customerName.trim()) {
@@ -596,7 +643,12 @@ export default function PublicGuestPortal() {
     try {
       const res = await publicAPI.getWaitlistStatus(idToFetch);
       if (res.data.success) {
-        setWaitlistData(res.data.data.waitlist);
+        const item = res.data.data.waitlist || res.data.data;
+        setWaitlistData({
+          ...item,
+          positionAhead: res.data.data.positionAhead ?? item.positionAhead ?? 0,
+          estimatedWaitMinutes: res.data.data.estimatedWaitMinutes ?? item.estimatedWaitMinutes ?? 10,
+        });
       }
     } catch (e) {
       if (e.response?.status === 404) {
@@ -653,9 +705,14 @@ export default function PublicGuestPortal() {
 
       const res = await publicAPI.joinWaitlist(payload);
       if (res.data.success) {
-        const item = res.data.data.waitlist;
+        const item = res.data.data.waitlist || res.data.data;
+        const mergedItem = {
+          ...item,
+          positionAhead: res.data.data.positionAhead ?? item.positionAhead ?? 0,
+          estimatedWaitMinutes: res.data.data.estimatedWaitMinutes ?? item.estimatedWaitMinutes ?? 10,
+        };
         setWaitlistId(item._id);
-        setWaitlistData(item);
+        setWaitlistData(mergedItem);
         localStorage.setItem("active_waitlist_id", item._id);
         localStorage.setItem("guest_name", customerName.trim());
         localStorage.setItem("guest_mobile", customerMobile.trim());
@@ -1041,27 +1098,91 @@ export default function PublicGuestPortal() {
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
-            className="mt-3 p-3.5 bg-[#0A2F2F]/60 backdrop-blur-xl border border-white/10 rounded-2xl flex items-center justify-between gap-3 shadow-lg"
+            className="mt-3 flex flex-col gap-2.5"
           >
-            <div className="flex items-center gap-2.5 text-xs">
-              <span className="w-2.5 h-2.5 rounded-full bg-saffron-400 animate-ping"></span>
-              <span className="text-white font-extrabold tracking-wide">Your Table:</span>
+            <div
+              className={`p-3.5 backdrop-blur-xl border rounded-2xl flex items-center justify-between gap-3 shadow-lg ${
+                allTablesOccupied
+                  ? "bg-rose-950/70 border-rose-500/40"
+                  : "bg-[#0A2F2F]/60 border-white/10"
+              }`}
+            >
+              <div className="flex items-center gap-2.5 text-xs">
+                <span
+                  className={`w-2.5 h-2.5 rounded-full ${
+                    allTablesOccupied ? "bg-rose-500 animate-ping" : "bg-saffron-400 animate-ping"
+                  }`}
+                ></span>
+                <span className="text-white font-extrabold tracking-wide">
+                  {allTablesOccupied ? "Table Status:" : "Your Table:"}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {allTablesOccupied ? (
+                  <span className="px-3 py-1.5 rounded-xl bg-rose-500/20 border border-rose-500/50 text-rose-300 font-extrabold text-xs flex items-center gap-1.5 shadow-inner">
+                    <span className="w-2 h-2 rounded-full bg-rose-400 animate-pulse"></span>
+                    All Tables Occupied
+                  </span>
+                ) : (
+                  <select
+                    value={selectedTable}
+                    onChange={(e) => setSelectedTable(e.target.value)}
+                    className="bg-[#061C1C]/90 border border-saffron-500/40 rounded-xl px-3.5 py-1.5 text-xs font-extrabold text-saffron-300 shadow-inner focus:outline-none focus:ring-2 focus:ring-saffron-400/40 cursor-pointer"
+                  >
+                    <option value="" className="bg-[#0A2F2F] text-slate-300">-- Choose Table --</option>
+                    {tables.map((tbl) => {
+                      const isOcc = tbl.status === "Occupied" || tbl.status === "Booked";
+                      return (
+                        <option
+                          key={tbl._id}
+                          value={tbl.tableNo}
+                          disabled={isOcc}
+                          className={
+                            isOcc
+                              ? "bg-[#061C1C] text-rose-400/60 font-normal"
+                              : "bg-[#0A2F2F] text-white font-bold"
+                          }
+                        >
+                          Table {tbl.tableNo} ({tbl.capacity || 2} Seater) {isOcc ? "• (Occupied)" : "• Available"}
+                        </option>
+                      );
+                    })}
+                  </select>
+                )}
+              </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <select
-                value={selectedTable}
-                onChange={(e) => setSelectedTable(e.target.value)}
-                className="bg-[#061C1C]/90 border border-saffron-500/40 rounded-xl px-3.5 py-1.5 text-xs font-extrabold text-saffron-300 shadow-inner focus:outline-none focus:ring-2 focus:ring-saffron-400/40 cursor-pointer"
-              >
-                <option value="" className="bg-[#0A2F2F] text-slate-300">-- Choose Table --</option>
-                {tables.map((tbl) => (
-                  <option key={tbl._id} value={tbl.tableNo} className="bg-[#0A2F2F] text-white">
-                    Table {tbl.tableNo} ({tbl.capacity || 2} Seater)
-                  </option>
-                ))}
-              </select>
-            </div>
+            {/* When all tables are occupied, show prominent alert banner directing to Live Queue or Takeaway */}
+            {allTablesOccupied && (
+              <div className="p-3.5 bg-gradient-to-r from-rose-950/90 via-red-950/80 to-[#0A2F2F]/90 border border-rose-500/40 rounded-2xl shadow-xl space-y-2.5">
+                <div className="flex items-center gap-2 text-rose-300 font-extrabold text-xs">
+                  <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+                  <span>Restaurant Dining Full — All Tables Occupied</span>
+                </div>
+                <p className="text-[11px] text-slate-300 leading-relaxed">
+                  All tables are currently busy with dining guests. Please join our <b>Live Queue / Waitlist</b> to reserve your turn, or order as <b>Takeaway (Parcel)</b>!
+                </p>
+                <div className="flex items-center gap-2 pt-0.5">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("waitlist")}
+                    className="flex-1 py-2 rounded-xl bg-gradient-to-r from-saffron-500 to-amber-600 text-slate-950 font-black text-xs shadow-md shadow-saffron-500/20 hover:scale-[1.01] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <Ticket className="w-3.5 h-3.5" />
+                    <span>Join Live Queue (Token)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("parcel")}
+                    className="flex-1 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 font-bold text-xs border border-white/10 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <ShoppingBag className="w-3.5 h-3.5 text-saffron-400" />
+                    <span>Takeaway (Parcel)</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </motion.div>
         )}
       </div>
@@ -1389,9 +1510,9 @@ export default function PublicGuestPortal() {
                   </p>
                 </div>
                 <div className="bg-[#061C1C]/80 border border-white/10 rounded-2xl p-3 text-center">
-                  <p className="text-[10px] uppercase font-bold text-slate-400">Waiting Ahead</p>
+                  <p className="text-[10px] uppercase font-bold text-slate-400">Total in Queue</p>
                   <p className="text-sm font-black text-amber-400 mt-0.5 font-mono">
-                    {queueSummary ? `${queueSummary.waitingCount} Groups` : "0 Groups"}
+                    {queueSummary ? `${queueSummary.waitingCount} ${queueSummary.waitingCount === 1 ? "Group" : "Groups"}` : "0 Groups"}
                   </p>
                 </div>
                 <div className="bg-[#061C1C]/80 border border-white/10 rounded-2xl p-3 text-center">
@@ -1465,7 +1586,13 @@ export default function PublicGuestPortal() {
                     <div>
                       <p className="text-xs text-slate-400 font-bold uppercase">Ahead of You</p>
                       <p className="text-3xl font-black text-saffron-400 font-mono mt-1">
-                        {waitlistData.positionAhead || 0} <span className="text-xs font-sans text-slate-300">parties</span>
+                        {waitlistData.positionAhead ?? 0}{" "}
+                        <span className="text-xs font-sans text-slate-300">
+                          {(waitlistData.positionAhead ?? 0) === 1 ? "party" : "parties"}
+                        </span>
+                      </p>
+                      <p className="text-[10px] font-bold text-amber-400 mt-0.5">
+                        {(waitlistData.positionAhead ?? 0) === 0 ? "🎉 You're Next in Line!" : `#${(waitlistData.positionAhead ?? 0) + 1} in queue`}
                       </p>
                     </div>
                     <div className="h-8 w-px bg-white/10 hidden sm:block" />
@@ -1872,19 +1999,68 @@ export default function PublicGuestPortal() {
 
                 {activeTab === "dine_in" && (
                   <div>
-                    <label className="text-xs text-slate-200 font-bold mb-1.5 block">Confirm Table:</label>
-                    <select
-                      value={selectedTable}
-                      onChange={(e) => setSelectedTable(e.target.value)}
-                      className="w-full bg-[#0A2F2F]/80 border border-white/15 rounded-xl px-3.5 py-2.5 text-xs text-white font-bold focus:outline-none focus:ring-2 focus:ring-saffron-400/40 focus:border-saffron-400 cursor-pointer"
-                    >
-                      <option value="" className="bg-[#0A2F2F] text-slate-300">-- Select Table --</option>
-                      {tables.map((t) => (
-                        <option key={t._id} value={t.tableNo} className="bg-[#0A2F2F] text-white">
-                          Table {t.tableNo}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-xs text-slate-200 font-bold block">Confirm Table:</label>
+                      {allTablesOccupied && (
+                        <span className="text-[10px] font-black text-rose-400 uppercase tracking-wider flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse"></span>
+                          All Occupied
+                        </span>
+                      )}
+                    </div>
+                    {allTablesOccupied ? (
+                      <div className="p-3 bg-rose-950/70 border border-rose-500/40 rounded-xl space-y-2">
+                        <p className="text-xs text-rose-300 font-bold">
+                          All tables are currently occupied. Cannot place a new Dine-In order right now.
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setActiveTab("waitlist");
+                              setIsCartOpen(false);
+                            }}
+                            className="flex-1 py-1.5 px-2.5 rounded-lg bg-gradient-to-r from-saffron-500 to-amber-600 text-slate-950 font-black text-xs text-center cursor-pointer shadow-md"
+                          >
+                            Join Live Queue
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setActiveTab("parcel");
+                            }}
+                            className="flex-1 py-1.5 px-2.5 rounded-lg bg-slate-800 text-slate-200 font-bold text-xs text-center border border-white/10 cursor-pointer"
+                          >
+                            Switch to Takeaway
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <select
+                        value={selectedTable}
+                        onChange={(e) => setSelectedTable(e.target.value)}
+                        className="w-full bg-[#0A2F2F]/80 border border-white/15 rounded-xl px-3.5 py-2.5 text-xs text-white font-bold focus:outline-none focus:ring-2 focus:ring-saffron-400/40 focus:border-saffron-400 cursor-pointer"
+                      >
+                        <option value="" className="bg-[#0A2F2F] text-slate-300">-- Select Table --</option>
+                        {tables.map((t) => {
+                          const isOcc = t.status === "Occupied" || t.status === "Booked";
+                          return (
+                            <option
+                              key={t._id}
+                              value={t.tableNo}
+                              disabled={isOcc}
+                              className={
+                                isOcc
+                                  ? "bg-[#061C1C] text-rose-400/60 font-normal"
+                                  : "bg-[#0A2F2F] text-white font-bold"
+                              }
+                            >
+                              Table {t.tableNo} {t.capacity ? `(${t.capacity} Seater)` : ""} {isOcc ? "• (Occupied)" : "• Available"}
+                            </option>
+                          );
+                        })}
+                      </select>
+                    )}
                   </div>
                 )}
               </div>
@@ -1945,10 +2121,19 @@ export default function PublicGuestPortal() {
               <MagneticButton className="w-full">
                 <button
                   onClick={handlePlaceOrder}
-                  disabled={submittingOrder}
-                  className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-saffron-400 to-saffron-500 hover:from-saffron-300 hover:to-saffron-400 text-slate-950 font-black text-sm tracking-wide shadow-xl shadow-saffron-500/30 hover:opacity-95 active:scale-98 transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+                  disabled={submittingOrder || (activeTab === "dine_in" && allTablesOccupied)}
+                  className={`w-full py-3.5 rounded-2xl font-black text-sm tracking-wide shadow-xl transition-all flex items-center justify-center gap-2 ${
+                    activeTab === "dine_in" && allTablesOccupied
+                      ? "bg-rose-950/60 border border-rose-500/40 text-rose-300 cursor-not-allowed opacity-80"
+                      : "bg-gradient-to-r from-saffron-400 to-saffron-500 hover:from-saffron-300 hover:to-saffron-400 text-slate-950 shadow-saffron-500/30 hover:opacity-95 active:scale-98 cursor-pointer disabled:opacity-50"
+                  }`}
                 >
-                  {submittingOrder ? (
+                  {activeTab === "dine_in" && allTablesOccupied ? (
+                    <span className="flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4 text-rose-400" />
+                      All Tables Occupied — Join Queue
+                    </span>
+                  ) : submittingOrder ? (
                     <>
                       <RefreshCw className="w-4 h-4 animate-spin" />
                       <span>Sending Order...</span>

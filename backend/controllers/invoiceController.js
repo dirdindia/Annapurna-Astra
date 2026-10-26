@@ -77,8 +77,11 @@ const createInvoice = async (req, res) => {
       };
     });
 
+    const hotel = await Hotel.findById(req.user.hotelId);
+    const foodTaxRate = (hotel && hotel.foodGstRate !== undefined) ? Number(hotel.foodGstRate) : 5;
+
     const discountAmount = Math.round((subTotal * discountPercentage / 100) * 100) / 100;
-    const tax = Math.round(((subTotal - discountAmount) * 0.05) * 100) / 100; // 5% GST
+    const tax = Math.round(((subTotal - discountAmount) * (foodTaxRate / 100)) * 100) / 100;
     const grandTotal = Math.round((subTotal - discountAmount + tax) * 100) / 100;
 
     let invoiceStatus = 'Paid';
@@ -96,6 +99,7 @@ const createInvoice = async (req, res) => {
       discountPercentage,
       discountAmount,
       tax,
+      taxRate: foodTaxRate,
       grandTotal,
       status: invoiceStatus,
       roomBookingId: roomBookingId || null,

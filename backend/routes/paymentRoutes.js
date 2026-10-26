@@ -4,6 +4,7 @@ const { protect, admin } = require("../middleware/auth");
 const {
   getPlans,
   getSubscriptionStatus,
+  claimFreeTrial,
   createOrder,
   verifyPayment,
   getMyInvoices,
@@ -14,6 +15,7 @@ router.get("/plans", getPlans);
 
 // Protected routes
 router.get("/status", protect, getSubscriptionStatus);
+router.post("/claim-trial", protect, admin, claimFreeTrial);
 router.post("/razorpay/create-order", protect, admin, createOrder);
 router.post("/razorpay/verify", protect, admin, verifyPayment);
 router.get("/my-invoices", protect, admin, getMyInvoices);

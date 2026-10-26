@@ -998,7 +998,7 @@ export default function AdminSettings() {
                     <Clock className="w-5 h-5 text-saffron-400" />
                     Timings, Tax Rates & Invoicing Rules
                   </h3>
-                  <p className="text-xs text-slate-300">Controls default booking check-in/out policies, tax slabs and invoice series.</p>
+                  <p className="text-xs text-slate-300">Controls default booking check-in/out policies, tax slabs and invoice series across restaurant and room billing.</p>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-200 mb-2">Default Check-In Time</label>
@@ -1009,6 +1009,7 @@ export default function AdminSettings() {
                     onChange={(e) => setProfileData({ ...profileData, checkInTime: e.target.value })}
                     className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all shadow-inner"
                   />
+                  <p className="text-[11px] text-slate-400 mt-1">Printed on room registration forms (GRC) & guest portal</p>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-200 mb-2">Default Check-Out Time</label>
@@ -1019,6 +1020,7 @@ export default function AdminSettings() {
                     onChange={(e) => setProfileData({ ...profileData, checkOutTime: e.target.value })}
                     className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all shadow-inner"
                   />
+                  <p className="text-[11px] text-slate-400 mt-1">Printed on room tax invoices and checkout folios</p>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-200 mb-2">Restaurant Bill Prefix</label>
@@ -1026,9 +1028,12 @@ export default function AdminSettings() {
                     type="text"
                     placeholder="e.g. REST- or BILL-"
                     value={profileData.invoicePrefixRestaurant || ""}
-                    onChange={(e) => setProfileData({ ...profileData, invoicePrefixRestaurant: e.target.value })}
-                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all font-mono text-xs shadow-inner"
+                    onChange={(e) => setProfileData({ ...profileData, invoicePrefixRestaurant: e.target.value.toUpperCase() })}
+                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all font-mono text-xs shadow-inner uppercase"
                   />
+                  <p className="text-[11px] text-saffron-400 font-mono mt-1 font-semibold">
+                    Preview: {profileData.invoicePrefixRestaurant || "REST-"}1001 (KOT & Dining bills)
+                  </p>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-200 mb-2">Room Bill Prefix</label>
@@ -1036,41 +1041,53 @@ export default function AdminSettings() {
                     type="text"
                     placeholder="e.g. ROOM- or ST-"
                     value={profileData.invoicePrefixRoom || ""}
-                    onChange={(e) => setProfileData({ ...profileData, invoicePrefixRoom: e.target.value })}
-                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all font-mono text-xs shadow-inner"
+                    onChange={(e) => setProfileData({ ...profileData, invoicePrefixRoom: e.target.value.toUpperCase() })}
+                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all font-mono text-xs shadow-inner uppercase"
                   />
+                  <p className="text-[11px] text-saffron-400 font-mono mt-1 font-semibold">
+                    Preview: {profileData.invoicePrefixRoom || "ROOM-"}1001 (Room checkout invoices)
+                  </p>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-200 mb-2">Food / Restaurant GST Rate (%)</label>
                   <input
                     type="number"
                     step="0.01"
+                    min="0"
                     placeholder="e.g. 5"
                     value={profileData.foodGstRate ?? 5}
                     onChange={(e) => setProfileData({ ...profileData, foodGstRate: e.target.value })}
                     className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all shadow-inner"
                   />
+                  <p className="text-[11px] text-emerald-400 mt-1 font-semibold">
+                    Applied at billing: {((Number(profileData.foodGstRate) || 0) / 2).toFixed(1).replace(/\.0$/, '')}% CGST + {((Number(profileData.foodGstRate) || 0) / 2).toFixed(1).replace(/\.0$/, '')}% SGST
+                  </p>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-200 mb-2">Room Booking GST Rate (%)</label>
                   <input
                     type="number"
                     step="0.01"
+                    min="0"
                     placeholder="e.g. 12"
                     value={profileData.roomGstRate ?? 12}
                     onChange={(e) => setProfileData({ ...profileData, roomGstRate: e.target.value })}
                     className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all shadow-inner"
                   />
+                  <p className="text-[11px] text-emerald-400 mt-1 font-semibold">
+                    Applied on rooms: {((Number(profileData.roomGstRate) || 0) / 2).toFixed(1).replace(/\.0$/, '')}% CGST + {((Number(profileData.roomGstRate) || 0) / 2).toFixed(1).replace(/\.0$/, '')}% SGST
+                  </p>
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-semibold text-slate-200 mb-2">Invoice Terms & Policy (Footer Note)</label>
                   <textarea
-                    rows="2"
-                    placeholder="e.g. 1. Valid ID required at check-in. 2. Cancellation subject to hotel policy."
+                    rows="3"
+                    placeholder="e.g. 1. All disputes are subject to local jurisdiction. 2. Cancellation subject to hotel policy. 3. Thank you for visiting!"
                     value={profileData.invoiceTerms || ""}
                     onChange={(e) => setProfileData({ ...profileData, invoiceTerms: e.target.value })}
                     className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all text-xs shadow-inner"
                   />
+                  <p className="text-[11px] text-slate-400 mt-1">Printed at the bottom of restaurant thermal receipts, A4 tax invoices and room bills</p>
                 </div>
 
                 {/* 3. Guest Policy & Operations */}
@@ -1090,6 +1107,7 @@ export default function AdminSettings() {
                     onChange={(e) => setProfileData({ ...profileData, idProofPolicy: e.target.value })}
                     className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all text-xs shadow-inner"
                   />
+                  <p className="text-[11px] text-slate-400 mt-1">Displayed on the staff room booking check-in desk and printed on guest arrival cards</p>
                 </div>
 
                 {/* 4. Bank & UPI Payment Details */}
@@ -1098,17 +1116,47 @@ export default function AdminSettings() {
                     <CreditCard className="w-5 h-5 text-saffron-400" />
                     Bank & UPI Payment Details
                   </h3>
-                  <p className="text-xs text-slate-300">Used for direct UPI QR code generation on guest invoices and B2B settlements.</p>
+                  <p className="text-xs text-slate-300">Used for direct UPI QR code generation on guest invoices, thermal receipts and settlements.</p>
                 </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-200 mb-2">UPI ID (For Bill QR Code)</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. hotel@okhdfcbank"
-                    value={profileData.upiId || ""}
-                    onChange={(e) => setProfileData({ ...profileData, upiId: e.target.value })}
-                    className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all font-mono text-xs shadow-inner"
-                  />
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-semibold text-slate-200 mb-2">UPI ID (For Bill Scan & Pay QR Code)</label>
+                  <div className="flex flex-col sm:flex-row gap-4 items-start">
+                    <div className="flex-1 w-full">
+                      <input
+                        type="text"
+                        placeholder="e.g. hotel@okhdfcbank or 9876543210@paytm"
+                        value={profileData.upiId || ""}
+                        onChange={(e) => setProfileData({ ...profileData, upiId: e.target.value.trim() })}
+                        className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all font-mono text-sm shadow-inner"
+                      />
+                      <p className="text-[11px] text-slate-400 mt-1">
+                        When configured, guests can directly scan a dynamic QR code on their bill via GPay, PhonePe, Paytm, or BHIM.
+                      </p>
+                    </div>
+
+                    {/* Live UPI QR Code Preview Card */}
+                    {profileData.upiId ? (
+                      <div className="p-3 bg-white/5 border border-saffron-500/30 rounded-2xl flex items-center gap-3 shrink-0">
+                        <img 
+                          src={`https://api.qrserver.com/v1/create-qr-code/?size=110x110&margin=1&data=${encodeURIComponent(`upi://pay?pa=${profileData.upiId}&pn=${encodeURIComponent(profileData.hotelName || "Hotel")}&cu=INR`)}`}
+                          alt="Live Bill QR Preview"
+                          className="w-20 h-20 bg-white rounded-lg p-1 object-contain shadow-md"
+                        />
+                        <div className="text-left">
+                          <span className="text-[10px] font-black uppercase tracking-wider text-saffron-400 block flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-400" /> Live QR Code Preview
+                          </span>
+                          <p className="text-xs font-mono font-bold text-white mt-0.5 break-all max-w-[180px]">{profileData.upiId}</p>
+                          <span className="text-[10px] text-emerald-400 font-semibold block mt-1">✓ Active on guest bills</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-3 bg-amber-500/10 border border-amber-500/25 rounded-xl text-amber-300 text-xs flex items-center gap-2 max-w-sm">
+                        <AlertCircle className="w-4 h-4 shrink-0 text-amber-400" />
+                        <span>Add your UPI ID so guests can scan & pay directly on printed thermal receipts and invoices!</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div>

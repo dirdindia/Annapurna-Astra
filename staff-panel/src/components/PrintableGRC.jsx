@@ -8,8 +8,11 @@ export default function PrintableGRC({ grcNo }) {
   const hContact = currentUser?.hotelContact || "Phone Number";
   const hEmail = currentUser?.hotelEmail || "";
   const hLogo = currentUser?.hotelLogo || "";
-  const hGst = currentUser?.hotelGstNo || "";
+  const hGst = currentUser?.gstin || currentUser?.hotelGstNo || "";
   const hCin = currentUser?.hotelCinNo || "";
+  const checkInTime = currentUser?.checkInTime || "12:00 PM";
+  const checkOutTime = currentUser?.checkOutTime || "11:00 AM";
+  const idProofPolicy = currentUser?.idProofPolicy || "Aadhaar Card, Passport, Driving License, or Voter ID required at check-in";
 
   return (
     <div className="grc-form-container text-black font-sans relative w-full" style={{ boxSizing: 'border-box' }}>
@@ -260,14 +263,16 @@ export default function PrintableGRC({ grcNo }) {
       </div>
 
       <div className="flex justify-between items-start text-[11px] mt-4">
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1 max-w-[65%]">
           <p>1. I agree to abide by the Hotel rules Printed overleaf.</p>
-          <p>2. Any arms are not allowed in hotel primices.</p>
-          <p>3. Dogs are not allowed in hotel primices.</p>
-          <p>4. Alcohol not allowed into the hotel primices.</p>
+          <p>2. Any arms are not allowed in hotel premises.</p>
+          <p>3. Dogs are not allowed in hotel premises.</p>
+          <p>4. Alcohol not allowed into the hotel premises.</p>
+          <p className="font-semibold mt-1 text-[10px] text-gray-700"><b>ID Policy:</b> {idProofPolicy}</p>
         </div>
-        <div className="font-semibold mt-4 text-xs">
-          Check out time : 12:00 Noon
+        <div className="font-semibold mt-1 text-xs text-right">
+          <div>Check-in: {checkInTime}</div>
+          <div>Check-out: {checkOutTime}</div>
         </div>
       </div>
 

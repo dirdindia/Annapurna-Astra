@@ -42,18 +42,25 @@ exports.joinPublicWaitlist = async (req, res) => {
       // Calculate current position ahead
       const positionAhead = await Waitlist.countDocuments({
         hotelId,
-        status: "waiting",
-        createdAt: { $gte: start, $lt: existing.createdAt },
+        status: { $in: ["waiting", "called"] },
+        createdAt: { $gte: start, $lte: end },
+        tokenSequence: { $lt: existing.tokenSequence },
       });
+
+      const waitlistObj = {
+        ...existing.toObject(),
+        positionAhead: existing.status === "waiting" ? positionAhead : 0,
+        estimatedWaitMinutes: Math.max(5, (positionAhead + 1) * 10),
+      };
 
       return res.status(200).json({
         success: true,
         isExisting: true,
         message: `You already have an active queue token: ${existing.tokenNo}`,
         data: {
-          waitlist: existing,
-          positionAhead,
-          estimatedWaitMinutes: Math.max(10, (positionAhead + 1) * 12),
+          waitlist: waitlistObj,
+          positionAhead: existing.status === "waiting" ? positionAhead : 0,
+          estimatedWaitMinutes: Math.max(5, (positionAhead + 1) * 10),
         },
       });
     }
@@ -67,14 +74,14 @@ exports.joinPublicWaitlist = async (req, res) => {
     const tokenSequence = lastTodayToken ? lastTodayToken.tokenSequence + 1 : 1;
     const tokenNo = `W-${tokenSequence}`;
 
-    // Current position ahead
+    // Current position ahead when joining: count waiting & called entries ahead
     const positionAhead = await Waitlist.countDocuments({
       hotelId,
-      status: "waiting",
-      createdAt: { $gte: start },
+      status: { $in: ["waiting", "called"] },
+      createdAt: { $gte: start, $lte: end },
     });
 
-    const estimatedWaitMinutes = Math.max(10, (positionAhead + 1) * 12);
+    const estimatedWaitMinutes = Math.max(5, (positionAhead + 1) * 10);
 
     const waitlistEntry = await Waitlist.create({
       hotelId,
@@ -95,11 +102,17 @@ exports.joinPublicWaitlist = async (req, res) => {
       customerName: waitlistEntry.customerName,
     });
 
+    const waitlistObj = {
+      ...waitlistEntry.toObject(),
+      positionAhead,
+      estimatedWaitMinutes,
+    };
+
     res.status(201).json({
       success: true,
       message: `Queue token ${tokenNo} generated successfully!`,
       data: {
-        waitlist: waitlistEntry,
+        waitlist: waitlistObj,
         positionAhead,
         estimatedWaitMinutes,
       },
@@ -135,17 +148,24 @@ exports.getPublicWaitlistStatus = async (req, res) => {
       return res.status(404).json({ success: false, message: "Queue token not found." });
     }
 
-    // Count people ahead who are still waiting
+    // Count people ahead who are still waiting or called
     const positionAhead = await Waitlist.countDocuments({
       hotelId: entry.hotelId,
-      status: "waiting",
-      createdAt: { $gte: start, $lt: entry.createdAt },
+      status: { $in: ["waiting", "called"] },
+      createdAt: { $gte: start, $lte: end },
+      tokenSequence: { $lt: entry.tokenSequence },
     });
+
+    const waitlistObj = {
+      ...entry.toObject(),
+      positionAhead: entry.status === "waiting" ? positionAhead : 0,
+      estimatedWaitMinutes: Math.max(5, (positionAhead + 1) * 10),
+    };
 
     res.status(200).json({
       success: true,
       data: {
-        waitlist: entry,
+        waitlist: waitlistObj,
         positionAhead: entry.status === "waiting" ? positionAhead : 0,
         estimatedWaitMinutes: Math.max(5, (positionAhead + 1) * 10),
       },
@@ -165,7 +185,7 @@ exports.getHotelPublicQueueSummary = async (req, res) => {
 
     const waitingCount = await Waitlist.countDocuments({
       hotelId,
-      status: "waiting",
+      status: { $in: ["waiting", "called"] },
       createdAt: { $gte: start, $lte: end },
     });
 

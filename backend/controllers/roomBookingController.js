@@ -1,5 +1,6 @@
 const RoomBooking = require('../models/RoomBooking');
 const Room = require('../models/Room');
+const Hotel = require('../models/Hotel');
 const ExcelJS = require('exceljs');
 
 // @desc    Get all room bookings
@@ -296,6 +297,19 @@ exports.checkOut = async (req, res) => {
     
     if (req.body.finalPaymentMode !== undefined) {
       booking.finalPaymentMode = req.body.finalPaymentMode;
+    }
+
+    const hotel = await Hotel.findById(req.user.hotelId);
+    if (hotel) {
+      booking.roomGstRate = hotel.roomGstRate !== undefined ? hotel.roomGstRate : 12;
+      if (!booking.invoiceNumber) {
+        const prefix = hotel.invoicePrefixRoom ? hotel.invoicePrefixRoom.trim() : "ROOM-";
+        const count = await RoomBooking.countDocuments({
+          hotelId: req.user.hotelId,
+          invoiceNumber: { $exists: true, $ne: null }
+        });
+        booking.invoiceNumber = `${prefix}${1001 + count}`;
+      }
     }
     
     await booking.save();

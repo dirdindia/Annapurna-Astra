@@ -29,8 +29,14 @@ export default function PremiumRoomInvoice({ booking, onClose, isSplit = false }
   const hContact = currentUser?.hotelContact || "Phone Number";
   const hEmail = currentUser?.hotelEmail || "";
   const hLogo = currentUser?.hotelLogo || "";
-  const hGst = currentUser?.hotelGstNo || "";
+  const hGst = currentUser?.gstin || currentUser?.hotelGstNo || "";
   const hCin = currentUser?.hotelCinNo || "";
+  const hUpiId = currentUser?.upiId || "";
+  const hTerms = currentUser?.invoiceTerms || "Subject to local Jurisdiction";
+  const checkInPolicyTime = currentUser?.checkInTime || "12:00 PM";
+  const checkOutPolicyTime = currentUser?.checkOutTime || "11:00 AM";
+  const roomTaxRate = Number(booking.roomGstRate !== undefined ? booking.roomGstRate : (currentUser?.roomGstRate !== undefined ? currentUser.roomGstRate : 12));
+  const halfRoomTaxRate = (roomTaxRate / 2).toFixed(1).replace(/\.0$/, '');
 
   const [isSendingWa, setIsSendingWa] = useState(false);
 
@@ -118,7 +124,8 @@ export default function PremiumRoomInvoice({ booking, onClose, isSplit = false }
   const roomType = booking.room?.type || 'N/A';
   const roomNo = booking.room?.roomNumber || 'N/A';
   const roomTariff = booking.room?.price || 0;
-  const billNo = booking.invoiceNumber || booking._id.substring(booking._id.length - 6).toUpperCase();
+  const defaultRoomPrefix = currentUser?.invoicePrefixRoom || "ROOM-";
+  const billNo = booking.invoiceNumber || `${defaultRoomPrefix}${booking._id.substring(booking._id.length - 6).toUpperCase()}`;
   const grcNo = booking._id.substring(booking._id.length - 4).toUpperCase();
   
   const address = booking.hasGST ? booking.companyAddress : 'N/A';
@@ -143,8 +150,8 @@ export default function PremiumRoomInvoice({ booking, onClose, isSplit = false }
         });
         subTotal += roomTariff;
       }
-      cgst += subTotal * 0.025;
-      sgst += subTotal * 0.025;
+      cgst += subTotal * ((roomTaxRate / 2) / 100);
+      sgst += subTotal * ((roomTaxRate / 2) / 100);
     }
 
     if (isCombined || isRestaurantOnly) {
@@ -281,8 +288,8 @@ export default function PremiumRoomInvoice({ booking, onClose, isSplit = false }
                 <div className="w-[60%] border-r border-black flex flex-col">
                   <div className="p-1 border-b border-black h-6">TOTAL</div>
                   <div className="p-1 h-6">AMOUNT</div>
-                  <div className="p-1 h-6">CGST @2.5%</div>
-                  <div className="p-1 h-6">SGST @2.5%</div>
+                  <div className="p-1 h-6">CGST @{halfRoomTaxRate}%</div>
+                  <div className="p-1 h-6">SGST @{halfRoomTaxRate}%</div>
                   <div className="p-1 border-t border-black font-semibold h-[24px]">BALANCE</div>
                 </div>
                 <div className="w-[40%] flex flex-col text-right">
@@ -300,24 +307,35 @@ export default function PremiumRoomInvoice({ booking, onClose, isSplit = false }
         {/* Footer Area */}
         <div className="border border-black border-t-0 p-2 text-[10px] w-full flex flex-col relative pb-8">
           <p className="font-semibold">Mode of Payment: {booking.finalPaymentMode || 'Cash'} {booking.advancePaymentMode ? `(Adv: ${booking.advancePaymentMode})` : ''}</p>
-          {/* <div className="absolute left-10 top-2 w-[70px] h-[70px] border border-black rounded-full flex flex-col items-center justify-center opacity-40 rotate-[-15deg] pointer-events-none">
-            <span className="text-[7px] font-bold text-center leading-tight mt-1">ROYAL<br/>MAJESTIC</span>
-            <span className="text-[7px] border-t border-b border-black w-[80%] text-center my-0.5">DUMKA<br/>814101</span>
-            <span className="text-[7px] mb-1">(Jh.)</span>
-          </div> */}
 
-          <div className="text-center mt-4 flex flex-col items-center z-10 w-full relative">
+          {/* Dynamic UPI QR Code for Room Bill */}
+          {hUpiId && (
+            <div className="my-2 p-2 border border-black border-dashed flex items-center justify-between gap-4 max-w-sm mx-auto">
+              <div className="text-left">
+                <p className="font-bold text-[11px] uppercase tracking-wider">Scan & Pay via UPI</p>
+                <p className="text-[10px] font-mono font-semibold mt-0.5">UPI ID: {hUpiId}</p>
+                <p className="text-[9px] text-gray-700">Scan with any UPI app (GPay, PhonePe, Paytm)</p>
+              </div>
+              <img 
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&margin=1&data=${encodeURIComponent(`upi://pay?pa=${hUpiId}&pn=${encodeURIComponent(hName)}&am=${grandTotal.toFixed(2)}&cu=INR`)}`}
+                alt="Room Bill UPI QR"
+                className="w-16 h-16 object-contain mix-blend-multiply border border-black p-0.5"
+              />
+            </div>
+          )}
+
+          <div className="text-center mt-3 flex flex-col items-center z-10 w-full relative">
             <p className="font-bold text-[11px] border-b border-black pb-0.5 inline-block mx-auto mb-1 tracking-wide">
               PLEASE RETURN YOUR KEY ON DEPARTURE
             </p>
             <p className="uppercase mb-1" style={{ fontSize: '8.5px' }}>
-              I AGREE THAT I AM RESPONSIBLE FOR THE FULL PAYMENT OF THIS BILL IN THE EVENTS,IF IT IS NOT PAID (BY THE COMPANY/ORGANIGATION OR PERSON INDICATED)
+              I AGREE THAT I AM RESPONSIBLE FOR THE FULL PAYMENT OF THIS BILL IN THE EVENTS, IF IT IS NOT PAID (BY THE COMPANY/ORGANIZATION OR PERSON INDICATED)
             </p>
             <p className="font-bold text-[11px] uppercase mb-1 underline tracking-wide">
-              CHECK OUT TIME: 24Hrs
+              CHECK OUT TIME: {checkOutPolicyTime} | CHECK IN TIME: {checkInPolicyTime}
             </p>
-            <p className="italic font-semibold mb-6">
-              (Subject to Dumka Juridiction)
+            <p className="italic font-semibold mb-4 whitespace-pre-line">
+              ({hTerms})
             </p>
           </div>
 

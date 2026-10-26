@@ -24,6 +24,8 @@ import {
   UserPlus,
   Users,
   Phone,
+  Globe,
+  Laptop,
 } from "lucide-react";
 import QRCode from "qrcode";
 import api, { qrOrderAPI, tableAPI, waitlistAPI } from "../../api";
@@ -40,7 +42,24 @@ export default function AdminQrOrders() {
   });
 
   const hotelId = currentUser?.hotelId || "";
-  const publicMenuUrl = `${window.location.origin}/menu/${hotelId}`;
+
+  // Live Production URL config (Default to Live URL as requested)
+  const LIVE_URL = import.meta.env?.VITE_LIVE_URL || "https://hotel.e-annapurna.co.in";
+  const [domainMode, setDomainMode] = useState("live"); // 'live' | 'local' | 'custom'
+  const [customDomain, setCustomDomain] = useState(LIVE_URL);
+  const [selectedTable, setSelectedTable] = useState("");
+
+  const activeBaseUrl =
+    domainMode === "live"
+      ? LIVE_URL
+      : domainMode === "local"
+      ? (typeof window !== "undefined" ? window.location.origin : "http://localhost:5174")
+      : customDomain;
+
+  const cleanBaseUrl = (activeBaseUrl || "").replace(/\/+$/, "");
+  const tableQuery = selectedTable ? `?table=${encodeURIComponent(selectedTable)}` : "";
+  const publicMenuUrl = `${cleanBaseUrl}/menu/${hotelId}${tableQuery}`;
+  const localhostMenuUrl = `${(typeof window !== "undefined" ? window.location.origin : "http://localhost:5174").replace(/\/+$/, "")}/menu/${hotelId}${tableQuery}`;
 
   const [qrDataUrl, setQrDataUrl] = useState("");
 
@@ -278,6 +297,7 @@ export default function AdminQrOrders() {
     fetchOrders();
     fetchBookings();
     fetchAdminWaitlist();
+    fetchTables();
   }, [filterStatus]);
 
   // Real-time SSE Connection: Listens for instant order push from backend
@@ -513,7 +533,8 @@ export default function AdminQrOrders() {
   const handleDownloadQR = () => {
     if (!qrDataUrl) return;
     const downloadLink = document.createElement("a");
-    downloadLink.download = `${currentUser?.hotelName || "E-Annapurna"}-QR.png`;
+    const tableSuffix = selectedTable ? `-Table-${selectedTable}` : "-Master";
+    downloadLink.download = `${currentUser?.hotelName || "E-Annapurna"}${tableSuffix}-QR.png`;
     downloadLink.href = qrDataUrl;
     downloadLink.click();
   };
@@ -928,28 +949,121 @@ export default function AdminQrOrders() {
           {/* Controls & Share Options (Left 5 Cols) */}
           <div className="lg:col-span-5 bg-slate-900/60 border border-lagoon-700/25 rounded-3xl p-6 backdrop-blur-md space-y-5">
             <div>
-              <h2 className="text-lg font-black text-white">Your Hotel's Master QR Code</h2>
+              <div className="flex items-center justify-between gap-2">
+                <h2 className="text-lg font-black text-white">Your Hotel's QR Code</h2>
+                <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  {domainMode === "live" ? "Live Production URL" : domainMode === "local" ? "Localhost Dev" : "Custom Domain"}
+                </span>
+              </div>
               <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                As requested, this single Master QR code works for your entire restaurant. Customers scan it, select
-                their table number or takeaway, and order directly.
+                Scan &amp; Order QR code for your restaurant. Customers scan it with their phone camera to view your digital menu and order dishes instantly.
+              </p>
+            </div>
+
+            {/* Target URL Selector */}
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                QR Code Domain / URL Mode:
+              </label>
+              <div className="grid grid-cols-3 gap-1.5 p-1 bg-slate-950/80 border border-slate-800 rounded-2xl">
+                <button
+                  type="button"
+                  onClick={() => setDomainMode("live")}
+                  className={`py-2 px-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                    domainMode === "live"
+                      ? "bg-gradient-to-r from-saffron-500 to-amber-600 text-slate-950 shadow-md font-black"
+                      : "text-slate-400 hover:text-white hover:bg-slate-900"
+                  }`}
+                >
+                  <Globe className="w-3.5 h-3.5" />
+                  <span>Live URL</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDomainMode("local")}
+                  className={`py-2 px-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                    domainMode === "local"
+                      ? "bg-gradient-to-r from-saffron-500 to-amber-600 text-slate-950 shadow-md font-black"
+                      : "text-slate-400 hover:text-white hover:bg-slate-900"
+                  }`}
+                >
+                  <Laptop className="w-3.5 h-3.5" />
+                  <span>Localhost</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDomainMode("custom")}
+                  className={`py-2 px-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                    domainMode === "custom"
+                      ? "bg-gradient-to-r from-saffron-500 to-amber-600 text-slate-950 shadow-md font-black"
+                      : "text-slate-400 hover:text-white hover:bg-slate-900"
+                  }`}
+                >
+                  <span>Custom</span>
+                </button>
+              </div>
+
+              {domainMode === "custom" && (
+                <div className="pt-2">
+                  <input
+                    type="url"
+                    placeholder="https://menu.yourhotel.com"
+                    value={customDomain}
+                    onChange={(e) => setCustomDomain(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-amber-300 font-mono focus:outline-none focus:border-amber-500"
+                  />
+                  <p className="text-[10px] text-slate-500 mt-1">
+                    Enter your custom website or subdomain URL pointing to the guest portal.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Target Table Dropdown (Optional) */}
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                Table Filter (Optional):
+              </label>
+              <select
+                value={selectedTable}
+                onChange={(e) => setSelectedTable(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-amber-500"
+              >
+                <option value="">🍽️ Master QR Code (Customer selects table or takeaway on phone)</option>
+                {allTables.map((t) => (
+                  <option key={t._id || t.tableNo} value={t.tableNo}>
+                    📍 Table {t.tableNo} {t.capacity ? `(${t.capacity} Seater)` : ""} {t.type ? `[${t.type}]` : ""}
+                  </option>
+                ))}
+              </select>
+              <p className="text-[10px] text-slate-500">
+                {selectedTable
+                  ? `QR code will automatically pre-select Table ${selectedTable} when scanned.`
+                  : "Generates master QR code for your entire dining area & takeaway."}
               </p>
             </div>
 
             {/* Public Link Display & Copy */}
             <div className="p-3.5 bg-slate-950 border border-slate-800 rounded-2xl space-y-2">
-              <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                Public Guest Portal Link:
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                  Public Guest Portal Link:
+                </label>
+                <span className="text-[10px] font-mono text-emerald-400">
+                  {domainMode === "live" ? "🌐 Live URL Active" : domainMode === "local" ? "💻 Local Dev Mode" : "⚙️ Custom Domain"}
+                </span>
+              </div>
               <div className="flex items-center gap-2">
                 <input
                   type="text"
                   readOnly
                   value={publicMenuUrl}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-amber-400 truncate focus:outline-none"
+                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-amber-400 truncate focus:outline-none select-all"
                 />
                 <button
                   onClick={handleCopyLink}
-                  className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold shrink-0 flex items-center gap-1 transition-all"
+                  className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold shrink-0 flex items-center gap-1.5 transition-all cursor-pointer"
                 >
                   {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                   <span>{copied ? "Copied" : "Copy"}</span>
@@ -958,31 +1072,43 @@ export default function AdminQrOrders() {
             </div>
 
             {/* Action Buttons */}
-            <div className="space-y-2.5 pt-2">
+            <div className="space-y-2.5 pt-1">
               <a
                 href={publicMenuUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="w-full py-3 rounded-2xl bg-gradient-to-r from-saffron-500 to-amber-600 hover:from-saffron-600 hover:to-amber-700 text-slate-950 font-black text-xs shadow-lg shadow-saffron-500/20 flex items-center justify-center gap-2 transition-all"
+                className="w-full py-3 rounded-2xl bg-gradient-to-r from-saffron-500 to-amber-600 hover:from-saffron-600 hover:to-amber-700 text-slate-950 font-black text-xs shadow-lg shadow-saffron-500/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
               >
                 <ExternalLink className="w-4 h-4" />
-                <span>Test Public Ordering Portal in New Tab</span>
+                <span>Open Public Ordering Portal in New Tab</span>
               </a>
+
+              {domainMode === "live" && (
+                <a
+                  href={localhostMenuUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-full py-2 rounded-xl bg-slate-950 hover:bg-slate-900 text-slate-400 hover:text-amber-400 font-bold text-[11px] border border-slate-800 flex items-center justify-center gap-1.5 transition-all"
+                >
+                  <Laptop className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Test on Local Dev Server (localhost:5174)</span>
+                </a>
+              )}
 
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={handleDownloadQR}
-                  className="py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all border border-slate-700"
+                  className="py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all border border-slate-700 cursor-pointer"
                 >
-                  <Download className="w-4 h-4" />
+                  <Download className="w-4 h-4 text-amber-400" />
                   <span>Download QR (PNG)</span>
                 </button>
 
                 <button
                   onClick={handlePrintStandee}
-                  className="py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all border border-slate-700"
+                  className="py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all border border-slate-700 cursor-pointer"
                 >
-                  <Printer className="w-4 h-4" />
+                  <Printer className="w-4 h-4 text-amber-400" />
                   <span>Print Standee Card</span>
                 </button>
               </div>
@@ -995,10 +1121,10 @@ export default function AdminQrOrders() {
               </h4>
               <ul className="text-xs text-slate-300 space-y-1.5 pl-1 list-disc list-inside">
                 <li>Print this standee card and place it on restaurant tables or reception counter.</li>
-                <li>Customer scans the QR code with their phone camera.</li>
-                <li>Customer selects Dine-in Table No or Takeaway, picks dishes, and submits order.</li>
-                <li>Order instantly arrives under "Incoming Orders" tab for your approval.</li>
-                <li>Once you click <b>"Approve & KOT"</b>, KOT is sent to the kitchen & printed!</li>
+                <li>Customer scans the QR code with their mobile camera (encodes live URL).</li>
+                <li>Customer browses menu, picks dishes, and submits order directly.</li>
+                <li>Order instantly arrives under "Incoming Orders" tab for kitchen approval.</li>
+                <li>Once approved, KOT prints and items are prepared for the table!</li>
               </ul>
             </div>
           </div>
@@ -1027,12 +1153,17 @@ export default function AdminQrOrders() {
                 )}
                 <h3 className="text-xl font-black text-white tracking-tight">{currentUser?.hotelName || "E-Annapurna Dining"}</h3>
                 <p className="text-xs text-amber-400 font-semibold mt-0.5 uppercase tracking-widest">
-                  Scan to View Menu & Order
+                  Scan to View Menu &amp; Order
                 </p>
+                {selectedTable && (
+                  <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500/20 border border-amber-500/40 rounded-full text-amber-300 font-black text-xs print:bg-slate-200 print:text-black print:border-black">
+                    <span>📍 Table {selectedTable}</span>
+                  </div>
+                )}
               </div>
 
               {/* QR Code Container */}
-              <div className="p-3 bg-white rounded-3xl shadow-inner max-w-[220px] mx-auto border-4 border-amber-500/20 flex items-center justify-center">
+              <div className="p-3 bg-white rounded-3xl shadow-inner max-w-[220px] mx-auto border-4 border-amber-500/20 flex items-center justify-center print:border-black">
                 {qrDataUrl ? (
                   <img
                     id="hotel-qr-img"
@@ -1049,7 +1180,7 @@ export default function AdminQrOrders() {
 
               {/* Features / Instructions */}
               <div className="mt-5 space-y-2 text-xs">
-                <div className="flex items-center justify-center gap-2 text-slate-300 font-bold">
+                <div className="flex items-center justify-center gap-2 text-slate-300 font-bold print:text-black">
                   <span>🍽️ Table Dining</span>
                   <span>•</span>
                   <span>🥡 Takeaway</span>
@@ -1057,15 +1188,20 @@ export default function AdminQrOrders() {
                   <span>💳 Online / Cash</span>
                 </div>
 
-                <div className="p-2.5 bg-slate-900/90 border border-slate-800 rounded-xl text-[11px] text-slate-400">
-                  <p className="font-bold text-amber-400">1. Scan with Camera</p>
-                  <p className="mt-0.5">2. Choose Table No & Delicious Dishes</p>
+                <div className="p-2.5 bg-slate-900/90 border border-slate-800 rounded-xl text-[11px] text-slate-400 print:border-black print:text-black print:bg-slate-50">
+                  <p className="font-bold text-amber-400 print:text-black">1. Scan with Camera</p>
+                  <p className="mt-0.5">2. Choose Table No &amp; Delicious Dishes</p>
                   <p className="mt-0.5">3. Freshly Prepared for You!</p>
                 </div>
               </div>
 
+              {/* Clean URL display for guests */}
+              <div className="mt-3 px-3 py-1.5 bg-slate-950/80 rounded-xl border border-slate-800 text-[10px] font-mono text-amber-400 break-all select-all print:text-slate-900 print:bg-slate-100 print:border-slate-300">
+                {publicMenuUrl.replace(/^https?:\/\//, "")}
+              </div>
+
               {/* Footer Powered By */}
-              <p className="text-[10px] text-slate-500 mt-4 tracking-wider uppercase font-semibold">
+              <p className="text-[10px] text-slate-500 mt-3 tracking-wider uppercase font-semibold print:text-slate-600">
                 Powered by E-Annapurna SaaS
               </p>
             </div>

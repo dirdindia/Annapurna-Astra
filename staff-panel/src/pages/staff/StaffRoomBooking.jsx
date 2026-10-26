@@ -34,6 +34,12 @@ export default function StaffRoomBooking() {
   const [expectedCheckInDate, setExpectedCheckInDate] = useState("");
   const [expectedCheckOutDate, setExpectedCheckOutDate] = useState("");
 
+  const storedUser = localStorage.getItem("user");
+  const currentUser = storedUser ? JSON.parse(storedUser) : null;
+  const hotelIdPolicy = currentUser?.idProofPolicy || "Aadhaar Card, Passport, Driving License, or Voter ID required at check-in";
+  const hotelCheckInTime = currentUser?.checkInTime || "12:00 PM";
+  const hotelCheckOutTime = currentUser?.checkOutTime || "11:00 AM";
+
   const [activeBooking, setActiveBooking] = useState(null);
   const [showInvoice, setShowInvoice] = useState(false);
   const [manualTotalAmount, setManualTotalAmount] = useState(0);
@@ -410,9 +416,21 @@ export default function StaffRoomBooking() {
       {showCheckInModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-gold-800/30 p-6 rounded-2xl w-full max-w-5xl shadow-2xl text-slate-900 dark:text-white">
-            <h3 className="text-xl font-bold text-saffron-600 dark:text-amber-500 mb-6 border-b border-slate-200 dark:border-slate-700 pb-2">
+            <h3 className="text-xl font-bold text-saffron-600 dark:text-amber-500 mb-3 border-b border-slate-200 dark:border-slate-700 pb-2">
               {bookingType === 'advance' ? 'Advance Booking' : 'Check-In'}: Room {selectedRoom?.roomNumber} <span className="text-sm text-slate-500 dark:text-slate-400 font-normal ml-2">({selectedRoom?.beds || 1} Bed{selectedRoom?.beds > 1 ? 's' : ''} - ₹{selectedRoom?.price})</span>
             </h3>
+
+            {/* Hotel Policy & Operational Timings Banner */}
+            <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/25 rounded-xl text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex items-center gap-2 text-saffron-700 dark:text-amber-400 font-semibold">
+                <FileText className="w-4 h-4 shrink-0" />
+                <span><b>ID Proof Policy:</b> {hotelIdPolicy}</span>
+              </div>
+              <div className="text-[11px] text-slate-500 dark:text-slate-400 shrink-0 font-medium">
+                Check-in: {hotelCheckInTime} | Check-out: {hotelCheckOutTime}
+              </div>
+            </div>
+
             <form onSubmit={handleCheckIn} className="max-h-[75vh] overflow-y-auto pr-2 relative flex flex-col">
               {selectedRoom?.type !== 'Hall' && (
                 <div className="sticky top-0 bg-white dark:bg-slate-900 pb-4 pt-2 z-10 border-b border-slate-200 dark:border-slate-700 mb-4 shadow-sm">

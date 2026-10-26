@@ -126,7 +126,8 @@ const registerHotel = async (req, res) => {
       return res.status(400).json({ success: false, message: 'User or Hotel with this email already exists' });
     }
 
-    // Create Hotel with inactive subscription (none)
+    // Create Hotel with initial inactive subscription (plan: 'none', hasClaimedTrial: false)
+    // The hotel admin will manually claim their 7-day free trial from the admin dashboard when they are ready
     const newHotel = await Hotel.create({
       name: hotel,
       email,
@@ -137,10 +138,12 @@ const registerHotel = async (req, res) => {
         plan: 'none',
         isActive: false,
         validUntil: null,
-      }
+        hasClaimedTrial: false,
+        trialClaimedAt: null,
+      },
     });
 
-    // Create  User
+    // Create User
     const adminUser = await User.create({
       name: owner,
       email,
@@ -154,7 +157,7 @@ const registerHotel = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: 'Hotel registered successfully',
+      message: 'Hotel registered successfully. Sign in to your portal to claim your 7-day free trial.',
       hotel: newHotel,
       user: {
         _id: adminUser._id,

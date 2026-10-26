@@ -23,6 +23,22 @@ export const features = [
 
 export const plans = [
   { 
+    name: '7-Day Free Trial', 
+    monthly: 0, 
+    badge: '100% Free Trial',
+    isTrial: true,
+    desc: '7 din ke liye Annapurna Astra ke sabhi features bilkul free try karein', 
+    perks: [
+      'Full Combo access (Hotel + Restaurant)',
+      'Room booking, Check-in/out & GRC',
+      'Restaurant Table POS & Instant KOT',
+      'Live Kitchen Display System (KDS)',
+      'Guest QR scan & direct table ordering',
+      'Unlimited staff logins & operations',
+      'No credit card required • Instant setup'
+    ] 
+  },
+  { 
     name: 'Hotel Only', 
     monthly: 2499, 
     badge: 'Hotel Management',

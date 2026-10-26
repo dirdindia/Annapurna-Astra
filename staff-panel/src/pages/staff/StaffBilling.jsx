@@ -131,9 +131,13 @@ export default function StaffBilling() {
     );
   };
 
+  const storedUser = localStorage.getItem("user");
+  const currentUser = storedUser ? JSON.parse(storedUser) : null;
+  const foodGstRate = Number(currentUser?.foodGstRate !== undefined ? currentUser.foodGstRate : 5);
+
   const subTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const discountAmount = Math.round((subTotal * discountPercentage / 100) * 100) / 100;
-  const tax = applyGST ? Math.round(((subTotal - discountAmount) * 0.05) * 100) / 100 : 0; // 5% GST
+  const tax = applyGST ? Math.round(((subTotal - discountAmount) * (foodGstRate / 100)) * 100) / 100 : 0;
   const grandTotal = Math.round((subTotal - discountAmount + tax) * 100) / 100;
   const returnAmount = receivedAmount ? Number(receivedAmount) - grandTotal : 0;
 
@@ -409,7 +413,7 @@ export default function StaffBilling() {
             <div className="py-2">
               <label className="text-xs text-slate-300 flex items-center gap-2 cursor-pointer font-medium">
                 <input type="checkbox" checked={applyGST} onChange={(e) => setApplyGST(e.target.checked)} className="accent-saffron-500" />
-                Apply 5% GST
+                Apply {foodGstRate}% GST
               </label>
             </div>
             <div className="flex justify-between text-xs py-1.5 text-slate-400">
@@ -424,7 +428,7 @@ export default function StaffBilling() {
             )}
             {applyGST && (
               <div className="flex justify-between text-xs py-1.5 text-slate-400">
-                <span>GST (5%)</span>
+                <span>GST ({foodGstRate}%)</span>
                 <span className="font-mono text-slate-200">₹{tax.toFixed(2)}</span>
               </div>
             )}

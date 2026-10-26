@@ -197,9 +197,13 @@ exports.checkoutOrder = async (req, res) => {
       cName = order.orderDisplayId;
     }
 
+    // Fetch hotel for tax rate and prefix
+    const hotel = await Hotel.findById(req.user.hotelId);
+    const foodTaxRate = (hotel && hotel.foodGstRate !== undefined) ? Number(hotel.foodGstRate) : 5;
+
     // Calculate new totals with discount
     const discountAmount = Math.round((order.subTotal * discountPercentage / 100) * 100) / 100;
-    const newTax = Math.round(((order.subTotal - discountAmount) * 0.05) * 100) / 100;
+    const newTax = Math.round(((order.subTotal - discountAmount) * (foodTaxRate / 100)) * 100) / 100;
     const newGrandTotal = Math.round((order.subTotal - discountAmount + newTax) * 100) / 100;
 
     let invoiceStatus = "Paid";
@@ -219,6 +223,7 @@ exports.checkoutOrder = async (req, res) => {
       discountPercentage,
       discountAmount,
       tax: newTax,
+      taxRate: foodTaxRate,
       grandTotal: newGrandTotal,
       createdBy: req.user._id,
       tableId: order.table ? order.table._id : null,
@@ -274,6 +279,11 @@ exports.checkoutOrder = async (req, res) => {
         table.currentOrderId = null;
         await table.save();
       }
+      // Also ensure any other lingering active orders on this table are archived as Billed
+      await Order.updateMany(
+        { hotelId: req.user.hotelId, table: order.table._id, status: "Active" },
+        { $set: { status: "Billed" } }
+      );
     }
 
     // Broadcast update that order has been billed
@@ -623,8 +633,11 @@ exports.requestItemVoid = async (req, res) => {
       }
     }
 
+    const currentHotel = await Hotel.findById(req.user.hotelId);
+    const currentTaxRate = (currentHotel && currentHotel.foodGstRate !== undefined) ? (Number(currentHotel.foodGstRate) / 100) : 0.05;
+
     order.subTotal = order.items.reduce((sum, it) => sum + it.price * it.quantity, 0);
-    order.tax = Math.round(order.subTotal * 0.05 * 100) / 100;
+    order.tax = Math.round(order.subTotal * currentTaxRate * 100) / 100;
     order.grandTotal = order.subTotal + order.tax;
     await order.save();
 
@@ -705,8 +718,11 @@ exports.verifyItemVoid = async (req, res) => {
           item.printedQuantity = item.quantity;
         }
       }
+      const currentHotel = await Hotel.findById(req.user.hotelId);
+      const currentTaxRate = (currentHotel && currentHotel.foodGstRate !== undefined) ? (Number(currentHotel.foodGstRate) / 100) : 0.05;
+
       order.subTotal = order.items.reduce((sum, it) => sum + it.price * it.quantity, 0);
-      order.tax = Math.round(order.subTotal * 0.05 * 100) / 100;
+      order.tax = Math.round(order.subTotal * currentTaxRate * 100) / 100;
       order.grandTotal = order.subTotal + order.tax;
       await order.save();
     }

@@ -230,7 +230,7 @@ export default function StaffKotBilling() {
 
   const fetchActiveBookings = async () => {
     try {
-      const res = await api.get("api/room-bookings?status=Checked-In");
+      const res = await api.get("/api/room-bookings?status=Checked-In");
       if (res.data.success) {
         setActiveBookings(res.data.data || []);
       }
@@ -241,7 +241,7 @@ export default function StaffKotBilling() {
 
   const fetchVirtualOrders = async () => {
     try {
-      const res = await api.get("api/orders/virtual/active");
+      const res = await api.get("/api/orders/virtual/active");
       if (res.data.success) {
         setVirtualOrders(res.data.data || []);
       }
@@ -263,7 +263,7 @@ export default function StaffKotBilling() {
 
   const fetchAllCategories = async () => {
     try {
-      const res = await api.get("api/dishes");
+      const res = await api.get("/api/dishes");
       if (res.data.success) {
         const cats = ["All", ...new Set(res.data.dishes.map((d) => d.category))];
         setCategories(cats);
@@ -276,7 +276,7 @@ export default function StaffKotBilling() {
   const fetchDishes = async () => {
     try {
       const categoryParam = selectedCategory === "All" ? "" : encodeURIComponent(selectedCategory);
-      const res = await api.get(`api/dishes?page=${currentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(search)}&category=${categoryParam}`);
+      const res = await api.get(`/api/dishes?page=${currentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(search)}&category=${categoryParam}`);
       if (res.data.success) {
         // filter out unavailable dishes just in case, though ideally backend does this
         const available = res.data.dishes.filter(d => d.available);
@@ -428,9 +428,13 @@ export default function StaffKotBilling() {
     );
   };
 
+  const storedUser = localStorage.getItem("user");
+  const currentUser = storedUser ? JSON.parse(storedUser) : null;
+  const foodGstRate = Number(currentUser?.foodGstRate !== undefined ? currentUser.foodGstRate : 5);
+
   const subTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const discountAmount = Math.round((subTotal * (discountPercentage || 0) / 100) * 100) / 100;
-  const tax = applyGST ? Math.round(((subTotal - discountAmount) * 0.05) * 100) / 100 : 0; // 5% GST
+  const tax = applyGST ? Math.round(((subTotal - discountAmount) * (foodGstRate / 100)) * 100) / 100 : 0;
   const grandTotal = Math.round((subTotal - discountAmount + tax) * 100) / 100;
 
   const handleSaveOrder = async () => {
@@ -467,6 +471,10 @@ export default function StaffKotBilling() {
       });
       
       const savedOrder = res.data.data;
+      if (savedOrder?._id) {
+        setActiveOrderId(savedOrder._id);
+      }
+      setInitialCart(JSON.parse(JSON.stringify(cart)));
 
       if (newKotItems.length > 0) {
         setIsKotPrint(true);
@@ -658,8 +666,24 @@ export default function StaffKotBilling() {
   };
 
   const handleCheckout = async (e) => {
-    if(e) e.preventDefault();
-    if (!activeOrderId) return;
+    if (e && e.preventDefault) e.preventDefault();
+    
+    let orderId = activeOrderId;
+    // Fallback if activeOrderId was not set in state
+    if (!orderId && selectedTable?._id) {
+      try {
+        const activeRes = await orderAPI.getActiveOrder(selectedTable._id);
+        if (activeRes.data?.data?._id) {
+          orderId = activeRes.data.data._id;
+          setActiveOrderId(orderId);
+        }
+      } catch (err) {}
+    }
+
+    if (!orderId) {
+      showError("Order Not Found", "No active order found for this table. Please save/send KOT items first.");
+      return;
+    }
     
     // Validate checkout data for NC or Credit
     if (['NC Bill', 'Credit Bill'].includes(checkoutData.paymentMode) && !checkoutData.customerName) {
@@ -675,7 +699,7 @@ export default function StaffKotBilling() {
         roomBookingId: selectedTable?.roomBookingId || null
       };
 
-      const res = await api.post(`api/orders/${activeOrderId}/checkout`, payload);
+      const res = await orderAPI.checkoutOrder(orderId, payload);
       if (res.data.success) {
         setIsKotPrint(false);
         if (checkoutData.paymentMode === "Added to Room" || selectedTable?.orderType === "Room") {
@@ -698,7 +722,24 @@ export default function StaffKotBilling() {
     }
   };
 
-  const promptCheckout = () => {
+  const promptCheckout = async () => {
+    if (cart.length === 0) {
+      showError("Empty Order", "Cannot generate bill for an empty order.");
+      return;
+    }
+
+    // Ensure we have activeOrderId if table is already occupied
+    if (!activeOrderId && selectedTable?._id) {
+      try {
+        const res = await orderAPI.getActiveOrder(selectedTable._id);
+        if (res.data?.data?._id) {
+          setActiveOrderId(res.data.data._id);
+        }
+      } catch (e) {
+        console.error("Error resolving active order id", e);
+      }
+    }
+
     if (selectedTable?.orderType === 'Room') {
       setCheckoutData({
         customerName: selectedTable?.guestName || selectedTable?.tableNo || "Room Guest",
@@ -1749,7 +1790,7 @@ export default function StaffKotBilling() {
             <div className="flex justify-between items-center mb-2">
               <label className="text-xs text-slate-700 dark:text-slate-300 flex items-center gap-2 cursor-pointer font-bold">
                 <input type="checkbox" checked={applyGST} onChange={(e) => setApplyGST(e.target.checked)} className="accent-saffron-500" />
-                Apply 5% GST
+                Apply {foodGstRate}% GST
               </label>
               <div className="flex items-center gap-2">
                 <span className="text-xs text-slate-600 dark:text-slate-400 font-semibold">Discount %</span>
@@ -1766,12 +1807,13 @@ export default function StaffKotBilling() {
             </div>
             <div className="flex justify-between text-xs py-1 text-slate-600 dark:text-slate-400 font-semibold"><span>Subtotal</span><span className="font-mono">₹{subTotal.toFixed(2)}</span></div>
             {discountAmount > 0 && <div className="flex justify-between text-xs py-1 text-saffron-700 dark:text-saffron-400 font-bold"><span>Discount ({discountPercentage}%)</span><span className="font-mono">-₹{discountAmount.toFixed(2)}</span></div>}
-            {applyGST && <div className="flex justify-between text-xs py-1 text-slate-600 dark:text-slate-400 font-semibold"><span>GST (5%)</span><span className="font-mono">₹{tax.toFixed(2)}</span></div>}
+            {applyGST && <div className="flex justify-between text-xs py-1 text-slate-600 dark:text-slate-400 font-semibold"><span>GST ({foodGstRate}%)</span><span className="font-mono">₹{tax.toFixed(2)}</span></div>}
             <div className="flex justify-between font-bold text-slate-900 dark:text-slate-200 py-1.5 border-t border-slate-200 dark:border-slate-800 mt-1"><span>Grand Total</span><span className="text-saffron-700 dark:text-saffron-400 font-mono font-black text-lg">₹{grandTotal.toFixed(2)}</span></div>
             
             <div className="mt-4 flex flex-col gap-2">
               <MagneticButton className="w-full">
                 <button 
+                  type="button"
                   onClick={handleSaveOrder}
                   disabled={loading || cart.length === 0}
                   className="w-full py-2.5 bg-gradient-to-r from-saffron-500 to-saffron-600 hover:from-saffron-400 hover:to-saffron-500 text-lagoon-950 font-black rounded-xl shadow-lg shadow-saffron-500/20 active:scale-[0.98] transition-all flex justify-center items-center gap-2 text-sm disabled:opacity-50 cursor-pointer"
@@ -1784,6 +1826,7 @@ export default function StaffKotBilling() {
                 <>
                   <MagneticButton className="w-full">
                     <button 
+                      type="button"
                       onClick={handlePrintProforma}
                       disabled={loading}
                       className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all shadow-md shadow-blue-600/20 flex justify-center items-center gap-2 mt-1 text-sm disabled:opacity-50 cursor-pointer"
@@ -1793,6 +1836,7 @@ export default function StaffKotBilling() {
                   </MagneticButton>
                   <MagneticButton className="w-full">
                     <button 
+                      type="button"
                       onClick={promptCheckout}
                       disabled={loading}
                       className="w-full mt-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition-all shadow-md shadow-emerald-600/20 flex justify-center items-center gap-2 text-sm disabled:opacity-50 cursor-pointer"
@@ -1802,6 +1846,7 @@ export default function StaffKotBilling() {
                   </MagneticButton>
                   <MagneticButton className="w-full">
                     <button 
+                      type="button"
                       onClick={handleCancelKOT}
                       disabled={loading}
                       className="w-full mt-2 py-2.5 px-4 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white font-bold rounded-xl transition-all shadow-md shadow-rose-600/25 flex justify-center items-center gap-2 text-xs disabled:opacity-50 cursor-pointer border border-rose-700"

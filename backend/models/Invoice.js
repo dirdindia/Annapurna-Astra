@@ -88,6 +88,10 @@ const invoiceSchema = new mongoose.Schema(
       enum: ['Paid', 'Added to Room'],
       default: 'Paid'
     },
+    taxRate: {
+      type: Number,
+      default: 5,
+    },
     paymentMode: {
       type: String,
       enum: ['Cash', 'Card', 'UPI', 'NC Bill', 'Credit Bill', 'Added to Room', 'Room'],
@@ -102,9 +106,15 @@ const invoiceSchema = new mongoose.Schema(
 // Auto-generate invoice number pre-save if not provided
 invoiceSchema.pre("save", async function (next) {
   if (!this.invoiceNumber) {
-    const count = await mongoose.model("Invoice").countDocuments();
-    // E.g., BKM-10001
-    this.invoiceNumber = `BKM-${10001 + count}`;
+    try {
+      const Hotel = mongoose.model("Hotel");
+      const hotel = await Hotel.findById(this.hotelId);
+      const prefix = (hotel && hotel.invoicePrefixRestaurant) ? hotel.invoicePrefixRestaurant.trim() : "REST-";
+      const count = await mongoose.model("Invoice").countDocuments({ hotelId: this.hotelId });
+      this.invoiceNumber = `${prefix}${1001 + count}`;
+    } catch (err) {
+      this.invoiceNumber = `REST-${Date.now().toString().slice(-6)}`;
+    }
   }
   next();
 });

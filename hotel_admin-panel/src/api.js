@@ -147,7 +147,7 @@ export const tableAPI = {
 export const orderAPI = {
   createOrUpdateOrder: (data) => api.post("/api/orders", data),
   getActiveOrder: (tableId) => api.get(`/api/orders/active/${tableId}`),
-  checkoutOrder: (orderId) => api.post(`/api/orders/${orderId}/checkout`),
+  checkoutOrder: (orderId, data) => api.post(`/api/orders/${orderId}/checkout`, data),
   markKotPrinted: (orderId, items) => api.put(`/api/orders/${orderId}/mark-printed`, { items }),
   printKOT: (data) => api.post("/api/orders/print-kot", data),
 };
