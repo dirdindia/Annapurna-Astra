@@ -1,10 +1,19 @@
 import React, { useState, useEffect } from "react";
 import api from "../../api";
-import { UtensilsCrossed, Search, ChevronLeft, ChevronRight, AlertCircle, X, FileText, Printer, QrCode, ShieldAlert, CheckCircle2, Clock, Ban, RefreshCw, Send } from "lucide-react";
+import { UtensilsCrossed, Search, ChevronLeft, ChevronRight, AlertCircle, X, FileText, Printer, QrCode, ShieldAlert, CheckCircle2, Clock, Ban, RefreshCw, Send, Lock } from "lucide-react";
 import Swal from "sweetalert2";
 import ThermalReceipt from "../../components/ThermalReceipt";
 
 export default function AdminKotReports() {
+  const currentUser = (() => {
+    try {
+      return JSON.parse(localStorage.getItem("user") || "{}");
+    } catch {
+      return {};
+    }
+  })();
+  const isSubAdmin = currentUser?.role === "sub_admin";
+
   const [activeView, setActiveView] = useState("orders"); // "orders" or "audits"
   const [orders, setOrders] = useState([]);
   const [page, setPage] = useState(1);
@@ -436,8 +445,14 @@ export default function AdminKotReports() {
                           )}
                         </div>
                       </td>
-                      <td className="py-4 px-6 text-right font-black font-mono text-amber-500 text-sm">
-                        ₹{(order.grandTotal || 0).toFixed(2)}
+                      <td className="py-4 px-6 text-right font-black font-mono text-sm">
+                        {isSubAdmin ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-mono text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-md border border-amber-500/25 font-bold">
+                            <Lock size={11} /> Confidential
+                          </span>
+                        ) : (
+                          <span className="text-amber-500 font-extrabold">₹{(order.grandTotal || 0).toFixed(2)}</span>
+                        )}
                       </td>
                     </tr>
                   ))

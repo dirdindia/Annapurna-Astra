@@ -283,8 +283,24 @@ const getInvoiceStats = async (req, res) => {
       }
     }
 
+    const isSubAdmin = req.user?.role === 'sub_admin';
+
+    if (isSubAdmin) {
+      return res.json({
+        success: true,
+        isSubAdmin: true,
+        stats: {
+          today: { amount: 0, count: todayStats.count, isConfidential: true },
+          month: { amount: 0, count: monthStats.count, isConfidential: true },
+          year: { amount: 0, count: yearStats.count, isConfidential: true },
+        },
+        chartData: chartData.map(c => ({ label: c.label, amount: 0 })),
+      });
+    }
+
     res.json({
       success: true,
+      isSubAdmin: false,
       stats: {
         today: { amount: todayStats.total, count: todayStats.count },
         month: { amount: monthStats.total, count: monthStats.count },

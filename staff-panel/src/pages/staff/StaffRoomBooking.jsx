@@ -555,8 +555,8 @@ export default function StaffRoomBooking() {
                 ))}
               </div>
               <div className="sticky bottom-0 bg-white dark:bg-slate-900 pt-4 pb-2 z-10 mt-6 border-t border-slate-200 dark:border-slate-700 shadow-md">
-                <div className="flex flex-col md:flex-row items-start md:items-end gap-4">
-                  <div className="w-full flex-1">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="w-full">
                     <label className="block text-sm font-bold text-slate-800 dark:text-slate-300 mb-1">Advance Amount Paid (₹)</label>
                     <div className="flex gap-2">
                       <input
@@ -580,7 +580,7 @@ export default function StaffRoomBooking() {
                       </select>
                     </div>
                   </div>
-                  <div className="w-full flex-1 flex flex-col gap-2">
+                  <div className="w-full flex flex-col gap-2">
                     {bookingType === "advance" && (
                       <div>
                         <label className="block text-[10px] font-bold text-slate-700 dark:text-slate-400 mb-1">Expected Check-In Date & Time</label>
@@ -605,7 +605,7 @@ export default function StaffRoomBooking() {
                     </div>
                   </div>
                   
-                  <div className="w-full flex-1 flex flex-col">
+                  <div className="w-full flex flex-col">
                     <label className="flex items-center gap-2 text-sm font-bold text-slate-800 dark:text-slate-300 mb-1 cursor-pointer">
                       <input
                         type="checkbox"
@@ -631,7 +631,7 @@ export default function StaffRoomBooking() {
                             type="button"
                             onClick={handleVerifyGST}
                             disabled={verifyingGST || gstNumber.length !== 15}
-                            className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold disabled:opacity-50 transition-colors"
+                            className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold disabled:opacity-50 transition-colors cursor-pointer"
                           >
                             {verifyingGST ? 'Wait...' : 'Verify'}
                           </button>
@@ -644,48 +644,46 @@ export default function StaffRoomBooking() {
                         )}
                       </div>
                     ) : (
-                      <div className="h-[46px]"></div>
+                      <div className="text-xs text-slate-400 italic pt-1">Optional B2B GST tax invoice details</div>
                     )}
                   </div>
+                </div>
 
-                  {/* Booking Type Toggle & Submit */}
-                  <div className="w-full flex-1 flex flex-col gap-2 min-w-[200px]">
-                    <div className="flex bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 p-1 rounded-xl w-full">
-                      <button
-                        type="button"
-                        onClick={() => setBookingType("checkin")}
-                        className={`flex-1 text-[10px] font-bold py-1.5 rounded-lg transition-colors ${bookingType === "checkin" ? "bg-amber-500 text-slate-950 font-black shadow-sm" : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-300"}`}
-                      >
-                        Direct Check-In
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setBookingType("advance")}
-                        className={`flex-1 text-[10px] font-bold py-1.5 rounded-lg transition-colors ${bookingType === "advance" ? "bg-amber-500 text-slate-950 font-black shadow-sm" : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-300"}`}
-                      >
-                        Advance Book
-                      </button>
-                    </div>
-                    <div className="flex gap-2">
-                      <MagneticButton className="w-1/3">
-                        <button
-                          type="button"
-                          onClick={() => setShowCheckInModal(false)}
-                          className="w-full py-3 text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-xs font-bold cursor-pointer"
-                        >
-                          Cancel
-                        </button>
-                      </MagneticButton>
-                      <MagneticButton className="flex-1">
-                        <button
-                          type="submit"
-                          disabled={submitting || uploadingDoc !== ""}
-                          className="w-full py-3 text-slate-950 bg-amber-500 rounded-xl hover:bg-amber-400 font-black transition-colors disabled:opacity-50 text-xs shadow-md cursor-pointer"
-                        >
-                          {submitting ? "Processing..." : bookingType === "advance" ? "Confirm Advance Booking" : "Check In Now"}
-                        </button>
-                      </MagneticButton>
-                    </div>
+                {/* Bottom Action Bar */}
+                <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                  <div className="flex bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 p-1 rounded-xl w-full sm:w-auto">
+                    <button
+                      type="button"
+                      onClick={() => setBookingType("checkin")}
+                      className={`flex-1 sm:flex-none px-4 py-2 text-xs font-bold rounded-lg transition-colors whitespace-nowrap cursor-pointer ${bookingType === "checkin" ? "bg-amber-500 text-slate-950 font-black shadow-sm" : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-300"}`}
+                    >
+                      Direct Check-In
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBookingType("advance")}
+                      className={`flex-1 sm:flex-none px-4 py-2 text-xs font-bold rounded-lg transition-colors whitespace-nowrap cursor-pointer ${bookingType === "advance" ? "bg-amber-500 text-slate-950 font-black shadow-sm" : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-300"}`}
+                    >
+                      Advance Book
+                    </button>
+                  </div>
+
+                  <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setShowCheckInModal(false)}
+                      className="px-5 py-2.5 text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-xs font-bold cursor-pointer whitespace-nowrap"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={submitting || uploadingDoc !== ""}
+                      className="flex-1 sm:flex-none px-6 py-2.5 text-slate-950 bg-amber-500 rounded-xl hover:bg-amber-400 font-black transition-colors disabled:opacity-50 text-xs shadow-md cursor-pointer whitespace-nowrap flex items-center justify-center gap-2 min-w-[150px]"
+                    >
+                      <CheckCircle className="w-4 h-4 shrink-0" />
+                      <span>{submitting ? "Processing..." : bookingType === "advance" ? "Confirm Advance Booking" : "Check In Now"}</span>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -802,10 +800,10 @@ export default function StaffRoomBooking() {
                   <button
                     onClick={handleConvertCheckIn}
                     disabled={submitting}
-                    className="w-full py-3 text-slate-950 bg-amber-500 rounded-xl hover:bg-amber-400 font-black transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-md text-sm cursor-pointer"
+                    className="w-full py-3 text-slate-950 bg-amber-500 rounded-xl hover:bg-amber-400 font-black transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-md text-sm cursor-pointer whitespace-nowrap"
                   >
-                    <CheckCircle className="w-4 h-4" />
-                    Check In Now
+                    <CheckCircle className="w-4 h-4 shrink-0" />
+                    <span>Check In Now</span>
                   </button>
                 </MagneticButton>
               </div>

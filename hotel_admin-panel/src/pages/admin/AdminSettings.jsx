@@ -16,6 +16,7 @@ const indianStates = State.getStatesOfCountry("IN");
 export default function AdminSettings() {
   const [activeTab, setActiveTab] = useState("profile");
   const [currentUser, setCurrentUser] = useState(null);
+  const isSubAdmin = currentUser?.role === "sub_admin";
   const [testingTelegram, setTestingTelegram] = useState(false);
   const [detectingChatId, setDetectingChatId] = useState(false);
   const [showBotInstructions, setShowBotInstructions] = useState(false);
@@ -583,19 +584,21 @@ export default function AdminSettings() {
             </div>
             <span>Security</span>
           </button>
-          <button
-            onClick={() => setActiveTab("staff")}
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all whitespace-nowrap text-sm font-semibold cursor-pointer ${
-              activeTab === "staff"
-                ? "settings-tab-active bg-gradient-to-r from-saffron-500/25 to-saffron-500/10 text-white border border-saffron-400/50 shadow-sm"
-                : "settings-tab-inactive text-slate-300 hover:text-white hover:bg-white/[0.06] border border-transparent"
-            }`}
-          >
-            <div className={`p-1.5 rounded-lg ${activeTab === "staff" ? "bg-saffron-500 text-slate-950 font-bold" : "bg-white/[0.06] text-saffron-300"}`}>
-              <LayoutGrid className="w-4 h-4" />
-            </div>
-            <span>Staff Panel</span>
-          </button>
+          {!isSubAdmin && (
+            <button
+              onClick={() => setActiveTab("staff")}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all whitespace-nowrap text-sm font-semibold cursor-pointer ${
+                activeTab === "staff"
+                  ? "settings-tab-active bg-gradient-to-r from-saffron-500/25 to-saffron-500/10 text-white border border-saffron-400/50 shadow-sm"
+                  : "settings-tab-inactive text-slate-300 hover:text-white hover:bg-white/[0.06] border border-transparent"
+              }`}
+            >
+              <div className={`p-1.5 rounded-lg ${activeTab === "staff" ? "bg-saffron-500 text-slate-950 font-bold" : "bg-white/[0.06] text-saffron-300"}`}>
+                <LayoutGrid className="w-4 h-4" />
+              </div>
+              <span>Staff Panel</span>
+            </button>
+          )}
           <button
             onClick={() => setActiveTab("lookups")}
             className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all whitespace-nowrap text-sm font-semibold cursor-pointer ${
@@ -609,22 +612,24 @@ export default function AdminSettings() {
             </div>
             <span>Lookups Master</span>
           </button>
-          <button
-            onClick={() => setActiveTab("anti-theft")}
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all whitespace-nowrap text-sm font-semibold cursor-pointer ${
-              activeTab === "anti-theft"
-                ? "settings-tab-active-rose bg-gradient-to-r from-rose-500/25 to-rose-500/10 text-white border border-rose-400/50 shadow-sm"
-                : "settings-tab-inactive text-slate-300 hover:text-white hover:bg-white/[0.06] border border-transparent"
-            }`}
-          >
-            <div className={`p-1.5 rounded-lg ${activeTab === "anti-theft" ? "bg-rose-500 text-white font-bold" : "bg-white/[0.06] text-rose-400"}`}>
-              <ShieldAlert className="w-4 h-4" />
-            </div>
-            <span className="flex items-center gap-1.5">
-              Anti-Theft OTP
-              <span className="text-[10px] bg-rose-500/20 text-rose-300 font-bold px-1.5 py-0.5 rounded-full border border-rose-400/30">Free</span>
-            </span>
-          </button>
+          {!isSubAdmin && (
+            <button
+              onClick={() => setActiveTab("anti-theft")}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all whitespace-nowrap text-sm font-semibold cursor-pointer ${
+                activeTab === "anti-theft"
+                  ? "settings-tab-active-rose bg-gradient-to-r from-rose-500/25 to-rose-500/10 text-white border border-rose-400/50 shadow-sm"
+                  : "settings-tab-inactive text-slate-300 hover:text-white hover:bg-white/[0.06] border border-transparent"
+              }`}
+            >
+              <div className={`p-1.5 rounded-lg ${activeTab === "anti-theft" ? "bg-rose-500 text-white font-bold" : "bg-white/[0.06] text-rose-400"}`}>
+                <ShieldAlert className="w-4 h-4" />
+              </div>
+              <span className="flex items-center gap-1.5">
+                Anti-Theft OTP
+                <span className="text-[10px] bg-rose-500/20 text-rose-300 font-bold px-1.5 py-0.5 rounded-full border border-rose-400/30">Free</span>
+              </span>
+            </button>
+          )}
         </div>
 
         {/* Tab Content */}
@@ -1118,6 +1123,20 @@ export default function AdminSettings() {
                   </h3>
                   <p className="text-xs text-slate-300">Used for direct UPI QR code generation on guest invoices, thermal receipts and settlements.</p>
                 </div>
+                {isSubAdmin ? (
+                  <div className="md:col-span-2 p-5 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center gap-4">
+                    <div className="p-3 bg-amber-500/20 text-amber-400 rounded-xl">
+                      <ShieldAlert className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h4 className="text-white font-bold text-sm">Banking & Settlement Details Confidential</h4>
+                      <p className="text-xs text-slate-300 mt-0.5">
+                        UPI ID, Bank Account Number, and IFSC settlement records are protected and can only be configured by the Primary Hotel Admin.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-semibold text-slate-200 mb-2">UPI ID (For Bill Scan & Pay QR Code)</label>
                   <div className="flex flex-col sm:flex-row gap-4 items-start">
@@ -1287,6 +1306,8 @@ export default function AdminSettings() {
                     className="w-full bg-[#061C1C]/80 border border-white/15 text-white font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-saffron-400 focus:ring-1 focus:ring-saffron-400/50 transition-all font-mono text-xs shadow-inner"
                   />
                 </div>
+                  </>
+                )}
 
                 {/* 5. Digital, Location & Social Presence */}
                 <div className="md:col-span-2 mt-6">

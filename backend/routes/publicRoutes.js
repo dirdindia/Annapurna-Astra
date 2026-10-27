@@ -8,15 +8,21 @@ const {
   createPublicRazorpayOrder,
   verifyPublicRazorpayPayment,
   createPublicTableBooking,
+  getPublicTableBooking,
+  getTableBookingsByMobile,
+  cancelPublicTableBooking,
+  reschedulePublicTableBooking,
   getHotelQROrders,
   approveQROrder,
   rejectQROrder,
   getHotelTableBookings,
   updateTableBookingStatus,
   streamCustomerOrderStatus,
+  streamCustomerBookingStatus,
   approveAddonOrder,
   rejectAddonOrder,
   getOrdersByMobile,
+  getCustomerLiveActivity,
 } = require("../controllers/publicOrderController");
 
 const {
@@ -29,6 +35,8 @@ const {
   seatWaitlistGuest,
   addManualWaitlist,
   updateWaitlistStatus,
+  getPublicWaitlistDisplay,
+  streamPublicWaitlist,
 } = require("../controllers/waitlistController");
 const { getPublicInvoiceById } = require("../controllers/invoiceController");
 
@@ -40,16 +48,24 @@ router.get("/bill/:invoiceId", getPublicInvoiceById);
 router.post("/order", createPublicOrder);
 router.get("/order/:orderId", getPublicOrderStatus);
 router.get("/orders/by-mobile", getOrdersByMobile);
+router.get("/customer/live-activity", getCustomerLiveActivity);
 router.get("/order-stream/:orderId", streamCustomerOrderStatus);
+router.get("/booking-stream/:bookingId", streamCustomerBookingStatus);
 router.post("/payment/create-order", createPublicRazorpayOrder);
 router.post("/payment/verify", verifyPublicRazorpayPayment);
 router.post("/table-booking", createPublicTableBooking);
+router.get("/table-booking/by-mobile", getTableBookingsByMobile);
+router.get("/table-booking/:bookingId", getPublicTableBooking);
+router.put("/table-booking/:bookingId/cancel", cancelPublicTableBooking);
+router.put("/table-booking/:bookingId/reschedule", reschedulePublicTableBooking);
 
-// Public Live Waitlist Queue
+// Public Live Waitlist Queue & Hall Display
 router.post("/waitlist/join", joinPublicWaitlist);
 router.get("/waitlist/status/:id", getPublicWaitlistStatus);
 router.get("/waitlist/summary/:hotelId", getHotelPublicQueueSummary);
 router.post("/waitlist/:id/cancel", cancelPublicWaitlist);
+router.get("/waitlist/display/:hotelId", getPublicWaitlistDisplay);
+router.get("/waitlist-stream/:hotelId", streamPublicWaitlist);
 
 // ===================================
 // HOTEL ADMIN/STAFF PROTECTED ROUTES

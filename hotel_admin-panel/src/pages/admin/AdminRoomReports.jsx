@@ -1,11 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { BookOpen, FileText, Image as ImageIcon, Search, Download, Send } from "lucide-react";
+import { BookOpen, FileText, Image as ImageIcon, Search, Download, Send, Lock } from "lucide-react";
 import api, { roomBookingAPI } from "../../api";
 import Swal from "sweetalert2";
 import { showError, showAlert, getSwalConfig } from "../../utils/alerts";
 import PremiumRoomInvoice from "../../components/PremiumRoomInvoice";
 
 export default function AdminRoomReports() {
+  const currentUser = (() => {
+    try {
+      return JSON.parse(localStorage.getItem("user") || "{}");
+    } catch {
+      return {};
+    }
+  })();
+  const isSubAdmin = currentUser?.role === "sub_admin";
+
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -342,7 +351,13 @@ export default function AdminRoomReports() {
                         {booking.status}
                       </span>
                       {booking.status === 'Checked-Out' && (
-                        <p className="text-xs font-bold text-amber-500 mt-1 ml-1">₹{booking.totalAmount}</p>
+                        isSubAdmin ? (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 font-bold mt-1">
+                            <Lock size={10} /> Confidential
+                          </span>
+                        ) : (
+                          <p className="text-xs font-bold text-amber-500 mt-1 ml-1">₹{booking.totalAmount}</p>
+                        )
                       )}
                     </td>
                     <td className="px-6 py-4">

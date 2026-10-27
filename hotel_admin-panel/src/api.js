@@ -185,17 +185,24 @@ export const publicAPI = {
   placeOrder: (data) => api.post("/api/public/order", data, { showLoader: false }),
   getOrderStatus: (orderId) => api.get(`/api/public/order/${orderId}`, { showLoader: false }),
   getOrderByMobile: (hotelId, mobile) => api.get("/api/public/orders/by-mobile", { params: { hotelId, mobile }, showLoader: false }),
+  getCustomerLiveActivity: (hotelId, mobile) => api.get("/api/public/customer/live-activity", { params: { hotelId, mobile }, showLoader: false }),
   createPaymentOrder: (data) => api.post("/api/public/payment/create-order", data, { showLoader: false }),
   verifyPayment: (data) => api.post("/api/public/payment/verify", data, { showLoader: false }),
   bookTable: (data) => api.post("/api/public/table-booking", data, { showLoader: false }),
+  getTableBooking: (id) => api.get(`/api/public/table-booking/${id}`, { showLoader: false }),
+  getTableBookingByMobile: (hotelId, mobile) => api.get("/api/public/table-booking/by-mobile", { params: { hotelId, mobile }, showLoader: false }),
+  cancelTableBooking: (id) => api.put(`/api/public/table-booking/${id}/cancel`, {}, { showLoader: false }),
+  rescheduleTableBooking: (id, data) => api.put(`/api/public/table-booking/${id}/reschedule`, data, { showLoader: false }),
   joinWaitlist: (data) => api.post("/api/public/waitlist/join", data, { showLoader: false }),
   getWaitlistStatus: (id, params) => api.get(`/api/public/waitlist/status/${id || "by-phone"}`, { params, showLoader: false }),
   getQueueSummary: (hotelId) => api.get(`/api/public/waitlist/summary/${hotelId}`, { showLoader: false }),
   cancelWaitlist: (id) => api.post(`/api/public/waitlist/${id}/cancel`, {}, { showLoader: false }),
+  getWaitlistDisplay: (hotelId) => api.get(`/api/public/waitlist/display/${hotelId}`, { showLoader: false }),
 };
 
 export const waitlistAPI = {
-  getAdminWaitlist: () => api.get("/api/public/admin/waitlist"),
+  getAdminWaitlist: () => api.get("/api/public/admin/waitlist", { showLoader: false }),
+  getPublicWaitlistDisplay: (hotelId) => api.get(`/api/public/waitlist/display/${hotelId}`, { showLoader: false }),
   addManualGuest: (data) => api.post("/api/public/admin/waitlist/manual", data),
   callGuest: (id, data) => api.put(`/api/public/admin/waitlist/${id}/call`, data),
   seatGuest: (id, data) => api.put(`/api/public/admin/waitlist/${id}/seat`, data),
@@ -208,5 +215,6 @@ export const antiTheftAPI = {
   getCancellationAudits: (params) => api.get("/api/orders/cancellation-audits", { params }),
 };
 
+export { api };
 export default api;
 

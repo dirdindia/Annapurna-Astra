@@ -3,6 +3,30 @@ const Table = require("../models/Table");
 const Hotel = require("../models/Hotel");
 const { broadcastKDSUpdate } = require("./kdsController");
 
+// In-memory Waitlist Hall Display SSE Clients
+let waitlistHallClients = [];
+
+const broadcastWaitlistSSE = (hotelId, data) => {
+  const hId = hotelId ? hotelId.toString() : "";
+  // 1. Broadcast to public Hall Display SSE clients for this hotel
+  waitlistHallClients.forEach((client) => {
+    if (client.hotelId === hId) {
+      try {
+        client.res.write(`data: ${JSON.stringify(data)}\n\n`);
+      } catch (e) {
+        console.error("Error writing to waitlist hall SSE client:", e);
+      }
+    }
+  });
+
+  // 2. Also broadcast to staff KDS stream clients
+  try {
+    broadcastKDSUpdate(hotelId, { type: "waitlist_updated", ...data });
+  } catch (e) {}
+};
+
+exports.broadcastWaitlistSSE = broadcastWaitlistSSE;
+
 // Helper: Get start and end of current day (midnight to midnight)
 const getTodayRange = () => {
   const start = new Date();
@@ -95,11 +119,13 @@ exports.joinPublicWaitlist = async (req, res) => {
       status: "waiting",
     });
 
-    broadcastKDSUpdate(hotelId, {
+    broadcastWaitlistSSE(hotelId, {
       type: "waitlist_updated",
       action: "new_token",
       tokenNo: waitlistEntry.tokenNo,
       customerName: waitlistEntry.customerName,
+      guestsCount: waitlistEntry.guestsCount,
+      entry: waitlistEntry,
     });
 
     const waitlistObj = {
@@ -246,10 +272,11 @@ exports.cancelPublicWaitlist = async (req, res) => {
     entry.status = "cancelled";
     await entry.save();
 
-    broadcastKDSUpdate(entry.hotelId, {
+    broadcastWaitlistSSE(entry.hotelId, {
       type: "waitlist_updated",
       action: "cancelled",
       tokenNo: entry.tokenNo,
+      entry,
     });
 
     res.status(200).json({ success: true, message: "Queue token cancelled successfully." });
@@ -326,11 +353,14 @@ exports.callWaitlistGuest = async (req, res) => {
 
     await entry.save();
 
-    broadcastKDSUpdate(hotelId, {
+    broadcastWaitlistSSE(hotelId, {
       type: "waitlist_updated",
       action: "called",
       tokenNo: entry.tokenNo,
+      customerName: entry.customerName,
       assignedTableNo: entry.assignedTableNo,
+      guestsCount: entry.guestsCount,
+      entry,
     });
 
     res.status(200).json({
@@ -383,11 +413,13 @@ exports.seatWaitlistGuest = async (req, res) => {
     entry.assignedTableId = targetTable._id;
     await entry.save();
 
-    broadcastKDSUpdate(hotelId, {
+    broadcastWaitlistSSE(hotelId, {
       type: "waitlist_updated",
       action: "seated",
       tokenNo: entry.tokenNo,
+      customerName: entry.customerName,
       tableNo: targetTable.tableNo,
+      entry,
     });
 
     res.status(200).json({
@@ -447,11 +479,13 @@ exports.addManualWaitlist = async (req, res) => {
       status: "waiting",
     });
 
-    broadcastKDSUpdate(hotelId, {
+    broadcastWaitlistSSE(hotelId, {
       type: "waitlist_updated",
       action: "new_token",
       tokenNo: entry.tokenNo,
       customerName: entry.customerName,
+      guestsCount: entry.guestsCount,
+      entry,
     });
 
     res.status(201).json({
@@ -485,10 +519,11 @@ exports.updateWaitlistStatus = async (req, res) => {
     entry.status = status;
     await entry.save();
 
-    broadcastKDSUpdate(hotelId, {
+    broadcastWaitlistSSE(hotelId, {
       type: "waitlist_updated",
       action: status,
       tokenNo: entry.tokenNo,
+      entry,
     });
 
     res.status(200).json({
@@ -499,4 +534,85 @@ exports.updateWaitlistStatus = async (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
+};
+
+// @desc    Get Waitlist data for Hall Display Board (public or staff)
+// @route   GET /api/public/waitlist/display/:hotelId
+// @access  Public
+exports.getPublicWaitlistDisplay = async (req, res) => {
+  try {
+    const { hotelId } = req.params;
+    const { start, end } = getTodayRange();
+
+    let hotel = await Hotel.findById(hotelId).select("name email phone address city state logo");
+    if (!hotel) {
+      const User = require("../models/User");
+      const u = await User.findById(hotelId).select("name hotelName address hotelLogo city");
+      if (u) {
+        hotel = {
+          _id: u._id,
+          name: u.hotelName || u.name,
+          logo: u.hotelLogo,
+          address: u.address,
+          city: u.city,
+        };
+      }
+    }
+
+    const activeWaitlist = await Waitlist.find({
+      hotelId,
+      status: { $in: ["waiting", "called"] },
+      createdAt: { $gte: start, $lte: end },
+    }).sort({ createdAt: 1 });
+
+    const completedWaitlist = await Waitlist.find({
+      hotelId,
+      status: "seated",
+      createdAt: { $gte: start, $lte: end },
+    })
+      .sort({ updatedAt: -1 })
+      .limit(10);
+
+    const totalTables = await Table.countDocuments({ hotelId });
+    const occupiedTables = await Table.countDocuments({ hotelId, status: "Occupied" });
+    const availableTables = await Table.countDocuments({ hotelId, status: "Available" });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        hotel,
+        active: activeWaitlist,
+        called: activeWaitlist.filter((w) => w.status === "called"),
+        waiting: activeWaitlist.filter((w) => w.status === "waiting"),
+        completed: completedWaitlist,
+        waitingCount: activeWaitlist.filter((w) => w.status === "waiting").length,
+        calledCount: activeWaitlist.filter((w) => w.status === "called").length,
+        totalTables,
+        occupiedTables,
+        availableTables,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Live SSE stream for Waitlist Hall Display (Public TV screens)
+// @route   GET /api/public/waitlist-stream/:hotelId
+// @access  Public
+exports.streamPublicWaitlist = (req, res) => {
+  const { hotelId } = req.params;
+
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+
+  res.write(`data: ${JSON.stringify({ type: "connected", message: "Listening for Waitlist Live Queue updates" })}\n\n`);
+
+  const client = { id: Date.now(), res, hotelId: String(hotelId || "") };
+  waitlistHallClients.push(client);
+
+  req.on("close", () => {
+    waitlistHallClients = waitlistHallClients.filter((c) => c.id !== client.id);
+  });
 };

@@ -13,10 +13,20 @@ import {
   QrCode,
   Layers,
   ChevronDown,
+  ShieldCheck,
 } from "lucide-react";
 
-export default function Sidebar({ isOpen, closeSidebar }) {
+export default function Sidebar({ isOpen, closeSidebar, currentUser }) {
   const location = useLocation();
+
+  const user = currentUser || (() => {
+    try {
+      return JSON.parse(localStorage.getItem("user") || "{}");
+    } catch {
+      return {};
+    }
+  })();
+  const isSubAdmin = user?.role === "sub_admin";
 
   // Top-level independent menu items
   const primaryMenuItems = [
@@ -52,13 +62,15 @@ export default function Sidebar({ isOpen, closeSidebar }) {
     },
   ];
 
-  // Manage submenu items
+  // Manage submenu items - Staff is restricted to primary hotel_admin
   const manageSubItems = [
-    {
-      name: "Staff",
-      path: "/admin/staff",
-      icon: Users,
-    },
+    ...(isSubAdmin ? [] : [
+      {
+        name: "Staff & Sub-Admins",
+        path: "/admin/staff",
+        icon: Users,
+      }
+    ]),
     {
       name: "Dishes",
       path: "/admin/dishes",
@@ -81,14 +93,16 @@ export default function Sidebar({ isOpen, closeSidebar }) {
     },
   ];
 
-  // Bottom items
+  // Bottom items - Subscription is restricted to primary hotel_admin
   const secondaryMenuItems = [
-    {
-      name: "Subscription",
-      path: "/admin/subscription",
-      icon: Crown,
-      show: true,
-    },
+    ...(isSubAdmin ? [] : [
+      {
+        name: "Subscription",
+        path: "/admin/subscription",
+        icon: Crown,
+        show: true,
+      }
+    ]),
     {
       name: "Settings",
       path: "/admin/settings",
@@ -265,6 +279,16 @@ export default function Sidebar({ isOpen, closeSidebar }) {
               </Link>
             );
           })}
+
+          {isSubAdmin && (
+            <div className="mt-4 p-3 bg-amber-500/10 border border-amber-500/25 rounded-2xl text-center">
+              <div className="flex items-center justify-center gap-1.5 text-amber-400 font-extrabold text-xs">
+                <ShieldCheck className="w-4 h-4 text-amber-400" />
+                <span>Sub-Admin Account</span>
+              </div>
+              <p className="text-[10px] text-slate-400 font-medium mt-1">Financial Revenue Restricted</p>
+            </div>
+          )}
         </div>
       </aside>
     </>

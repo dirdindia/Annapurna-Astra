@@ -26,11 +26,64 @@ import {
   Phone,
   Globe,
   Laptop,
+  CalendarClock,
+  RotateCcw,
+  X,
+  Tv,
 } from "lucide-react";
 import QRCode from "qrcode";
 import api, { qrOrderAPI, tableAPI, waitlistAPI } from "../../api";
 import Swal from "sweetalert2";
 import MagneticButton from "../../components/MagneticButton";
+
+// 15-minute slot presets & helpers
+const PRESET_15MIN_SLOTS = [
+  { start: "12:00 PM", end: "12:15 PM" },
+  { start: "12:30 PM", end: "12:45 PM" },
+  { start: "01:00 PM", end: "01:15 PM" },
+  { start: "01:30 PM", end: "01:45 PM" },
+  { start: "07:00 PM", end: "07:15 PM" },
+  { start: "07:30 PM", end: "07:45 PM" },
+  { start: "08:00 PM", end: "08:15 PM" },
+  { start: "08:30 PM", end: "08:45 PM" },
+  { start: "09:00 PM", end: "09:15 PM" },
+  { start: "09:30 PM", end: "09:45 PM" },
+];
+
+const formatTime12h = (time24) => {
+  if (!time24) return "";
+  const [hStr, mStr] = time24.split(":");
+  let h = parseInt(hStr, 10);
+  const m = parseInt(mStr, 10);
+  const ampm = h >= 12 ? "PM" : "AM";
+  h = h % 12;
+  h = h ? h : 12;
+  return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")} ${ampm}`;
+};
+
+const add15Minutes = (time24) => {
+  if (!time24) return "";
+  const [hStr, mStr] = time24.split(":");
+  let h = parseInt(hStr, 10);
+  let m = parseInt(mStr, 10) + 15;
+  if (m >= 60) {
+    h = (h + Math.floor(m / 60)) % 24;
+    m = m % 60;
+  }
+  return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+};
+
+const convert12hTo24h = (time12) => {
+  if (!time12) return "";
+  const match = time12.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (!match) return "";
+  let h = parseInt(match[1], 10);
+  const m = match[2];
+  const ampm = match[3].toUpperCase();
+  if (ampm === "PM" && h < 12) h += 12;
+  if (ampm === "AM" && h === 12) h = 0;
+  return `${h.toString().padStart(2, "0")}:${m}`;
+};
 
 export default function AdminQrOrders() {
   const [currentUser] = useState(() => {
@@ -91,6 +144,18 @@ export default function AdminQrOrders() {
   const [bookings, setBookings] = useState([]);
   const [loadingBookings, setLoadingBookings] = useState(false);
   const [allTables, setAllTables] = useState([]);
+
+  // Admin Edit Booking modal state
+  const [showEditBookingModal, setShowEditBookingModal] = useState(false);
+  const [editingBooking, setEditingBooking] = useState(null);
+  const [editBookingDate, setEditBookingDate] = useState("");
+  const [editStartTime, setEditStartTime] = useState("08:00 PM");
+  const [editEndTime, setEditEndTime] = useState("08:15 PM");
+  const [editCustomStart24, setEditCustomStart24] = useState("20:00");
+  const [editTableNo, setEditTableNo] = useState("");
+  const [editGuestsCount, setEditGuestsCount] = useState(2);
+  const [editStatus, setEditStatus] = useState("confirmed");
+  const [savingEditBooking, setSavingEditBooking] = useState(false);
 
   // Waitlist state
   const [waitlistActive, setWaitlistActive] = useState([]);
@@ -177,6 +242,195 @@ export default function AdminQrOrders() {
       console.error(err);
     } finally {
       setLoadingBookings(false);
+    }
+  };
+
+  const openEditBookingModal = (b) => {
+    setEditingBooking(b);
+    setEditBookingDate(b.bookingDate || new Date().toISOString().split("T")[0]);
+
+    let sTime = b.startTime || "";
+    let eTime = b.endTime || "";
+    if (!sTime && b.bookingTime) {
+      if (b.bookingTime.includes("-")) {
+        const parts = b.bookingTime.split("-").map((p) => p.trim());
+        sTime = parts[0];
+        eTime = parts[1];
+      } else {
+        sTime = b.bookingTime;
+        const s24 = convert12hTo24h(sTime) || (sTime.includes(":") ? sTime : "20:00");
+        const e24 = add15Minutes(s24);
+        eTime = formatTime12h(e24);
+      }
+    }
+    const finalStart = sTime || "08:00 PM";
+    const finalEnd = eTime || "08:15 PM";
+    setEditStartTime(finalStart);
+    setEditEndTime(finalEnd);
+    const s24 = convert12hTo24h(finalStart);
+    setEditCustomStart24(s24 || "20:00");
+    setEditTableNo(b.tableNo || "");
+    setEditGuestsCount(b.guestsCount || 2);
+    setEditStatus(b.status === "cancelled" ? "cancelled" : (b.tableNo ? "confirmed" : (b.status || "confirmed")));
+    setShowEditBookingModal(true);
+  };
+
+  const handleCustomStartChange = (val24) => {
+    setEditCustomStart24(val24);
+    if (!val24) return;
+    const s12 = formatTime12h(val24);
+    const end24 = add15Minutes(val24);
+    const e12 = formatTime12h(end24);
+    setEditStartTime(s12);
+    setEditEndTime(e12);
+  };
+
+  const handleSelectPresetSlot = (preset) => {
+    setEditStartTime(preset.start);
+    setEditEndTime(preset.end);
+    const s24 = convert12hTo24h(preset.start);
+    if (s24) setEditCustomStart24(s24);
+  };
+
+  const handleSaveEditBooking = async (e) => {
+    e?.preventDefault();
+    if (!editingBooking) return;
+    if (!editStartTime || !editEndTime) {
+      Swal.fire({
+        icon: "warning",
+        title: "Incomplete Time Slot",
+        text: "Please select a valid 15-minute time window.",
+      });
+      return;
+    }
+
+    try {
+      setSavingEditBooking(true);
+      const finalStatus = (editStatus === "cancelled" || editStatus === "completed") ? editStatus : (editTableNo ? "confirmed" : editStatus);
+      const payload = {
+        bookingDate: editBookingDate,
+        startTime: editStartTime,
+        endTime: editEndTime,
+        bookingTime: `${editStartTime} - ${editEndTime}`,
+        tableNo: editTableNo,
+        guestsCount: Number(editGuestsCount),
+        status: finalStatus,
+      };
+
+      const res = await qrOrderAPI.updateTableBooking(editingBooking._id, payload);
+      if (res.data?.success) {
+        Swal.fire({
+          icon: "success",
+          title: "Booking Updated!",
+          text: `Booking for ${editingBooking.customerName} has been updated to ${editBookingDate} (${payload.bookingTime}).`,
+          timer: 2000,
+          showConfirmButton: false,
+        });
+        setShowEditBookingModal(false);
+        setEditingBooking(null);
+        fetchBookings();
+      } else {
+        throw new Error(res.data?.message || "Failed to update booking");
+      }
+    } catch (err) {
+      console.error("Save edit booking error:", err);
+      Swal.fire({
+        icon: "error",
+        title: "Update Failed",
+        text: err?.response?.data?.message || err.message || "Failed to update booking.",
+      });
+    } finally {
+      setSavingEditBooking(false);
+    }
+  };
+
+  const handleCancelBooking = async (b) => {
+    const result = await Swal.fire({
+      title: "Cancel Reservation?",
+      html: `<p class="text-sm text-slate-300">Are you sure you want to cancel the booking for <b class="text-white">${b.customerName}</b> on <b class="text-amber-400">${b.bookingDate}</b> (${b.bookingTime})?</p>`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#475569",
+      confirmButtonText: "Yes, Cancel Booking",
+      cancelButtonText: "Keep Booking",
+      background: "#0f172a",
+      color: "#f8fafc",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const res = await qrOrderAPI.updateTableBooking(b._id, { status: "cancelled" });
+        if (res.data?.success) {
+          Swal.fire({
+            icon: "success",
+            title: "Booking Cancelled",
+            text: `Table booking for ${b.customerName} has been cancelled.`,
+            timer: 2000,
+            showConfirmButton: false,
+          });
+          fetchBookings();
+        }
+      } catch (err) {
+        console.error("Cancel booking error:", err);
+        Swal.fire({
+          icon: "error",
+          title: "Cancellation Failed",
+          text: err?.response?.data?.message || "Could not cancel booking.",
+        });
+      }
+    }
+  };
+
+  const handleConfirmBooking = async (b, chosenTable) => {
+    try {
+      const table = chosenTable || b.tableNo || "";
+      const res = await qrOrderAPI.updateTableBooking(b._id, {
+        status: "confirmed",
+        tableNo: table,
+      });
+      if (res.data?.success) {
+        Swal.fire({
+          icon: "success",
+          title: "Reservation Confirmed!",
+          text: `Booking for ${b.customerName} confirmed${table ? ` on Table ${table}` : ""}.`,
+          timer: 2000,
+          showConfirmButton: false,
+        });
+        fetchBookings();
+      }
+    } catch (err) {
+      console.error("Confirm booking error:", err);
+      Swal.fire({
+        icon: "error",
+        title: "Confirmation Failed",
+        text: err?.response?.data?.message || "Could not confirm booking.",
+      });
+    }
+  };
+
+  const handleCompleteBooking = async (b) => {
+    try {
+      const res = await qrOrderAPI.updateTableBooking(b._id, {
+        status: "completed",
+      });
+      if (res.data?.success) {
+        Swal.fire({
+          icon: "success",
+          title: "Reservation Completed",
+          text: `Table booking for ${b.customerName} marked as completed.`,
+          timer: 2000,
+          showConfirmButton: false,
+        });
+        fetchBookings();
+      }
+    } catch (err) {
+      console.error("Complete booking error:", err);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: err?.response?.data?.message || "Could not complete booking.",
+      });
     }
   };
 
@@ -1261,26 +1515,55 @@ export default function AdminQrOrders() {
                         <p className="font-bold text-white">{b.customerName}</p>
                         <p className="text-[11px] text-slate-400">{b.customerMobile}</p>
                       </td>
-                      <td className="py-3 px-4 font-semibold text-amber-400">
-                        {b.bookingDate} at {b.bookingTime}
+                      <td className="py-3 px-4">
+                        <div className="font-bold text-amber-400 flex items-center gap-1.5">
+                          <CalendarDays className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                          <span>{b.bookingDate}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-slate-300 text-[11px] mt-1">
+                          <Clock className="w-3 h-3 text-cyan-400 shrink-0" />
+                          <span className="font-mono font-bold text-cyan-300">
+                            {b.startTime && b.endTime ? `${b.startTime} - ${b.endTime}` : b.bookingTime}
+                          </span>
+                          <span className="text-[9px] px-1 py-0.5 bg-cyan-950/80 text-cyan-400 border border-cyan-800/60 rounded font-semibold">15m slot</span>
+                        </div>
                       </td>
                       <td className="py-3 px-4 font-bold">{b.guestsCount} People</td>
                       <td className="py-3 px-4">
-                        {b.tableNo ? (
-                          <span className="font-bold text-amber-400">Table {b.tableNo}</span>
-                        ) : b.status === "pending" ? (
-                          <select
-                            id={`assign-table-${b._id}`}
-                            defaultValue=""
-                            className="bg-slate-900 border border-slate-700 text-amber-400 rounded-lg px-2 py-1 text-xs outline-none focus:border-amber-500"
-                          >
-                            <option value="">Auto / Assign Table</option>
-                            {allTables.map(t => (
-                              <option key={t._id} value={t.tableNo}>Table {t.tableNo} ({t.capacity} Seater)</option>
-                            ))}
-                          </select>
+                        {b.status === "completed" ? (
+                          <span className="font-bold text-slate-300 bg-slate-800/80 border border-slate-700/60 px-2 py-0.5 rounded-lg inline-block text-xs">
+                            {b.tableNo ? `Table ${b.tableNo}` : "Finished"}
+                          </span>
+                        ) : b.status === "cancelled" ? (
+                          <span className="text-slate-400 italic">
+                            {b.tableNo ? `Table ${b.tableNo}` : "Unassigned"}
+                          </span>
                         ) : (
-                          <span className="text-slate-400 italic">Unassigned</span>
+                          <div className="flex items-center gap-1.5">
+                            <select
+                              id={`assign-table-${b._id}`}
+                              defaultValue={b.tableNo || ""}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                if (val) {
+                                  handleConfirmBooking(b, val);
+                                }
+                              }}
+                              className="bg-slate-900 border border-slate-700 text-amber-400 rounded-lg px-2 py-1 text-xs outline-none focus:border-amber-500 font-bold max-w-[140px]"
+                            >
+                              <option value="">{b.tableNo ? `Table ${b.tableNo} (Current)` : "Assign Table"}</option>
+                              {allTables.map((t) => (
+                                <option key={t._id} value={t.tableNo}>
+                                  Table {t.tableNo} ({t.capacity}P) {t.tableNo === b.tableNo ? "✓" : ""}
+                                </option>
+                              ))}
+                            </select>
+                            {b.tableNo && (
+                              <span className="text-[10px] font-black text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-1.5 py-0.5 rounded shrink-0">
+                                Assigned
+                              </span>
+                            )}
+                          </div>
                         )}
                       </td>
                       <td className="py-3 px-4 max-w-xs truncate text-slate-400">{b.specialRequests || "None"}</td>
@@ -1289,6 +1572,8 @@ export default function AdminQrOrders() {
                           className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
                             b.status === "confirmed"
                               ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                              : b.status === "completed"
+                              ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
                               : b.status === "cancelled"
                               ? "bg-rose-500/20 text-rose-400 border border-rose-500/30"
                               : "bg-amber-500/20 text-amber-400 border border-amber-500/30"
@@ -1298,33 +1583,72 @@ export default function AdminQrOrders() {
                         </span>
                       </td>
                       <td className="py-3 px-4 text-right">
-                        {b.status === "pending" && (
-                          <div className="flex items-center justify-end gap-1.5">
-                            <button
-                              onClick={async () => {
-                                const selectEl = document.getElementById(`assign-table-${b._id}`);
-                                const chosenTable = selectEl?.value || b.tableNo || "";
-                                await qrOrderAPI.updateTableBooking(b._id, { 
-                                  status: "confirmed",
-                                  tableNo: chosenTable 
-                                });
-                                fetchBookings();
-                              }}
-                              className="px-2.5 py-1 rounded-lg bg-emerald-500 text-slate-950 font-bold text-[11px] hover:bg-emerald-400"
-                            >
-                              Confirm
-                            </button>
-                            <button
-                              onClick={async () => {
-                                await qrOrderAPI.updateTableBooking(b._id, { status: "cancelled" });
-                                fetchBookings();
-                              }}
-                              className="px-2.5 py-1 rounded-lg bg-slate-800 text-rose-400 font-bold text-[11px] hover:bg-slate-700"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        )}
+                        <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                          {b.status === "completed" ? (
+                            <span className="text-[11px] font-bold text-slate-500 italic px-2.5 py-1 bg-slate-900/60 rounded-lg border border-slate-800/60 inline-flex items-center gap-1">
+                              <Check className="w-3 h-3 text-blue-400" /> Done
+                            </span>
+                          ) : (
+                            <>
+                              {b.status === "pending" && (
+                                <button
+                                  onClick={() => {
+                                    const selectEl = document.getElementById(`assign-table-${b._id}`);
+                                    const chosenTable = selectEl?.value || b.tableNo || "";
+                                    handleConfirmBooking(b, chosenTable);
+                                  }}
+                                  className="px-2.5 py-1 rounded-lg bg-emerald-500 text-slate-950 font-bold text-[11px] hover:bg-emerald-400 flex items-center gap-1 transition-all cursor-pointer shadow-sm shadow-emerald-500/20"
+                                  title="Confirm reservation"
+                                >
+                                  <Check className="w-3 h-3" />
+                                  Confirm
+                                </button>
+                              )}
+
+                              {b.status === "confirmed" && (
+                                <button
+                                  onClick={() => handleCompleteBooking(b)}
+                                  className="px-2.5 py-1 rounded-lg bg-blue-500/20 text-blue-300 border border-blue-500/40 hover:bg-blue-500/30 font-bold text-[11px] flex items-center gap-1 transition-all cursor-pointer shadow-sm shadow-blue-500/10"
+                                  title="Mark guest dining completed"
+                                >
+                                  <CheckCircle2 className="w-3 h-3" />
+                                  Complete
+                                </button>
+                              )}
+
+                              {/* Update Slot / Edit Button (Available for all active bookings) */}
+                              <button
+                                onClick={() => openEditBookingModal(b)}
+                                className="px-2.5 py-1 rounded-lg bg-slate-800 border border-cyan-500/40 text-cyan-300 font-bold text-[11px] hover:bg-cyan-500/20 hover:border-cyan-400 flex items-center gap-1 transition-all cursor-pointer"
+                                title="Update Time Slot / Reschedule"
+                              >
+                                <CalendarClock className="w-3 h-3" />
+                                Update Slot
+                              </button>
+
+                              {/* Cancel Button (Available for pending and confirmed) */}
+                              {b.status !== "cancelled" ? (
+                                <button
+                                  onClick={() => handleCancelBooking(b)}
+                                  className="px-2.5 py-1 rounded-lg bg-slate-800 border border-rose-500/40 text-rose-400 font-bold text-[11px] hover:bg-rose-500/20 hover:border-rose-400 flex items-center gap-1 transition-all cursor-pointer"
+                                  title="Cancel table booking"
+                                >
+                                  <XCircle className="w-3 h-3" />
+                                  Cancel
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => openEditBookingModal(b)}
+                                  className="px-2 py-1 rounded-lg bg-slate-800 text-slate-400 font-bold text-[10px] hover:bg-slate-700 flex items-center gap-1 transition-all cursor-pointer"
+                                  title="Reopen or reschedule cancelled booking"
+                                >
+                                  <RotateCcw className="w-3 h-3" />
+                                  Reopen
+                                </button>
+                              )}
+                            </>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -1409,17 +1733,30 @@ export default function AdminQrOrders() {
               </button>
             </div>
 
-            <button
-              onClick={() => {
-                fetchAdminWaitlist();
-                fetchTables();
-              }}
-              disabled={loadingWaitlist}
-              className="p-2 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 text-xs flex items-center gap-1.5 font-bold transition-all cursor-pointer"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${loadingWaitlist ? "animate-spin text-cyan-400" : ""}`} />
-              <span>Refresh</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <a
+                href="/admin/hall-display"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-400 hover:to-teal-400 text-slate-950 text-xs font-black flex items-center gap-1.5 shadow-md shadow-cyan-500/20 transition-all cursor-pointer"
+                title="Open Live Waitlist Hall Display for TV or Big Screen"
+              >
+                <Tv className="w-3.5 h-3.5" />
+                <span>Open Hall Display (TV)</span>
+              </a>
+
+              <button
+                onClick={() => {
+                  fetchAdminWaitlist();
+                  fetchTables();
+                }}
+                disabled={loadingWaitlist}
+                className="p-2 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 text-xs flex items-center gap-1.5 font-bold transition-all cursor-pointer"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${loadingWaitlist ? "animate-spin text-cyan-400" : ""}`} />
+                <span>Refresh</span>
+              </button>
+            </div>
           </div>
 
           {/* Sub-View 1: Live Queue */}
@@ -1764,6 +2101,247 @@ export default function AdminQrOrders() {
               )}
             </div>
           )}
+        </div>
+      )}
+
+      {/* ADMIN EDIT / RESCHEDULE BOOKING MODAL */}
+      {showEditBookingModal && editingBooking && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-start justify-between pb-4 border-b border-slate-800">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="p-2 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                    <CalendarClock className="w-5 h-5" />
+                  </span>
+                  <div>
+                    <h3 className="text-lg font-black text-white">Update Reservation</h3>
+                    <p className="text-xs text-slate-400">
+                      Reschedule 15-min arrival slot or change assigned table
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-2.5 flex items-center gap-2">
+                  <span className="text-xs font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 rounded-lg">
+                    {editingBooking.customerName}
+                  </span>
+                  <span className="text-xs text-slate-400 font-mono">
+                    {editingBooking.customerMobile}
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setShowEditBookingModal(false);
+                  setEditingBooking(null);
+                }}
+                className="p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Form */}
+            <form onSubmit={handleSaveEditBooking} className="mt-5 space-y-4">
+              {/* Date */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1.5">
+                  <CalendarDays className="w-3.5 h-3.5 text-cyan-400" />
+                  Booking Date
+                </label>
+                <input
+                  type="date"
+                  value={editBookingDate}
+                  onChange={(e) => setEditBookingDate(e.target.value)}
+                  required
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white font-medium focus:border-cyan-500 focus:outline-none transition-colors"
+                />
+              </div>
+
+              {/* 15-Minute Time Slot Picker */}
+              <div className="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-cyan-400" />
+                    Arrival Window (15-Minute Slot)
+                  </label>
+                  <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+                    15 Min Gap
+                  </span>
+                </div>
+
+                {/* Selected Slot Display */}
+                <div className="p-3 rounded-xl bg-cyan-950/30 border border-cyan-500/30 flex items-center justify-between">
+                  <div>
+                    <span className="text-[10px] text-cyan-400 uppercase tracking-wider font-bold">Selected Window</span>
+                    <div className="text-base font-black text-white font-mono flex items-center gap-2 mt-0.5">
+                      <span>{editStartTime || "--:--"}</span>
+                      <span className="text-cyan-400 text-xs">to</span>
+                      <span>{editEndTime || "--:--"}</span>
+                    </div>
+                  </div>
+                  <span className="text-xs text-slate-400 bg-slate-900 px-2 py-1 rounded-lg border border-slate-800">
+                    15 mins
+                  </span>
+                </div>
+
+                {/* Popular Presets */}
+                <div>
+                  <span className="text-[11px] font-semibold text-slate-400 block mb-1.5">Quick 15-Min Slots:</span>
+                  <div className="grid grid-cols-2 gap-1.5 max-h-36 overflow-y-auto pr-1">
+                    {PRESET_15MIN_SLOTS.map((slot, idx) => {
+                      const isSelected = editStartTime === slot.start && editEndTime === slot.end;
+                      return (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => handleSelectPresetSlot(slot)}
+                          className={`px-2.5 py-1.5 rounded-lg text-xs font-mono font-medium text-left transition-all border cursor-pointer ${
+                            isSelected
+                              ? "bg-cyan-500/20 text-cyan-300 border-cyan-400 font-bold shadow-sm"
+                              : "bg-slate-900/80 text-slate-300 border-slate-800 hover:border-slate-700 hover:text-white"
+                          }`}
+                        >
+                          {slot.start} - {slot.end}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Custom Time */}
+                <div className="pt-2 border-t border-slate-800/80">
+                  <span className="text-[11px] font-semibold text-slate-400 block mb-1">Or choose custom start time:</span>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="time"
+                      value={editCustomStart24}
+                      onChange={(e) => handleCustomStartChange(e.target.value)}
+                      className="bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white font-mono focus:border-cyan-500 focus:outline-none"
+                    />
+                    <span className="text-xs text-slate-400">
+                      End time automatically calculates +15 min
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Table & Guests */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1.5">
+                    <Utensils className="w-3.5 h-3.5 text-amber-400" />
+                    Assign Table
+                  </label>
+                  <select
+                    value={editTableNo}
+                    onChange={(e) => setEditTableNo(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-amber-400 font-bold focus:border-cyan-500 focus:outline-none"
+                  >
+                    <option value="">Unassigned / Auto</option>
+                    {allTables.map((t) => (
+                      <option key={t._id} value={t.tableNo}>
+                        Table {t.tableNo} ({t.capacity} Seater) - {t.status}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5 text-amber-400" />
+                    Guests Count
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="50"
+                    value={editGuestsCount}
+                    onChange={(e) => setEditGuestsCount(e.target.value)}
+                    required
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-bold focus:border-cyan-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Booking Status */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  Reservation Status
+                </label>
+                <div className="grid grid-cols-4 gap-2">
+                  {["confirmed", "pending", "completed", "cancelled"].map((st) => (
+                    <button
+                      key={st}
+                      type="button"
+                      onClick={() => setEditStatus(st)}
+                      className={`py-2 rounded-xl text-xs font-bold uppercase transition-all border cursor-pointer ${
+                        editStatus === st
+                          ? st === "confirmed"
+                            ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/40"
+                            : st === "completed"
+                            ? "bg-blue-500/20 text-blue-400 border-blue-500/40"
+                            : st === "cancelled"
+                            ? "bg-rose-500/20 text-rose-400 border-rose-500/40"
+                            : "bg-amber-500/20 text-amber-400 border-amber-500/40"
+                          : "bg-slate-950 text-slate-400 border-slate-800 hover:text-white"
+                      }`}
+                    >
+                      {st}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Special Requests note if any */}
+              {editingBooking.specialRequests && (
+                <div className="p-3 rounded-xl bg-slate-950/40 border border-slate-800/80 text-xs">
+                  <span className="text-slate-400 font-medium block">Guest Special Request:</span>
+                  <span className="text-slate-200 mt-0.5 block">{editingBooking.specialRequests}</span>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-between pt-3 border-t border-slate-800">
+                {editStatus !== "cancelled" ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowEditBookingModal(false);
+                      handleCancelBooking(editingBooking);
+                    }}
+                    className="px-3 py-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20 text-xs font-bold transition-all cursor-pointer"
+                  >
+                    Cancel Booking
+                  </button>
+                ) : (
+                  <div />
+                )}
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowEditBookingModal(false);
+                      setEditingBooking(null);
+                    }}
+                    className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white text-xs font-bold transition-all cursor-pointer"
+                  >
+                    Close
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={savingEditBooking}
+                    className="px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white text-xs font-bold shadow-lg shadow-cyan-600/20 transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  >
+                    <Check className="w-3.5 h-3.5" />
+                    <span>{savingEditBooking ? "Saving..." : "Update Reservation"}</span>
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

@@ -4,7 +4,7 @@ import api from "../../api";
 import PremiumInvoice from "../../components/PremiumInvoice";
 import PremiumRoomInvoice from "../../components/PremiumRoomInvoice";
 import { 
-  TrendingUp, Calendar, Clock, Landmark, Eye, Printer, AlertCircle, Building2, Utensils, LayoutDashboard, ArrowUpRight, ArrowDownRight, Layers, Sparkles
+  TrendingUp, Calendar, Clock, Landmark, Eye, Printer, AlertCircle, Building2, Utensils, LayoutDashboard, ArrowUpRight, ArrowDownRight, Layers, Sparkles, ShieldCheck, Lock, CheckCircle2, ShieldAlert
 } from "lucide-react";
 import { motion } from "framer-motion";
 import MagneticButton from "../../components/MagneticButton";
@@ -13,6 +13,15 @@ import {
 } from "recharts";
 
 export default function AdminDashboard() {
+  const currentUser = (() => {
+    try {
+      return JSON.parse(localStorage.getItem("user") || "{}");
+    } catch {
+      return {};
+    }
+  })();
+  const isSubAdmin = currentUser?.role === "sub_admin";
+
   const [stats, setStats] = useState({
     today: { amount: 0, count: 0 },
     month: { amount: 0, count: 0 },
@@ -106,15 +115,26 @@ export default function AdminDashboard() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2 no-print">
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-saffron-500/10 border border-saffron-500/25 text-saffron-400 text-xs font-semibold mb-2">
-            <Sparkles size={13} className="text-saffron-400 animate-spin" style={{ animationDuration: '6s' }} />
-            <span>Real-time Financial Intelligence</span>
+            {isSubAdmin ? (
+              <>
+                <ShieldCheck size={13} className="text-amber-400" />
+                <span>Operational Control Center (Sub-Admin Mode)</span>
+              </>
+            ) : (
+              <>
+                <Sparkles size={13} className="text-saffron-400 animate-spin" style={{ animationDuration: '6s' }} />
+                <span>Real-time Financial Intelligence</span>
+              </>
+            )}
           </div>
           <h1 className="text-3xl md:text-4xl font-extrabold font-display tracking-tight text-white flex items-center gap-3">
             <LayoutDashboard className="w-8 h-8 text-saffron-500" />
-            Financial Dashboard
+            {isSubAdmin ? "Operations Dashboard" : "Financial Dashboard"}
           </h1>
           <p className="text-slate-400 mt-1 text-sm font-medium">
-            Live occupancy, KOT billing metrics, and revenue breakdown
+            {isSubAdmin 
+              ? "Live room occupancy, desk orders & active operations (Revenue analytics restricted)"
+              : "Live occupancy, KOT billing metrics, and revenue breakdown"}
           </p>
         </div>
         
@@ -169,7 +189,9 @@ export default function AdminDashboard() {
         >
           <div className="pointer-events-none absolute -top-10 -right-10 w-32 h-32 bg-emerald-500/15 rounded-full blur-2xl" />
           <div className="flex items-center justify-between mb-4">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Today's Revenue</span>
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+              {isSubAdmin ? "Today's Orders / Bills" : "Today's Revenue"}
+            </span>
             <div className="p-3 bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 rounded-2xl shadow-inner">
               <Clock className="w-5 h-5" />
             </div>
@@ -181,17 +203,35 @@ export default function AdminDashboard() {
             </div>
           ) : (
             <div>
-              <h3 className="text-3xl font-black text-white font-mono tracking-tight">
-                ₹{stats.today.amount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </h3>
-              <div className="flex items-center gap-2 mt-2">
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                  <ArrowUpRight size={13} /> Active
-                </span>
-                <span className="text-xs text-slate-400 font-medium">
-                  {stats.today.count} bills generated today
-                </span>
-              </div>
+              {isSubAdmin ? (
+                <div>
+                  <h3 className="text-3xl font-black text-white font-mono tracking-tight flex items-baseline gap-2">
+                    {stats.today.count} <span className="text-sm font-semibold text-slate-400">Bills</span>
+                  </h3>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                      <ArrowUpRight size={13} /> Active Today
+                    </span>
+                    <span className="inline-flex items-center gap-1 text-[10px] text-amber-400 font-mono bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                      <Lock size={10} /> Revenue: Restricted
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <h3 className="text-3xl font-black text-white font-mono tracking-tight">
+                    ₹{stats.today.amount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </h3>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                      <ArrowUpRight size={13} /> Active
+                    </span>
+                    <span className="text-xs text-slate-400 font-medium">
+                      {stats.today.count} bills generated today
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </motion.div>
@@ -203,7 +243,9 @@ export default function AdminDashboard() {
         >
           <div className="pointer-events-none absolute -top-10 -right-10 w-32 h-32 bg-saffron-500/20 rounded-full blur-2xl" />
           <div className="flex items-center justify-between mb-4">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Month-to-Date</span>
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+              {isSubAdmin ? "Month-to-Date Volume" : "Month-to-Date"}
+            </span>
             <div className="p-3 bg-saffron-500/15 border border-saffron-500/30 text-saffron-400 rounded-2xl shadow-inner">
               <Calendar className="w-5 h-5" />
             </div>
@@ -215,17 +257,35 @@ export default function AdminDashboard() {
             </div>
           ) : (
             <div>
-              <h3 className="text-3xl font-black text-white font-mono tracking-tight">
-                ₹{stats.month.amount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </h3>
-              <div className="flex items-center gap-2 mt-2">
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-saffron-400 bg-saffron-500/10 px-2 py-0.5 rounded-full border border-saffron-500/20">
-                  <TrendingUp size={13} /> Pace
-                </span>
-                <span className="text-xs text-slate-400 font-medium">
-                  {stats.month.count} transactions closed
-                </span>
-              </div>
+              {isSubAdmin ? (
+                <div>
+                  <h3 className="text-3xl font-black text-white font-mono tracking-tight flex items-baseline gap-2">
+                    {stats.month.count} <span className="text-sm font-semibold text-slate-400">Transactions</span>
+                  </h3>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-saffron-400 bg-saffron-500/10 px-2 py-0.5 rounded-full border border-saffron-500/20">
+                      <TrendingUp size={13} /> Pace
+                    </span>
+                    <span className="inline-flex items-center gap-1 text-[10px] text-amber-400 font-mono bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                      <Lock size={10} /> Turnover: Restricted
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <h3 className="text-3xl font-black text-white font-mono tracking-tight">
+                    ₹{stats.month.amount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </h3>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-saffron-400 bg-saffron-500/10 px-2 py-0.5 rounded-full border border-saffron-500/20">
+                      <TrendingUp size={13} /> Pace
+                    </span>
+                    <span className="text-xs text-slate-400 font-medium">
+                      {stats.month.count} transactions closed
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </motion.div>
@@ -237,7 +297,9 @@ export default function AdminDashboard() {
         >
           <div className="pointer-events-none absolute -top-10 -right-10 w-32 h-32 bg-sky-500/15 rounded-full blur-2xl" />
           <div className="flex items-center justify-between mb-4">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Yearly Turnover</span>
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+              {isSubAdmin ? "Cumulative Annual Records" : "Yearly Turnover"}
+            </span>
             <div className="p-3 bg-sky-500/15 border border-sky-500/30 text-sky-400 rounded-2xl shadow-inner">
               <Landmark className="w-5 h-5" />
             </div>
@@ -249,17 +311,35 @@ export default function AdminDashboard() {
             </div>
           ) : (
             <div>
-              <h3 className="text-3xl font-black text-white font-mono tracking-tight">
-                ₹{stats.year.amount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </h3>
-              <div className="flex items-center gap-2 mt-2">
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded-full border border-sky-500/20">
-                  Total
-                </span>
-                <span className="text-xs text-slate-400 font-medium">
-                  {stats.year.count} cumulative records
-                </span>
-              </div>
+              {isSubAdmin ? (
+                <div>
+                  <h3 className="text-3xl font-black text-white font-mono tracking-tight flex items-baseline gap-2">
+                    {stats.year.count} <span className="text-sm font-semibold text-slate-400">Total Records</span>
+                  </h3>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded-full border border-sky-500/20">
+                      Total
+                    </span>
+                    <span className="inline-flex items-center gap-1 text-[10px] text-amber-400 font-mono bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                      <Lock size={10} /> Turnover: Restricted
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <h3 className="text-3xl font-black text-white font-mono tracking-tight">
+                    ₹{stats.year.amount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </h3>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded-full border border-sky-500/20">
+                      Total
+                    </span>
+                    <span className="text-xs text-slate-400 font-medium">
+                      {stats.year.count} cumulative records
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </motion.div>
@@ -342,7 +422,21 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {chartData.length > 0 ? (
+          {isSubAdmin ? (
+            <div className="h-full flex flex-col items-center justify-center text-center p-6 bg-amber-500/[0.03] border border-amber-500/20 rounded-2xl">
+              <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 mb-3 shadow-lg">
+                <Lock className="w-6 h-6 text-amber-400" />
+              </div>
+              <h4 className="font-bold text-base text-white font-display">Revenue Analytics Restricted</h4>
+              <p className="text-xs text-slate-400 max-w-md mt-1.5 leading-relaxed">
+                You are logged in with <strong>Sub-Admin</strong> credentials. Financial turnover, sales volume trajectories, and revenue curves are strictly confidential and restricted to the Hotel Administrator.
+              </p>
+              <div className="flex items-center gap-2 mt-4 text-[11px] font-bold text-amber-300 bg-amber-500/10 px-3.5 py-1.5 rounded-full border border-amber-500/25">
+                <ShieldCheck className="w-4 h-4 text-amber-400" />
+                <span>Operational Control Mode Active</span>
+              </div>
+            </div>
+          ) : chartData.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
               {viewMode === "area" ? (
                 <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
@@ -490,13 +584,18 @@ export default function AdminDashboard() {
                         </div>
                       </td>
                       <td className="py-4 px-6 text-right font-black font-mono text-sm">
-                        {inv.transactionType === 'restaurant' 
-                          ? <span className="text-amber-400 font-extrabold">₹{inv.grandTotal.toFixed(2)}</span>
-                          : (inv.status === 'Checked-Out' 
-                              ? <span className="text-sky-400 font-extrabold">₹{(inv.totalAmount || 0).toFixed(2)}</span> 
-                              : <span className="text-emerald-400 font-semibold text-xs bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">Checked-In</span>
-                            )
-                        }
+                        {isSubAdmin ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-mono text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-md border border-amber-500/25 font-bold">
+                            <Lock size={11} /> Confidential
+                          </span>
+                        ) : (
+                          inv.transactionType === 'restaurant' 
+                            ? <span className="text-amber-400 font-extrabold">₹{inv.grandTotal.toFixed(2)}</span>
+                            : (inv.status === 'Checked-Out' 
+                                ? <span className="text-sky-400 font-extrabold">₹{(inv.totalAmount || 0).toFixed(2)}</span> 
+                                : <span className="text-emerald-400 font-semibold text-xs bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">Checked-In</span>
+                              )
+                        )}
                       </td>
                     </tr>
                   ))

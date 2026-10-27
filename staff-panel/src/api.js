@@ -1,8 +1,15 @@
 import axios from "axios";
 
+const getBaseUrl = () => {
+  if (import.meta.env?.VITE_API_URL) return import.meta.env.VITE_API_URL;
+  if (typeof window !== "undefined" && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
+    return "https://annapurna-astra.onrender.com/";
+  }
+  return "http://localhost:5000/";
+};
+
 const api = axios.create({
-  // baseURL: "http://localhost:5000/",
-   baseURL: 'https://annapurna-astra.onrender.com/',
+  baseURL: getBaseUrl(),
 });
 
 let activeRequests = 0;
@@ -154,7 +161,8 @@ export const tableBookingAPI = {
 };
 
 export const waitlistAPI = {
-  getAdminWaitlist: () => api.get("/api/public/admin/waitlist"),
+  getAdminWaitlist: () => api.get("/api/public/admin/waitlist", { showLoader: false }),
+  getPublicWaitlistDisplay: (hotelId) => api.get(`/api/public/waitlist/display/${hotelId}`, { showLoader: false }),
   addManualGuest: (data) => api.post("/api/public/admin/waitlist/manual", data),
   callGuest: (id, data) => api.put(`/api/public/admin/waitlist/${id}/call`, data),
   seatGuest: (id, data) => api.put(`/api/public/admin/waitlist/${id}/seat`, data),
@@ -172,4 +180,5 @@ export const authAPI = {
   updateSubscription: (data) => api.put("/api/auth/subscription", data),
 };
 
+export { api };
 export default api;

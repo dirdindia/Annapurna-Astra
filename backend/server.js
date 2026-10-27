@@ -29,6 +29,7 @@ app.get("/bill/:invoiceId", require("./controllers/invoiceController").renderPub
 
 // Routes
 app.use("/api/auth", require("./routes/authRoutes"));
+app.use("/auth", require("./routes/authRoutes"));
 app.use("/api/upload", require("./routes/uploadRoutes"));
 app.use("/api/dishes", require("./routes/dishRoutes"));
 app.use("/api/invoices", require("./routes/invoiceRoutes"));
@@ -40,6 +41,7 @@ app.use("/api/grc", require("./routes/grcRoutes"));
 app.use("/api/inventory", require("./routes/inventoryRoutes"));
 app.use("/api/lookups", require("./routes/lookupRoutes"));
 app.use("/api/superadmin", require("./routes/superAdminRoutes"));
+app.use("/superadmin", require("./routes/superAdminRoutes"));
 app.use("/api/kds", require("./routes/kdsRoutes"));
 app.use("/api/payment", require("./routes/paymentRoutes"));
 app.use("/api/public", require("./routes/publicRoutes"));
@@ -57,21 +59,21 @@ app.use((err, req, res, next) => {
 // Seed Admin User if none exists
 const seedAdmin = async () => {
   try {
-    const adminCount = await User.countDocuments({ role: "admin" });
+    const adminCount = await User.countDocuments({ role: "super_admin" });
     if (adminCount === 0) {
-      console.log("No admin accounts found. Seeding default admin...");
+      console.log("No super_admin accounts found. Seeding default super_admin...");
       await User.create({
         name: "Super Admin",
         email: "admin@gmail.com",
         password: "admin@123", // Hashes automatically via pre-save hook
-        role: "admin",
+        role: "super_admin",
         mobile: "9999999999",
         age: 45,
         address: "HOTEL SWAYAMVAR VATIKA",
       });
-      console.log("Default admin created successfully!");
+      console.log("Default super_admin created successfully!");
       console.log("Email: admin@gmail.com");
-      console.log("Password: password-admin@123");
+      console.log("Password: admin@123");
     }
   } catch (error) {
     console.error(`Error seeding admin: ${error.message}`);

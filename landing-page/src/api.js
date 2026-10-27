@@ -2,9 +2,16 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 
 // Axios Instance
+const getBaseUrl = () => {
+  if (import.meta.env?.VITE_API_URL) return import.meta.env.VITE_API_URL;
+  if (typeof window !== "undefined" && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
+    return "https://annapurna-astra.onrender.com/";
+  }
+  return "http://localhost:5000/";
+};
+
 export const api = axios.create({
-  // baseURL: 'http://localhost:5000/api',
-  baseURL: 'https://annapurna-astra.onrender.com/api',
+  baseURL: getBaseUrl(),
 });
 
 // Configure SweetAlert to match Lagoon-900 / Saffron-500 theme
@@ -29,3 +36,6 @@ export const showToast = (message, icon = 'success') => {
     title: message
   });
 };
+
+
+export default api;

@@ -5,6 +5,7 @@ const Dish = require("../models/Dish");
 const Table = require("../models/Table");
 const Order = require("../models/Order");
 const TableBooking = require("../models/TableBooking");
+const Waitlist = require("../models/Waitlist");
 const { broadcastKDSUpdate } = require("./kdsController");
 
 const cleanKey = (val) => (val ? String(val).replace(/^['"]|['"]$/g, "").trim() : "");
@@ -383,6 +384,43 @@ exports.streamCustomerOrderStatus = (req, res) => {
 
 exports.broadcastCustomerOrderUpdate = broadcastCustomerOrderUpdate;
 
+// In-memory Customer SSE Clients for real-time table booking tracking
+let customerBookingClients = [];
+
+const broadcastCustomerBookingUpdate = (bookingId, data) => {
+  customerBookingClients.forEach((client) => {
+    if (client.bookingId === bookingId.toString()) {
+      try {
+        client.res.write(`data: ${JSON.stringify(data)}\n\n`);
+      } catch (e) {
+        console.error("Error writing to customer booking SSE client:", e);
+      }
+    }
+  });
+};
+
+// @desc    Customer SSE stream to listen for table booking approval & table assignment
+// @route   GET /api/public/booking-stream/:bookingId
+// @access  Public
+exports.streamCustomerBookingStatus = (req, res) => {
+  const { bookingId } = req.params;
+
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+
+  res.write(`data: ${JSON.stringify({ type: "connected", message: "Listening for table booking status updates" })}\n\n`);
+
+  const client = { id: Date.now(), res, bookingId: bookingId.toString() };
+  customerBookingClients.push(client);
+
+  req.on("close", () => {
+    customerBookingClients = customerBookingClients.filter((c) => c.id !== client.id);
+  });
+};
+
+exports.broadcastCustomerBookingUpdate = broadcastCustomerBookingUpdate;
+
 // @desc    Create Razorpay Order for Public Customer Payment
 // @route   POST /api/public/payment/create-order
 // @access  Public
@@ -460,16 +498,23 @@ exports.createPublicTableBooking = async (req, res) => {
       customerEmail,
       bookingDate,
       bookingTime,
+      startTime,
+      endTime,
       guestsCount,
       specialRequests,
       tableNo,
     } = req.body;
 
-    if (!hotelId || !customerName || !customerMobile || !bookingDate || !bookingTime) {
+    if (!hotelId || !customerName || !customerMobile || !bookingDate || (!bookingTime && !startTime)) {
       return res.status(400).json({
         success: false,
-        message: "Name, mobile, booking date, and time are required.",
+        message: "Name, mobile, booking date, and arrival time slot are required.",
       });
+    }
+
+    let finalBookingTime = bookingTime;
+    if (!finalBookingTime && startTime && endTime) {
+      finalBookingTime = `${startTime} - ${endTime}`;
     }
 
     let tableId = null;
@@ -484,7 +529,9 @@ exports.createPublicTableBooking = async (req, res) => {
       customerMobile,
       customerEmail: customerEmail || "",
       bookingDate,
-      bookingTime,
+      bookingTime: finalBookingTime || startTime,
+      startTime: startTime || "",
+      endTime: endTime || "",
       guestsCount: Number(guestsCount) || 2,
       specialRequests: specialRequests || "",
       tableId,
@@ -503,6 +550,141 @@ exports.createPublicTableBooking = async (req, res) => {
     res.status(201).json({
       success: true,
       message: "Table reservation request sent! Hotel staff will confirm shortly.",
+      data: booking,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Get Public Table Booking Status
+// @route   GET /api/public/table-booking/:bookingId
+// @access  Public
+exports.getPublicTableBooking = async (req, res) => {
+  try {
+    const booking = await TableBooking.findById(req.params.bookingId).populate("tableId", "tableNo capacity");
+    if (!booking) {
+      return res.status(404).json({ success: false, message: "Booking not found" });
+    }
+    res.status(200).json({ success: true, data: booking });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Cancel Table Booking by Customer
+// @route   PUT /api/public/table-booking/:bookingId/cancel
+// @access  Public
+exports.cancelPublicTableBooking = async (req, res) => {
+  try {
+    const booking = await TableBooking.findById(req.params.bookingId);
+    if (!booking) {
+      return res.status(404).json({ success: false, message: "Booking not found" });
+    }
+    if (booking.status === "cancelled") {
+      return res.status(400).json({ success: false, message: "Booking is already cancelled" });
+    }
+    booking.status = "cancelled";
+    await booking.save();
+
+    broadcastKDSUpdate(booking.hotelId, {
+      type: "table_booking_updated",
+      bookingId: booking._id,
+      status: "cancelled",
+      customerName: booking.customerName,
+      bookingDate: booking.bookingDate,
+      bookingTime: booking.bookingTime,
+    });
+
+    broadcastCustomerBookingUpdate(booking._id, {
+      type: "booking_cancelled",
+      status: "cancelled",
+      booking,
+    });
+
+    res.status(200).json({ success: true, message: "Table reservation cancelled successfully.", data: booking });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Reschedule / Update Time Slot by Customer
+// @route   PUT /api/public/table-booking/:bookingId/reschedule
+// @access  Public
+exports.reschedulePublicTableBooking = async (req, res) => {
+  try {
+    const { bookingDate, bookingTime, startTime, endTime, guestsCount, specialRequests } = req.body;
+    const booking = await TableBooking.findById(req.params.bookingId);
+    if (!booking) {
+      return res.status(404).json({ success: false, message: "Booking not found" });
+    }
+    if (booking.status === "cancelled") {
+      return res.status(400).json({ success: false, message: "Cannot reschedule a cancelled booking. Please create a new reservation." });
+    }
+
+    if (bookingDate) booking.bookingDate = bookingDate;
+    if (startTime) booking.startTime = startTime;
+    if (endTime) booking.endTime = endTime;
+    if (bookingTime) {
+      booking.bookingTime = bookingTime;
+    } else if (startTime && endTime) {
+      booking.bookingTime = `${startTime} - ${endTime}`;
+    }
+    if (guestsCount) booking.guestsCount = Number(guestsCount) || booking.guestsCount;
+    if (specialRequests !== undefined) booking.specialRequests = specialRequests;
+
+    await booking.save();
+
+    broadcastKDSUpdate(booking.hotelId, {
+      type: "table_booking_updated",
+      bookingId: booking._id,
+      status: booking.status,
+      customerName: booking.customerName,
+      bookingDate: booking.bookingDate,
+      bookingTime: booking.bookingTime,
+    });
+
+    broadcastCustomerBookingUpdate(booking._id, {
+      type: "booking_updated",
+      status: booking.status,
+      tableNo: booking.tableNo,
+      bookingTime: booking.bookingTime,
+      booking,
+    });
+
+    res.status(200).json({ success: true, message: "Table reservation updated successfully!", data: booking });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Customer Track/Lookup Table Reservation by Mobile Number
+// @route   GET /api/public/table-booking/by-mobile
+// @access  Public
+exports.getTableBookingsByMobile = async (req, res) => {
+  try {
+    const { hotelId, mobile } = req.query;
+    if (!hotelId || !mobile) {
+      return res.status(400).json({ success: false, message: "Hotel ID and Mobile number are required" });
+    }
+
+    const cleanMobile = String(mobile).trim();
+    const booking = await TableBooking.findOne({
+      hotelId,
+      customerMobile: cleanMobile,
+    })
+      .populate("tableId", "tableNo capacity")
+      .sort({ createdAt: -1 });
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "No table reservation found for this mobile number. Please verify the mobile number or reserve a new table.",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
       data: booking,
     });
   } catch (error) {
@@ -678,13 +860,13 @@ exports.getHotelTableBookings = async (req, res) => {
   }
 };
 
-// @desc    Update Table Booking Status (Confirm / Cancel)
+// @desc    Update Table Booking Status & Details (Confirm / Cancel / Reschedule Slot / Assign Table)
 // @route   PUT /api/public/admin/table-bookings/:bookingId
 // @access  Private (Hotel Admin / Staff)
 exports.updateTableBookingStatus = async (req, res) => {
   try {
     const hotelId = req.user.hotelId;
-    const { status, tableNo } = req.body;
+    const { status, tableNo, bookingDate, bookingTime, startTime, endTime, guestsCount } = req.body;
 
     const booking = await TableBooking.findOne({ _id: req.params.bookingId, hotelId });
     if (!booking) {
@@ -692,11 +874,31 @@ exports.updateTableBookingStatus = async (req, res) => {
     }
 
     if (status) booking.status = status;
-    if (tableNo) {
-      booking.tableNo = tableNo;
-      const table = await Table.findOne({ hotelId, tableNo: tableNo.trim() });
-      if (table) booking.tableId = table._id;
-    } else if (status === "confirmed" && !booking.tableNo) {
+    if (bookingDate) booking.bookingDate = bookingDate;
+    if (startTime) booking.startTime = startTime;
+    if (endTime) booking.endTime = endTime;
+    if (bookingTime) {
+      booking.bookingTime = bookingTime;
+    } else if (startTime && endTime) {
+      booking.bookingTime = `${startTime} - ${endTime}`;
+    }
+    if (guestsCount) booking.guestsCount = Number(guestsCount) || booking.guestsCount;
+
+    if (tableNo !== undefined) {
+      booking.tableNo = String(tableNo || "").trim();
+      if (booking.tableNo) {
+        const table = await Table.findOne({ hotelId, tableNo: booking.tableNo });
+        if (table) booking.tableId = table._id;
+        // When table number is assigned/confirmed, reservation status must be confirmed (unless cancelled or completed)
+        if (booking.status !== "cancelled" && booking.status !== "completed") {
+          booking.status = "confirmed";
+        }
+      } else {
+        booking.tableId = null;
+      }
+    }
+
+    if (booking.status === "confirmed" && !booking.tableNo) {
       // Auto-assign first available table with matching capacity or any available table
       const availableTable = await Table.findOne({ hotelId, status: "Available" }).sort({ capacity: 1 });
       if (availableTable) {
@@ -718,7 +920,20 @@ exports.updateTableBookingStatus = async (req, res) => {
       bookingTime: booking.bookingTime
     });
 
-    res.status(200).json({ success: true, message: `Booking ${status}`, data: booking });
+    // Broadcast instant SSE update to customer screen
+    broadcastCustomerBookingUpdate(booking._id, {
+      type: booking.status === "completed" ? "booking_completed" : "booking_updated",
+      status: booking.status,
+      tableNo: booking.tableNo,
+      bookingTime: booking.bookingTime,
+      booking,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: `Table reservation confirmed successfully${booking.tableNo ? ` on Table ${booking.tableNo}` : ""}`,
+      data: booking
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -863,6 +1078,87 @@ exports.getOrdersByMobile = async (req, res) => {
     res.status(200).json({
       success: true,
       data: activeOrder,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Helper: Get start and end of current day (midnight to midnight)
+const getTodayRange = () => {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  const end = new Date();
+  end.setHours(23, 59, 59, 999);
+  return { start, end };
+};
+
+// @desc    Customer Live All-in-One Tracker (Orders, Advance Bookings, Waitlist Tokens)
+// @route   GET /api/public/customer/live-activity
+// @access  Public
+exports.getCustomerLiveActivity = async (req, res) => {
+  try {
+    const { hotelId, mobile } = req.query;
+    if (!hotelId || !mobile) {
+      return res.status(400).json({ success: false, message: "Hotel ID and Mobile number are required" });
+    }
+
+    const cleanMobile = String(mobile).trim();
+    const { start, end } = getTodayRange();
+
+    // 1. Live Dining / Takeaway Order
+    const activeOrder = await Order.findOne({
+      hotelId,
+      customerMobile: cleanMobile,
+      status: "Active",
+      approvalStatus: { $in: ["approved", "pending"] },
+    })
+      .populate("hotelId", "name phone address logo")
+      .populate("table", "tableNo")
+      .sort({ createdAt: -1 });
+
+    // 2. Advance Table Booking (pending or confirmed)
+    const activeBooking = await TableBooking.findOne({
+      hotelId,
+      customerMobile: cleanMobile,
+      status: { $in: ["pending", "confirmed"] },
+    })
+      .populate("tableId", "tableNo capacity")
+      .sort({ createdAt: -1 });
+
+    // 3. Live Queue Waitlist Token
+    const activeWaitlist = await Waitlist.findOne({
+      hotelId,
+      customerMobile: cleanMobile,
+      status: { $in: ["waiting", "called"] },
+      createdAt: { $gte: start, $lte: end },
+    });
+
+    let waitlistDetails = null;
+    if (activeWaitlist) {
+      const positionAhead = await Waitlist.countDocuments({
+        hotelId,
+        status: { $in: ["waiting", "called"] },
+        createdAt: { $gte: start, $lte: end },
+        tokenSequence: { $lt: activeWaitlist.tokenSequence },
+      });
+      waitlistDetails = {
+        ...activeWaitlist.toObject(),
+        positionAhead: activeWaitlist.status === "waiting" ? positionAhead : 0,
+        estimatedWaitMinutes: Math.max(5, (positionAhead + 1) * 10),
+      };
+    }
+
+    const hasAnyActive = Boolean(activeOrder || activeBooking || waitlistDetails);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        activeOrder: activeOrder || null,
+        activeBooking: activeBooking || null,
+        activeWaitlist: waitlistDetails || null,
+        hasAnyActive,
+      },
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

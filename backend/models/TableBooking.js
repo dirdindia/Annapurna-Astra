@@ -24,8 +24,16 @@ const tableBookingSchema = new mongoose.Schema(
       required: true,
     },
     bookingTime: {
-      type: String, // e.g. "07:30 PM"
+      type: String, // e.g. "08:00 PM - 08:15 PM"
       required: true,
+    },
+    startTime: {
+      type: String, // e.g. "08:00 PM"
+      default: "",
+    },
+    endTime: {
+      type: String, // e.g. "08:15 PM"
+      default: "",
     },
     guestsCount: {
       type: Number,

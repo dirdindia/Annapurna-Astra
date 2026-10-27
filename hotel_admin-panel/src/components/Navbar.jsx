@@ -12,7 +12,7 @@ export default function Navbar({ currentUser, onLogout, theme, toggleTheme, togg
   return (
     <nav className="glass border-b border-lagoon-700/25 px-4 md:px-6 py-3.5 flex items-center justify-between sticky top-0 z-40 no-print transition-colors">
       <div className="flex items-center gap-3">
-        {currentUser && currentUser.role === "hotel_admin" && (
+        {currentUser && (currentUser.role === "hotel_admin" || currentUser.role === "sub_admin") && (
           <button 
             onClick={toggleSidebar} 
             className="md:hidden p-2 text-slate-300 hover:text-saffron-500 hover:bg-lagoon-800/40 rounded-xl transition-colors"

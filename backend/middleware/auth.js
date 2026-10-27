@@ -39,11 +39,19 @@ const protect = async (req, res, next) => {
 };
 
 const admin = (req, res, next) => {
-  if (req.user && (req.user.role === "admin" || req.user.role === "hotel_admin" || req.user.role === "super_admin")) {
+  if (req.user && (req.user.role === "admin" || req.user.role === "hotel_admin" || req.user.role === "sub_admin" || req.user.role === "super_admin")) {
     next();
   } else {
     res.status(403).json({ success: false, message: "Not authorized as an admin" });
   }
 };
 
-module.exports = { protect, admin };
+const hotelAdminOnly = (req, res, next) => {
+  if (req.user && (req.user.role === "admin" || req.user.role === "hotel_admin" || req.user.role === "super_admin")) {
+    next();
+  } else {
+    res.status(403).json({ success: false, message: "Restricted to Primary Hotel Admin only" });
+  }
+};
+
+module.exports = { protect, admin, hotelAdminOnly };

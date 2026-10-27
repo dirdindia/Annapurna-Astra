@@ -19,6 +19,7 @@ import AdminBilling from "./pages/admin/AdminBilling";
 import AdminLookups from "./pages/admin/AdminLookups";
 import AdminKotPrint from "./pages/admin/AdminKotPrint";
 import AdminQrOrders from "./pages/admin/AdminQrOrders";
+import AdminHallDisplay from "./pages/admin/AdminHallDisplay";
 import PublicGuestPortal from "./pages/public/PublicGuestPortal";
 import PublicBillView from "./pages/public/PublicBillView";
 
@@ -28,7 +29,7 @@ const AdminRoute = ({ children, currentUser, handleLogout, theme, toggleTheme })
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   if (!currentUser) return <Navigate to="/login" replace />;
-  if (currentUser.role !== "hotel_admin") return <Navigate to="/login" replace />;
+  if (currentUser.role !== "hotel_admin" && currentUser.role !== "sub_admin") return <Navigate to="/login" replace />;
   return (
     <div className="min-h-screen flex flex-col overflow-hidden">
       <Navbar 
@@ -39,7 +40,7 @@ const AdminRoute = ({ children, currentUser, handleLogout, theme, toggleTheme })
         toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
       />
       <div className="flex flex-1 min-w-0 relative h-[calc(100vh-73px)]">
-        <Sidebar isOpen={isSidebarOpen} closeSidebar={() => setIsSidebarOpen(false)} />
+        <Sidebar isOpen={isSidebarOpen} closeSidebar={() => setIsSidebarOpen(false)} currentUser={currentUser} />
         <div className="flex-1 bg-slate-950/20 animate-fade-in min-w-0 overflow-x-hidden overflow-y-auto w-full">
           {children}
         </div>
@@ -82,7 +83,7 @@ export default function App() {
     if (storedUser && storedToken) {
       try {
         const parsedUser = JSON.parse(storedUser);
-        if (parsedUser.role === "hotel_admin") {
+        if (parsedUser.role === "hotel_admin" || parsedUser.role === "sub_admin") {
           setCurrentUser(parsedUser);
         } else {
           localStorage.removeItem("user");
@@ -241,7 +242,7 @@ export default function App() {
           path="/admin/billing"
           element={
             <AdminRoute currentUser={currentUser} handleLogout={handleLogout} theme={theme} toggleTheme={toggleTheme}>
-              <AdminBilling />
+              {currentUser?.role === "sub_admin" ? <Navigate to="/admin" replace /> : <AdminBilling />}
             </AdminRoute>
           }
         />
@@ -250,7 +251,7 @@ export default function App() {
           path="/admin/subscription"
           element={
             <AdminRoute currentUser={currentUser} handleLogout={handleLogout} theme={theme} toggleTheme={toggleTheme}>
-              <AdminBilling />
+              {currentUser?.role === "sub_admin" ? <Navigate to="/admin" replace /> : <AdminBilling />}
             </AdminRoute>
           }
         />
@@ -264,10 +265,21 @@ export default function App() {
           }
         />
 
+        <Route
+          path="/admin/hall-display"
+          element={
+            <AdminRoute currentUser={currentUser} handleLogout={handleLogout} theme={theme} toggleTheme={toggleTheme}>
+              <AdminHallDisplay currentUser={currentUser} />
+            </AdminRoute>
+          }
+        />
+
         {/* Public Scan & Order / Table Booking Portal (No Login Required) */}
         <Route path="/menu/:hotelId" element={<PublicGuestPortal />} />
         <Route path="/scan/:hotelId" element={<PublicGuestPortal />} />
         <Route path="/bill/:invoiceId" element={<PublicBillView />} />
+        <Route path="/hall-display/:hotelId" element={<AdminHallDisplay />} />
+        <Route path="/waitlist-display/:hotelId" element={<AdminHallDisplay />} />
 
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="*" element={<Navigate to="/login" replace />} />

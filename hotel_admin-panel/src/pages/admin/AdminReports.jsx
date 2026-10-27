@@ -1,10 +1,19 @@
 import React, { useState, useEffect } from "react";
 import api from "../../api";
 import { 
-  Eye, Printer, Search, ChevronLeft, ChevronRight, AlertCircle, FileText, X
+  Eye, Printer, Search, ChevronLeft, ChevronRight, AlertCircle, FileText, X, Lock
 } from "lucide-react";
 
 export default function AdminReports() {
+  const currentUser = (() => {
+    try {
+      return JSON.parse(localStorage.getItem("user") || "{}");
+    } catch {
+      return {};
+    }
+  })();
+  const isSubAdmin = currentUser?.role === "sub_admin";
+
   // Invoices list state
   const [invoices, setInvoices] = useState([]);
   const [page, setPage] = useState(1);
@@ -193,8 +202,14 @@ export default function AdminReports() {
                       <td className="py-4 px-6 font-semibold uppercase tracking-wider text-[10px] text-slate-300">
                         {inv.paymentMode || "-"}
                       </td>
-                      <td className="py-4 px-6 text-right font-black font-mono text-amber-500 text-sm">
-                        ₹{inv.grandTotal.toFixed(2)}
+                      <td className="py-4 px-6 text-right font-black font-mono text-sm">
+                        {isSubAdmin ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-mono text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-md border border-amber-500/25 font-bold">
+                            <Lock size={11} /> Confidential
+                          </span>
+                        ) : (
+                          <span className="text-amber-500 font-extrabold">₹{inv.grandTotal.toFixed(2)}</span>
+                        )}
                       </td>
                       <td className="py-4 px-6 text-center">
                         <div className="flex items-center justify-center gap-2">

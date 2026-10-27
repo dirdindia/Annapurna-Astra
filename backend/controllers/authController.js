@@ -32,10 +32,8 @@ const loginUser = async (req, res) => {
       // Fetch the associated hotel
       const hotel = await Hotel.findById(user.hotelId);
 
-      // Staff Login Subscription Restriction:
-      // When a hotel registers, subscription is none/inactive. Hotel admin can log in to update profile and buy subscription.
-      // Staff CANNOT log in until hotel admin purchases an active subscription.
-      if (user.role === 'staff') {
+      // Staff / Sub-admin Login Subscription Restriction:
+      if (user.role === 'staff' || user.role === 'sub_admin') {
         const isExpired = hotel?.subscription?.validUntil ? new Date(hotel.subscription.validUntil) < new Date() : false;
         const isSubActive = Boolean(hotel && hotel.subscription && hotel.subscription.isActive && hotel.subscription.plan !== 'none' && !isExpired);
 
@@ -55,6 +53,7 @@ const loginUser = async (req, res) => {
           name: user.name,
           email: user.email,
           role: user.role,
+          canViewRevenue: user.role === 'hotel_admin' || user.role === 'super_admin',
           mobile: user.mobile,
           age: user.age,
           address: user.address,
@@ -172,24 +171,29 @@ const registerHotel = async (req, res) => {
   }
 };
 
-// @desc    Register a new staff member
+// @desc    Register a new staff or sub_admin member
 // @route   POST /api/auth/register-staff
 // @access  Private/Admin
 const registerStaff = async (req, res) => {
-  const { name, email, password, mobile, age, address } = req.body;
+  if (req.user.role === 'sub_admin') {
+    return res.status(403).json({ success: false, message: 'Sub-Admins are not authorized to create staff or sub-admin accounts.' });
+  }
+
+  const { name, email, password, mobile, age, address, role = 'staff' } = req.body;
+  const targetRole = ['staff', 'sub_admin'].includes(role) ? role : 'staff';
 
   try {
     const userExists = await User.findOne({ email });
 
     if (userExists) {
-      return res.status(400).json({ success: false, message: 'Staff with this email already exists' });
+      return res.status(400).json({ success: false, message: 'Account with this email already exists' });
     }
 
     const staff = await User.create({
       name,
       email,
       password,
-      role: 'staff',
+      role: targetRole,
       mobile,
       age,
       address,
@@ -199,11 +203,12 @@ const registerStaff = async (req, res) => {
     if (staff) {
       res.status(201).json({
         success: true,
-        message: 'Staff member registered successfully',
+        message: `${targetRole === 'sub_admin' ? 'Sub-Admin' : 'Staff'} member registered successfully`,
         staff: {
           _id: staff._id,
           name: staff.name,
           email: staff.email,
+          role: staff.role,
           mobile: staff.mobile,
           age: staff.age,
           address: staff.address,
@@ -217,31 +222,38 @@ const registerStaff = async (req, res) => {
   }
 };
 
-// @desc    Get all staff members
+// @desc    Get all staff members and sub-admins
 // @route   GET /api/auth/staff
 // @access  Private/Admin
 const getStaff = async (req, res) => {
   try {
-    const staffMembers = await User.find({ role: 'staff', hotelId: req.user.hotelId }).select('-password');
+    const staffMembers = await User.find({ 
+      role: { $in: ['staff', 'sub_admin'] }, 
+      hotelId: req.user.hotelId 
+    }).select('-password').sort({ createdAt: -1 });
     res.json({ success: true, staff: staffMembers });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// @desc    Delete a staff member
+// @desc    Delete a staff member or sub-admin
 // @route   DELETE /api/auth/staff/:id
 // @access  Private/Admin
 const deleteStaff = async (req, res) => {
+  if (req.user.role === 'sub_admin') {
+    return res.status(403).json({ success: false, message: 'Sub-Admins are not authorized to delete accounts.' });
+  }
+
   try {
     const staff = await User.findOne({ _id: req.params.id, hotelId: req.user.hotelId });
 
-    if (!staff || staff.role !== 'staff') {
-      return res.status(404).json({ success: false, message: 'Staff member not found or unauthorized' });
+    if (!staff || !['staff', 'sub_admin'].includes(staff.role)) {
+      return res.status(404).json({ success: false, message: 'Account member not found or unauthorized' });
     }
 
     await staff.deleteOne();
-    res.json({ success: true, message: 'Staff member deleted successfully' });
+    res.json({ success: true, message: `${staff.role === 'sub_admin' ? 'Sub-Admin' : 'Staff'} member deleted successfully` });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -323,7 +335,7 @@ const updateProfile = async (req, res) => {
     await user.save();
 
     let hotel = await Hotel.findById(user.hotelId);
-    if (hotel) {
+    if (hotel && user.role !== 'sub_admin') {
       if (hotelEmail && hotelEmail !== hotel.email) {
         const hotelEmailExists = await Hotel.findOne({ email: hotelEmail });
         if (hotelEmailExists) {
@@ -411,11 +423,11 @@ const updateProfile = async (req, res) => {
         invoicePrefixRestaurant: hotel ? hotel.invoicePrefixRestaurant || 'REST-' : 'REST-',
         invoicePrefixRoom: hotel ? hotel.invoicePrefixRoom || 'ROOM-' : 'ROOM-',
         invoiceTerms: hotel ? hotel.invoiceTerms || '' : '',
-        upiId: hotel ? hotel.upiId || '' : '',
-        bankName: hotel ? hotel.bankName || '' : '',
-        bankAccountNumber: hotel ? hotel.bankAccountNumber || '' : '',
-        bankIfscCode: hotel ? hotel.bankIfscCode || '' : '',
-        bankAccountName: hotel ? hotel.bankAccountName || '' : '',
+        upiId: hotel ? (user.role === 'sub_admin' ? '' : hotel.upiId || '') : '',
+        bankName: hotel ? (user.role === 'sub_admin' ? '' : hotel.bankName || '') : '',
+        bankAccountNumber: hotel ? (user.role === 'sub_admin' ? '' : hotel.bankAccountNumber || '') : '',
+        bankIfscCode: hotel ? (user.role === 'sub_admin' ? '' : hotel.bankIfscCode || '') : '',
+        bankAccountName: hotel ? (user.role === 'sub_admin' ? '' : hotel.bankAccountName || '') : '',
         receptionPhone: hotel ? hotel.receptionPhone || '' : '',
         websiteUrl: hotel ? hotel.websiteUrl || '' : '',
         googleMapsUrl: hotel ? hotel.googleMapsUrl || '' : '',
@@ -428,8 +440,8 @@ const updateProfile = async (req, res) => {
         subscriptionPlan: hotel && hotel.subscription ? hotel.subscription.plan : 'none',
         subscriptionStatus: hotel && hotel.subscription ? (hotel.subscription.isActive ? 'active' : 'inactive') : 'inactive',
         subscriptionExpiresAt: hotel && hotel.subscription ? hotel.subscription.validUntil : null,
-        telegramAlertsEnabled: hotel ? Boolean(hotel.telegramAlertsEnabled) : false,
-        telegramChatId: hotel ? hotel.telegramChatId || '' : '',
+        telegramAlertsEnabled: hotel ? (user.role === 'sub_admin' ? false : Boolean(hotel.telegramAlertsEnabled)) : false,
+        telegramChatId: hotel ? (user.role === 'sub_admin' ? '' : hotel.telegramChatId || '') : '',
         antiTheftOtpRequired: hotel && hotel.antiTheftOtpRequired !== undefined ? Boolean(hotel.antiTheftOtpRequired) : true,
       }
     });
@@ -479,11 +491,11 @@ const getProfile = async (req, res) => {
         invoicePrefixRestaurant: hotel ? hotel.invoicePrefixRestaurant || 'REST-' : 'REST-',
         invoicePrefixRoom: hotel ? hotel.invoicePrefixRoom || 'ROOM-' : 'ROOM-',
         invoiceTerms: hotel ? hotel.invoiceTerms || '' : '',
-        upiId: hotel ? hotel.upiId || '' : '',
-        bankName: hotel ? hotel.bankName || '' : '',
-        bankAccountNumber: hotel ? hotel.bankAccountNumber || '' : '',
-        bankIfscCode: hotel ? hotel.bankIfscCode || '' : '',
-        bankAccountName: hotel ? hotel.bankAccountName || '' : '',
+        upiId: hotel ? (user.role === 'sub_admin' ? '' : hotel.upiId || '') : '',
+        bankName: hotel ? (user.role === 'sub_admin' ? '' : hotel.bankName || '') : '',
+        bankAccountNumber: hotel ? (user.role === 'sub_admin' ? '' : hotel.bankAccountNumber || '') : '',
+        bankIfscCode: hotel ? (user.role === 'sub_admin' ? '' : hotel.bankIfscCode || '') : '',
+        bankAccountName: hotel ? (user.role === 'sub_admin' ? '' : hotel.bankAccountName || '') : '',
         receptionPhone: hotel ? hotel.receptionPhone || '' : '',
         websiteUrl: hotel ? hotel.websiteUrl || '' : '',
         googleMapsUrl: hotel ? hotel.googleMapsUrl || '' : '',
@@ -497,8 +509,8 @@ const getProfile = async (req, res) => {
         subscriptionPlan: hotel && hotel.subscription ? hotel.subscription.plan : 'none',
         subscriptionStatus: hotel && hotel.subscription ? (hotel.subscription.isActive ? 'active' : 'inactive') : 'inactive',
         subscriptionExpiresAt: hotel && hotel.subscription ? hotel.subscription.validUntil : null,
-        telegramAlertsEnabled: hotel ? Boolean(hotel.telegramAlertsEnabled) : false,
-        telegramChatId: hotel ? hotel.telegramChatId || '' : '',
+        telegramAlertsEnabled: hotel ? (user.role === 'sub_admin' ? false : Boolean(hotel.telegramAlertsEnabled)) : false,
+        telegramChatId: hotel ? (user.role === 'sub_admin' ? '' : hotel.telegramChatId || '') : '',
         antiTheftOtpRequired: hotel && hotel.antiTheftOtpRequired !== undefined ? Boolean(hotel.antiTheftOtpRequired) : true,
       }
     });

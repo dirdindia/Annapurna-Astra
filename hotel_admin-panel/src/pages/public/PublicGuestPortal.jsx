@@ -30,6 +30,11 @@ import {
   Timer,
   Check,
   AlertTriangle,
+  Edit2,
+  Trash2,
+  Share2,
+  Copy,
+  ExternalLink,
 } from "lucide-react";
 import { publicAPI } from "../../api";
 import api from "../../api";
@@ -51,6 +56,62 @@ const loadRazorpayScript = () => {
     document.body.appendChild(script);
   });
 };
+
+const formatTime12h = (time24) => {
+  if (!time24) return "";
+  const parts = time24.split(":");
+  let h = parseInt(parts[0], 10);
+  const m = parseInt(parts[1], 10);
+  if (isNaN(h) || isNaN(m)) return time24;
+  const ampm = h >= 12 ? "PM" : "AM";
+  h = h % 12;
+  h = h ? h : 12;
+  const hFormatted = h < 10 ? `0${h}` : h;
+  const mFormatted = m < 10 ? `0${m}` : m;
+  return `${hFormatted}:${mFormatted} ${ampm}`;
+};
+
+const add15Minutes = (time24) => {
+  if (!time24) return "";
+  const parts = time24.split(":");
+  let h = parseInt(parts[0], 10);
+  let m = parseInt(parts[1], 10);
+  if (isNaN(h) || isNaN(m)) return "";
+  m += 15;
+  if (m >= 60) {
+    h = (h + 1) % 24;
+    m = m - 60;
+  }
+  const hFormatted = h < 10 ? `0${h}` : h;
+  const mFormatted = m < 10 ? `0${m}` : m;
+  return `${hFormatted}:${mFormatted}`;
+};
+
+const convert12hTo24h = (time12) => {
+  if (!time12) return "20:00";
+  if (/^\d{2}:\d{2}$/.test(time12.trim())) return time12.trim();
+  const match = time12.match(/(\d+):(\d+)\s*(AM|PM)?/i);
+  if (!match) return "20:00";
+  let h = parseInt(match[1], 10);
+  const m = parseInt(match[2], 10);
+  const ampm = (match[3] || "").toUpperCase();
+  if (ampm === "PM" && h < 12) h += 12;
+  if (ampm === "AM" && h === 12) h = 0;
+  const hFormatted = h < 10 ? `0${h}` : h;
+  const mFormatted = m < 10 ? `0${m}` : m;
+  return `${hFormatted}:${mFormatted}`;
+};
+
+const PRESET_15MIN_SLOTS = [
+  { start: "12:30", end: "12:45", label: "12:30 PM - 12:45 PM" },
+  { start: "13:00", end: "13:15", label: "01:00 PM - 01:15 PM" },
+  { start: "13:30", end: "13:45", label: "01:30 PM - 01:45 PM" },
+  { start: "19:30", end: "19:45", label: "07:30 PM - 07:45 PM" },
+  { start: "20:00", end: "20:15", label: "08:00 PM - 08:15 PM" },
+  { start: "20:15", end: "20:30", label: "08:15 PM - 08:30 PM" },
+  { start: "20:30", end: "20:45", label: "08:30 PM - 08:45 PM" },
+  { start: "21:00", end: "21:15", label: "09:00 PM - 09:15 PM" },
+];
 
 export default function PublicGuestPortal() {
   const { hotelId } = useParams();
@@ -94,12 +155,30 @@ export default function PublicGuestPortal() {
   const [trackMobile, setTrackMobile] = useState(() => localStorage.getItem("guest_mobile") || "");
   const [searchingTrack, setSearchingTrack] = useState(false);
 
-  // Table booking form state
-  const [bookingDate, setBookingDate] = useState("");
-  const [bookingTime, setBookingTime] = useState("");
+  // Table booking form state (15-min arrival time slots)
+  const [bookingDate, setBookingDate] = useState(() => new Date().toISOString().split("T")[0]);
+  const [bookingStartTime, setBookingStartTime] = useState("20:00");
+  const [bookingEndTime, setBookingEndTime] = useState("20:15");
+  const [bookingTime, setBookingTime] = useState("08:00 PM - 08:15 PM");
   const [guestsCount, setGuestsCount] = useState(2);
   const [bookingNotes, setBookingNotes] = useState("");
   const [submittingBooking, setSubmittingBooking] = useState(false);
+
+  // Active customer table booking tracking & reschedule state
+  const [activeBookingId, setActiveBookingId] = useState(() => localStorage.getItem("active_table_booking_id") || null);
+  const [activeBookingData, setActiveBookingData] = useState(null);
+  const [loadingBookingData, setLoadingBookingData] = useState(false);
+  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+  const [rescheduleDate, setRescheduleDate] = useState("");
+  const [rescheduleStartTime, setRescheduleStartTime] = useState("20:00");
+  const [rescheduleEndTime, setRescheduleEndTime] = useState("20:15");
+  const [rescheduling, setRescheduling] = useState(false);
+  const [trackBookingMobile, setTrackBookingMobile] = useState(() => localStorage.getItem("guest_mobile") || "");
+  const [searchingBookingTrack, setSearchingBookingTrack] = useState(false);
+
+  // Unified all-in-one live activities tracking state
+  const [trackedActivities, setTrackedActivities] = useState(null);
+  const [hasSearchedActivities, setHasSearchedActivities] = useState(false);
 
   // Waitlist / Live Queue State
   const [waitlistId, setWaitlistId] = useState(() => localStorage.getItem("active_waitlist_id") || null);
@@ -112,46 +191,88 @@ export default function PublicGuestPortal() {
 
   const handleTrackByMobile = async (e) => {
     if (e) e.preventDefault();
-    if (!trackMobile.trim() || trackMobile.trim().length < 10) {
+    const cleanMobile = trackMobile.trim();
+    if (!cleanMobile || cleanMobile.length < 10) {
       Swal.fire({
         icon: "warning",
         title: "Enter Mobile Number",
-        text: "Please enter your 10-digit mobile number to search your active order.",
+        text: "Please enter your 10-digit mobile number to search your live activities.",
+        confirmButtonColor: "#f59e0b",
       });
       return;
     }
 
     setSearchingTrack(true);
     try {
-      const res = await publicAPI.getOrderByMobile(hotelId, trackMobile.trim());
-      if (res.data.success && res.data.data) {
-        const order = res.data.data;
-        setActiveOrderId(order._id);
-        localStorage.setItem("active_qr_order_id", order._id);
-        setTrackedOrder(order);
-        if (order.tableNo) setSelectedTable(order.tableNo);
-        if (order.customerName) setCustomerName(order.customerName);
-        if (order.customerMobile) setCustomerMobile(order.customerMobile);
+      localStorage.setItem("guest_mobile", cleanMobile);
+      const res = await publicAPI.getCustomerLiveActivity(hotelId, cleanMobile);
+      if (res.data?.success && res.data?.data) {
+        const { activeOrder, activeBooking, activeWaitlist, hasAnyActive } = res.data.data;
+        setTrackedActivities(res.data.data);
+        setHasSearchedActivities(true);
 
-        Swal.fire({
-          icon: "success",
-          title: "Order Found!",
-          text: `Found active order #${order.orderDisplayId} for ${order.orderType === "Table" ? `Table ${order.tableNo}` : "Takeaway"}.`,
-          timer: 2500,
-          showConfirmButton: false,
-        });
-      } else {
-        Swal.fire({
-          icon: "info",
-          title: "No Active Order",
-          text: "No active running order found for this number.",
-        });
+        if (activeOrder) {
+          setActiveOrderId(activeOrder._id);
+          localStorage.setItem("active_qr_order_id", activeOrder._id);
+          setTrackedOrder(activeOrder);
+          if (activeOrder.tableNo) setSelectedTable(activeOrder.tableNo);
+          if (activeOrder.customerName) setCustomerName(activeOrder.customerName);
+        } else {
+          localStorage.removeItem("active_qr_order_id");
+          setActiveOrderId(null);
+          setTrackedOrder(null);
+        }
+
+        if (activeBooking) {
+          setActiveBookingId(activeBooking._id);
+          setActiveBookingData(activeBooking);
+          localStorage.setItem("active_table_booking_id", activeBooking._id);
+        } else {
+          localStorage.removeItem("active_table_booking_id");
+          setActiveBookingId(null);
+          setActiveBookingData(null);
+        }
+
+        if (activeWaitlist) {
+          setWaitlistId(activeWaitlist._id);
+          setWaitlistData(activeWaitlist);
+          localStorage.setItem("active_waitlist_id", activeWaitlist._id);
+        } else {
+          localStorage.removeItem("active_waitlist_id");
+          setWaitlistId(null);
+          setWaitlistData(null);
+        }
+
+        if (hasAnyActive) {
+          const list = [];
+          if (activeWaitlist) list.push(`Queue Token #${activeWaitlist.tokenNo}`);
+          if (activeBooking) list.push(`Table Booking (${activeBooking.bookingTime || "15m slot"})`);
+          if (activeOrder) list.push(`${activeOrder.orderType === "Table" ? `Dine-In Table ${activeOrder.tableNo}` : "Takeaway Order"}`);
+
+          Swal.fire({
+            icon: "success",
+            title: "Live Activities Found! 🎉",
+            html: `<p class="text-sm">Found ${list.length} active service(s):</p>
+                   <p class="text-xs text-amber-400 font-bold mt-2">${list.join(" • ")}</p>`,
+            timer: 2500,
+            showConfirmButton: false,
+          });
+        } else {
+          Swal.fire({
+            icon: "info",
+            title: "No Live Activities",
+            text: "No active queue tokens, advance reservations, or running food orders found for this mobile number.",
+            confirmButtonColor: "#f59e0b",
+          });
+        }
       }
     } catch (err) {
+      console.error("Live activity track error:", err);
       Swal.fire({
         icon: "info",
-        title: "No Active Order",
-        text: err.response?.data?.message || "No active order found for this mobile number. You can place a fresh order from the menu!",
+        title: "No Live Activities",
+        text: err.response?.data?.message || "Could not fetch live activities for this number.",
+        confirmButtonColor: "#f59e0b",
       });
     } finally {
       setSearchingTrack(false);
@@ -208,9 +329,28 @@ export default function PublicGuestPortal() {
     try {
       const res = await publicAPI.getOrderStatus(activeOrderId);
       if (res.data.success) {
-        setTrackedOrder(res.data.data);
+        const ord = res.data.data;
+        // If order is already billed, cancelled, or completed, clean up localStorage so customer gets fresh screen
+        if (
+          ord.status === "Billed" ||
+          ord.status === "Cancelled" ||
+          ord.status === "Completed" ||
+          ord.approvalStatus === "rejected" ||
+          (hotelId && String(ord.hotelId?._id || ord.hotelId) !== String(hotelId))
+        ) {
+          localStorage.removeItem("active_qr_order_id");
+          setActiveOrderId(null);
+          setTrackedOrder(null);
+          return;
+        }
+        setTrackedOrder(ord);
       }
     } catch (err) {
+      if (err.response?.status === 404) {
+        localStorage.removeItem("active_qr_order_id");
+        setActiveOrderId(null);
+        setTrackedOrder(null);
+      }
       console.error("Status error:", err);
     }
   };
@@ -257,6 +397,23 @@ export default function PublicGuestPortal() {
             title: "Order Declined",
             text: data.rejectionReason || "Restaurant was unable to accept your order.",
             confirmButtonColor: "#ef4444",
+          });
+        } else if (
+          data.type === "order_billed" ||
+          data.status === "Billed" ||
+          data.type === "order_completed" ||
+          data.status === "Completed"
+        ) {
+          localStorage.removeItem("active_qr_order_id");
+          setActiveOrderId(null);
+          setTrackedOrder(null);
+
+          Swal.fire({
+            icon: "success",
+            title: "Order Completed / Billed! 🎉",
+            text: data.message || "Thank you for dining with us! Hope you had a great experience.",
+            timer: 4000,
+            showConfirmButton: false,
           });
         } else if (data.type === "kds_status_update") {
           setTrackedOrder((prev) => ({
@@ -581,23 +738,232 @@ export default function PublicGuestPortal() {
     }
   };
 
-  // Handle Table Reservation
+  // Helper to determine if a table booking is confirmed
+  const isBookingConfirmed = (b) => {
+    if (!b) return false;
+    if (b.status === "completed" || b.status === "cancelled") return false;
+    if (b.status === "confirmed") return true;
+    if (b.tableNo && b.status !== "cancelled" && b.status !== "completed") return true;
+    return false;
+  };
+
+  // Fetch active booking status
+  const fetchActiveBooking = async (id = activeBookingId, silent = false) => {
+    if (!id) return;
+    try {
+      if (!silent) setLoadingBookingData(true);
+      const res = await publicAPI.getTableBooking(id);
+      if (res.data.success) {
+        const b = res.data.data;
+        // If booking is completed, cancelled or belongs to another hotel, remove from localStorage
+        if (
+          b.status === "cancelled" ||
+          b.status === "completed" ||
+          (hotelId && String(b.hotelId?._id || b.hotelId) !== String(hotelId))
+        ) {
+          localStorage.removeItem("active_table_booking_id");
+          setActiveBookingId(null);
+          setActiveBookingData(null);
+          return;
+        }
+        setActiveBookingData(b);
+      }
+    } catch (err) {
+      if (err.response?.status === 404) {
+        localStorage.removeItem("active_table_booking_id");
+        setActiveBookingId(null);
+        setActiveBookingData(null);
+      }
+    } finally {
+      if (!silent) setLoadingBookingData(false);
+    }
+  };
+
+  // Fast 3.5s polling while reservation is active, so admin approval/table assignment reflects immediately
+  useEffect(() => {
+    if (!activeBookingId) return;
+    fetchActiveBooking(activeBookingId);
+
+    const interval = setInterval(() => {
+      fetchActiveBooking(activeBookingId, true);
+    }, 3500);
+
+    return () => clearInterval(interval);
+  }, [activeBookingId]);
+
+  // Real-time SSE Connection for Table Booking status
+  useEffect(() => {
+    if (!activeBookingId) return;
+
+    const baseUrl = api.defaults.baseURL || "http://localhost:5000/";
+    const streamUrl = new URL(`/api/public/booking-stream/${activeBookingId}`, baseUrl);
+    const eventSource = new EventSource(streamUrl.toString());
+
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === "booking_completed" || data.status === "completed") {
+          localStorage.removeItem("active_table_booking_id");
+          setActiveBookingId(null);
+          setActiveBookingData(null);
+          Swal.fire({
+            icon: "success",
+            title: "Dining Completed! 🎉",
+            text: "Your reservation is complete. Thank you for visiting us!",
+            timer: 3500,
+            showConfirmButton: false,
+          });
+        } else if (data.type === "booking_cancelled" || data.status === "cancelled") {
+          localStorage.removeItem("active_table_booking_id");
+          setActiveBookingId(null);
+          setActiveBookingData(null);
+        } else if (data.type === "booking_updated") {
+          if (data.booking) {
+            if (data.booking.status === "completed" || data.booking.status === "cancelled") {
+              localStorage.removeItem("active_table_booking_id");
+              setActiveBookingId(null);
+              setActiveBookingData(null);
+              return;
+            }
+            setActiveBookingData(data.booking);
+          }
+          if (data.status === "confirmed" || data.tableNo) {
+            Swal.fire({
+              icon: "success",
+              title: "Table Confirmed! 🎉",
+              text: `Your table reservation has been confirmed${data.tableNo ? ` on Table ${data.tableNo}` : ""}!`,
+              timer: 3500,
+              confirmButtonColor: "#10b981",
+            });
+          }
+        }
+      } catch (err) {
+        console.error("Booking SSE error:", err);
+      }
+    };
+
+    eventSource.onerror = () => {
+      // EventSource auto-reconnects
+    };
+
+    return () => {
+      eventSource.close();
+    };
+  }, [activeBookingId]);
+
+  // Auto-detect bookingId or tab in URL (from saved link or WhatsApp share)
+  useEffect(() => {
+    const urlBookingId = searchParams.get("bookingId");
+    const urlTab = searchParams.get("tab");
+    if (urlBookingId) {
+      setActiveBookingId(urlBookingId);
+      localStorage.setItem("active_table_booking_id", urlBookingId);
+      setActiveTab("table_booking");
+      fetchActiveBooking(urlBookingId);
+    } else if (urlTab === "table_booking") {
+      setActiveTab("table_booking");
+    }
+  }, [searchParams]);
+
+  // Customer Track/Lookup Table Reservation by Mobile Number
+  const handleTrackBookingByMobile = async (e) => {
+    if (e) e.preventDefault();
+    const cleanNum = trackBookingMobile.trim();
+    if (!cleanNum || cleanNum.length < 10) {
+      Swal.fire({
+        icon: "warning",
+        title: "Enter Mobile Number",
+        text: "Please enter your 10-digit mobile number to search your reservation.",
+        confirmButtonColor: "#f59e0b",
+      });
+      return;
+    }
+
+    setSearchingBookingTrack(true);
+    try {
+      const res = await publicAPI.getTableBookingByMobile(hotelId, cleanNum);
+      if (res.data?.success && res.data?.data) {
+        const booking = res.data.data;
+        setActiveBookingId(booking._id);
+        setActiveBookingData(booking);
+        localStorage.setItem("active_table_booking_id", booking._id);
+        localStorage.setItem("guest_mobile", cleanNum);
+        setActiveTab("table_booking");
+        Swal.fire({
+          icon: "success",
+          title: "Reservation Found! 🍽️",
+          html: `<p class="text-sm">Found booking for <b>${booking.customerName}</b></p>
+                 <p class="text-amber-400 font-bold mt-1">${booking.bookingDate} (${booking.bookingTime || "15m slot"})</p>
+                 <p class="text-xs text-slate-400 mt-1">Status: <span class="uppercase font-black text-cyan-400">${booking.status}</span></p>`,
+          timer: 3000,
+          confirmButtonColor: "#f59e0b",
+        });
+      }
+    } catch (err) {
+      Swal.fire({
+        icon: "info",
+        title: "No Reservation Found",
+        text: err.response?.data?.message || "No table booking found for this mobile number. You can book a new table below!",
+        confirmButtonColor: "#f59e0b",
+      });
+    } finally {
+      setSearchingBookingTrack(false);
+    }
+  };
+
+  const getBookingShareLink = (bookingId = activeBookingId) => {
+    if (typeof window === "undefined") return "";
+    const base = window.location.origin + window.location.pathname;
+    return `${base}?bookingId=${bookingId || activeBookingId}&tab=table_booking`;
+  };
+
+  const handleCopyBookingLink = () => {
+    const link = getBookingShareLink();
+    if (!link) return;
+    navigator.clipboard.writeText(link).then(() => {
+      Swal.fire({
+        icon: "success",
+        title: "Link Copied! 📋",
+        text: "Direct reservation status link copied to clipboard. Save or bookmark this link to check anytime!",
+        timer: 2500,
+        showConfirmButton: false,
+      });
+    });
+  };
+
+  const handleShareBookingWhatsApp = () => {
+    const link = getBookingShareLink();
+    const hotelName = hotel?.name || "Restaurant";
+    const dateStr = activeBookingData?.bookingDate || "";
+    const slotStr = activeBookingData?.bookingTime || "";
+    const text = `🍽️ My Table Reservation at ${hotelName}\n📅 Date: ${dateStr}\n⏰ Arrival Slot: ${slotStr}\n🔍 Live Booking Status & Reschedule Link: ${link}`;
+    const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+    window.open(waUrl, "_blank");
+  };
+
+  // Handle Table Reservation (15-min arrival time window)
   const handleTableBooking = async (e) => {
     e.preventDefault();
-    if (!customerName || !customerMobile || !bookingDate || !bookingTime) {
+    if (!customerName.trim() || !customerMobile.trim() || !bookingDate || (!bookingTime && !bookingStartTime)) {
       Swal.fire({ icon: "warning", title: "Missing Details", text: "Please fill in all required fields." });
       return;
     }
+
+    const start12 = formatTime12h(bookingStartTime);
+    const end12 = formatTime12h(bookingEndTime || add15Minutes(bookingStartTime));
+    const fullSlot = `${start12} - ${end12}`;
 
     setSubmittingBooking(true);
     try {
       const payload = {
         hotelId: hotel._id,
-        customerName,
-        customerMobile,
-        customerEmail,
+        customerName: customerName.trim(),
+        customerMobile: customerMobile.trim(),
+        customerEmail: customerEmail.trim(),
         bookingDate,
-        bookingTime,
+        bookingTime: fullSlot,
+        startTime: start12,
+        endTime: end12,
         guestsCount: Number(guestsCount) || 2,
         specialRequests: bookingNotes,
         tableNo: selectedTable || "",
@@ -605,10 +971,18 @@ export default function PublicGuestPortal() {
 
       const res = await publicAPI.bookTable(payload);
       if (res.data.success) {
+        const bData = res.data.data;
+        setActiveBookingId(bData._id);
+        setActiveBookingData(bData);
+        localStorage.setItem("active_table_booking_id", bData._id);
+        localStorage.setItem("guest_name", customerName.trim());
+        localStorage.setItem("guest_mobile", customerMobile.trim());
         Swal.fire({
           icon: "success",
-          title: "Reservation Requested! 🎉",
-          text: "The hotel will confirm your table shortly. We look forward to hosting you!",
+          title: "Table Reserved! 🎉",
+          html: `<p class="text-sm">Table reservation sent for <b>${bookingDate}</b></p>
+                 <p class="text-base font-bold text-amber-500 mt-2">Arrival Slot: ${fullSlot}</p>
+                 <p class="text-xs text-slate-400 mt-2">Hotel team will confirm your table shortly. You can update your time slot or cancel below anytime!</p>`,
           confirmButtonColor: "#f59e0b",
         });
         setBookingNotes("");
@@ -620,6 +994,93 @@ export default function PublicGuestPortal() {
       Swal.fire({ icon: "error", title: "Booking Failed", text: "Could not request table reservation." });
     } finally {
       setSubmittingBooking(false);
+    }
+  };
+
+  // Handle Cancel Reservation by Customer
+  const handleCancelBooking = async () => {
+    if (!activeBookingId) return;
+    const result = await Swal.fire({
+      title: "Cancel Reservation?",
+      text: "Are you sure you want to cancel your table reservation?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, Cancel Booking",
+      cancelButtonText: "No, Keep Reservation",
+      confirmButtonColor: "#ef4444",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const res = await publicAPI.cancelTableBooking(activeBookingId);
+        if (res.data.success) {
+          localStorage.removeItem("active_table_booking_id");
+          setActiveBookingId(null);
+          setActiveBookingData(null);
+          Swal.fire({
+            icon: "success",
+            title: "Reservation Cancelled",
+            text: "Your table reservation has been cancelled. You can make a fresh booking anytime!",
+            confirmButtonColor: "#f59e0b",
+          });
+        }
+      } catch (e) {
+        Swal.fire({ icon: "error", title: "Error", text: e.response?.data?.message || "Failed to cancel reservation." });
+      }
+    }
+  };
+
+  // Open Reschedule Modal for Customer
+  const handleOpenReschedule = () => {
+    if (!activeBookingData) return;
+    setRescheduleDate(activeBookingData.bookingDate || new Date().toISOString().split("T")[0]);
+    if (activeBookingData.startTime) {
+      setRescheduleStartTime(convert12hTo24h(activeBookingData.startTime));
+    } else if (activeBookingData.bookingTime) {
+      const parts = activeBookingData.bookingTime.split("-");
+      setRescheduleStartTime(convert12hTo24h(parts[0]));
+    } else {
+      setRescheduleStartTime("20:00");
+    }
+    if (activeBookingData.endTime) {
+      setRescheduleEndTime(convert12hTo24h(activeBookingData.endTime));
+    } else {
+      setRescheduleEndTime(add15Minutes(convert12hTo24h(activeBookingData.startTime || "20:00")));
+    }
+    setShowRescheduleModal(true);
+  };
+
+  // Submit Reschedule by Customer
+  const handleRescheduleBooking = async (e) => {
+    if (e) e.preventDefault();
+    if (!activeBookingId || !rescheduleDate || !rescheduleStartTime) return;
+    setRescheduling(true);
+    try {
+      const start12 = formatTime12h(rescheduleStartTime);
+      const end12 = formatTime12h(rescheduleEndTime || add15Minutes(rescheduleStartTime));
+      const fullSlot = `${start12} - ${end12}`;
+
+      const res = await publicAPI.rescheduleTableBooking(activeBookingId, {
+        bookingDate: rescheduleDate,
+        bookingTime: fullSlot,
+        startTime: start12,
+        endTime: end12,
+      });
+
+      if (res.data.success) {
+        setActiveBookingData(res.data.data);
+        setShowRescheduleModal(false);
+        Swal.fire({
+          icon: "success",
+          title: "Time Slot Updated! 🕒",
+          text: `Your table reservation has been rescheduled to ${rescheduleDate} (${fullSlot}).`,
+          confirmButtonColor: "#f59e0b",
+        });
+      }
+    } catch (e) {
+      Swal.fire({ icon: "error", title: "Reschedule Failed", text: e.response?.data?.message || "Could not reschedule." });
+    } finally {
+      setRescheduling(false);
     }
   };
 
@@ -644,6 +1105,18 @@ export default function PublicGuestPortal() {
       const res = await publicAPI.getWaitlistStatus(idToFetch);
       if (res.data.success) {
         const item = res.data.data.waitlist || res.data.data;
+        // Auto-clean if seated, completed, cancelled or other hotel
+        if (
+          item.status === "seated" ||
+          item.status === "cancelled" ||
+          item.status === "completed" ||
+          (hotelId && String(item.hotelId?._id || item.hotelId) !== String(hotelId))
+        ) {
+          localStorage.removeItem("active_waitlist_id");
+          setWaitlistId(null);
+          setWaitlistData(null);
+          return;
+        }
         setWaitlistData({
           ...item,
           positionAhead: res.data.data.positionAhead ?? item.positionAhead ?? 0,
@@ -661,7 +1134,7 @@ export default function PublicGuestPortal() {
     }
   };
 
-  // Polling for queue summary & active token status
+  // Polling for queue summary & active token status & table booking
   useEffect(() => {
     if (!hotelId) return;
     fetchQueueSummary();
@@ -670,9 +1143,12 @@ export default function PublicGuestPortal() {
       if (waitlistId) {
         fetchWaitlistStatus(waitlistId);
       }
+      if (activeBookingId) {
+        fetchActiveBooking(activeBookingId);
+      }
     }, 12000);
     return () => clearInterval(interval);
-  }, [hotelId, waitlistId]);
+  }, [hotelId, waitlistId, activeBookingId]);
 
   // Initial fetch for waitlist status if id exists
   useEffect(() => {
@@ -883,7 +1359,10 @@ export default function PublicGuestPortal() {
       </div>
 
       {/* Live Order Tracker Banner (If customer has an active order) */}
-      {trackedOrder && (
+      {trackedOrder &&
+        trackedOrder.status !== "Billed" &&
+        trackedOrder.status !== "Cancelled" &&
+        trackedOrder.status !== "Completed" && (
         <div className="max-w-xl mx-auto px-4 mt-4">
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -970,6 +1449,51 @@ export default function PublicGuestPortal() {
                   <X className="w-4 h-4" />
                 </button>
               </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Live Table Reservation Banner (If customer has an active booking) */}
+      {activeBookingData &&
+        activeBookingData.status !== "cancelled" &&
+        activeBookingData.status !== "completed" &&
+        activeTab !== "table_booking" && (
+        <div className="max-w-xl mx-auto px-4 mt-3">
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            onClick={() => setActiveTab("table_booking")}
+            className="p-3.5 rounded-2xl border border-cyan-500/40 bg-gradient-to-r from-cyan-950/70 to-slate-900/80 backdrop-blur-xl shadow-xl flex items-center justify-between cursor-pointer hover:border-cyan-400 transition-all group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center border border-cyan-500/30 shrink-0">
+                <CalendarDays className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-black text-white">Your Table Reservation</span>
+                  <span
+                    className={`text-[9px] uppercase font-black px-2 py-0.5 rounded-full ${
+                      isBookingConfirmed(activeBookingData)
+                        ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
+                        : "bg-amber-500/20 text-amber-300 border border-amber-500/40"
+                    }`}
+                  >
+                    {isBookingConfirmed(activeBookingData) ? "Confirmed" : "Pending"}
+                  </span>
+                </div>
+                <p className="text-[11px] text-cyan-300/80 flex items-center gap-1.5 mt-0.5 font-medium">
+                  <span>{activeBookingData.bookingDate}</span>
+                  <span>•</span>
+                  <span className="font-mono text-cyan-200">{activeBookingData.bookingTime}</span>
+                  {activeBookingData.tableNo && <span>• Table {activeBookingData.tableNo}</span>}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 text-cyan-400 text-xs font-bold group-hover:translate-x-1 transition-transform">
+              <span>View</span>
+              <ChevronRight className="w-4 h-4" />
             </div>
           </motion.div>
         </div>
@@ -1355,110 +1879,461 @@ export default function PublicGuestPortal() {
             </div>
           </div>
         ) : activeTab === "table_booking" ? (
-          /* VIEW 3: TABLE BOOKING FORM */
+          /* VIEW 3: TABLE BOOKING FORM & ACTIVE RESERVATION */
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-[#0A2F2F]/60 backdrop-blur-xl border border-white/15 rounded-3xl p-6 md:p-8 shadow-2xl"
+            className="space-y-6"
           >
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2.5 rounded-xl bg-saffron-500/20 text-saffron-400 border border-saffron-500/30">
-                <CalendarDays className="w-5 h-5" />
-              </div>
-              <h2 className="text-lg font-black text-white font-display">Reserve a Dining Table</h2>
-            </div>
-            <p className="text-xs text-slate-300 mb-6 leading-relaxed">
-              Planning lunch or dinner at {hotel.name}? Reserve your table in advance to avoid waiting.
-            </p>
+            {/* Active Reservation Status Card (If Customer has booked a table) */}
+            {activeBookingData &&
+              activeBookingData.status !== "cancelled" &&
+              activeBookingData.status !== "completed" && (
+              <div className="bg-[#0A2F2F]/70 backdrop-blur-xl border border-saffron-500/30 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4 mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 rounded-2xl bg-saffron-500/20 text-saffron-400 border border-saffron-500/30">
+                      <CalendarDays className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-black text-white font-display">Your Table Reservation</h2>
+                      <p className="text-xs text-slate-300">Reservation #{activeBookingData._id?.slice(-6).toUpperCase()}</p>
+                    </div>
+                  </div>
 
-            <form onSubmit={handleTableBooking} className="flex flex-col gap-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div>
-                  <label className="text-xs text-slate-200 font-bold mb-1.5 block">Full Name *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Enter your name"
-                    value={customerName}
-                    onChange={(e) => setCustomerName(e.target.value)}
-                    className="w-full bg-[#061C1C]/80 border border-white/15 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-saffron-400/40 focus:border-saffron-400 transition-all font-medium"
-                  />
+                  <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => fetchActiveBooking(activeBookingId)}
+                      disabled={loadingBookingData}
+                      className="px-2.5 py-1 rounded-xl bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition-all cursor-pointer flex items-center gap-1.5 text-xs font-bold"
+                      title="Sync status with restaurant"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${loadingBookingData ? "animate-spin text-amber-400" : ""}`} />
+                      <span>Sync</span>
+                    </button>
+
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider inline-flex items-center gap-1.5 ${
+                        isBookingConfirmed(activeBookingData)
+                          ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                          : activeBookingData.status === "cancelled"
+                          ? "bg-rose-500/20 text-rose-400 border border-rose-500/30"
+                          : "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                      }`}
+                    >
+                      {isBookingConfirmed(activeBookingData) && <Check className="w-3.5 h-3.5" />}
+                      {activeBookingData.status === "cancelled" && <X className="w-3.5 h-3.5" />}
+                      {!isBookingConfirmed(activeBookingData) && activeBookingData.status !== "cancelled" && (
+                        <Clock className="w-3.5 h-3.5 animate-pulse" />
+                      )}
+                      {isBookingConfirmed(activeBookingData)
+                        ? "Confirmed"
+                        : activeBookingData.status === "cancelled"
+                        ? "Cancelled"
+                        : "Pending Approval"}
+                    </span>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="text-xs text-slate-200 font-bold mb-1.5 block">Mobile Number *</label>
-                  <input
-                    type="tel"
-                    required
-                    placeholder="10-digit mobile"
-                    value={customerMobile}
-                    onChange={(e) => setCustomerMobile(e.target.value)}
-                    className="w-full bg-[#061C1C]/80 border border-white/15 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-saffron-400/40 focus:border-saffron-400 transition-all font-medium"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-                <div>
-                  <label className="text-xs text-slate-200 font-bold mb-1.5 block">Date *</label>
-                  <input
-                    type="date"
-                    required
-                    min={new Date().toISOString().split("T")[0]}
-                    value={bookingDate}
-                    onChange={(e) => setBookingDate(e.target.value)}
-                    className="w-full bg-[#061C1C]/80 border border-white/15 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:ring-2 focus:ring-saffron-400/40 focus:border-saffron-400 transition-all font-medium"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs text-slate-200 font-bold mb-1.5 block">Time Slot *</label>
-                  <input
-                    type="time"
-                    required
-                    value={bookingTime}
-                    onChange={(e) => setBookingTime(e.target.value)}
-                    className="w-full bg-[#061C1C]/80 border border-white/15 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:ring-2 focus:ring-saffron-400/40 focus:border-saffron-400 transition-all font-medium"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 bg-[#061C1C]/60 p-4 rounded-2xl border border-white/10 mb-5 text-xs">
+                  <div>
+                    <span className="text-slate-400 font-bold block mb-0.5">Date</span>
+                    <p className="text-white font-black text-sm">{activeBookingData.bookingDate}</p>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 font-bold block mb-0.5">15-Min Arrival Slot</span>
+                    <p className="text-amber-400 font-black text-sm flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5 shrink-0" />
+                      {activeBookingData.bookingTime}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 font-bold block mb-0.5">Party Size</span>
+                    <p className="text-white font-bold">{activeBookingData.guestsCount} Guests</p>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 font-bold block mb-0.5">Table</span>
+                    <p className="text-white font-bold">
+                      {activeBookingData.tableNo ? (
+                        <span className="text-emerald-400 font-black">Table {activeBookingData.tableNo}</span>
+                      ) : isBookingConfirmed(activeBookingData) ? (
+                        <span className="text-emerald-400 font-bold">Confirmed</span>
+                      ) : (
+                        <span className="text-slate-400 italic">Assigning upon arrival</span>
+                      )}
+                    </p>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="text-xs text-slate-200 font-bold mb-1.5 block">Guests *</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="50"
-                    required
-                    value={guestsCount}
-                    onChange={(e) => setGuestsCount(e.target.value)}
-                    className="w-full bg-[#061C1C]/80 border border-white/15 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:ring-2 focus:ring-saffron-400/40 focus:border-saffron-400 transition-all font-medium"
-                  />
-                </div>
-              </div>
+                {activeBookingData.specialRequests && (
+                  <p className="text-xs text-slate-300 mb-4 bg-white/[0.04] p-3 rounded-xl border border-white/10">
+                    <span className="font-bold text-slate-400">Special Request:</span> {activeBookingData.specialRequests}
+                  </p>
+                )}
 
-              <div>
-                <label className="text-xs text-slate-200 font-bold mb-1.5 block">Special Requests (Optional)</label>
-                <textarea
-                  rows="2"
-                  placeholder="Birthday decoration, quiet corner, baby chair..."
-                  value={bookingNotes}
-                  onChange={(e) => setBookingNotes(e.target.value)}
-                  className="w-full bg-[#061C1C]/80 border border-white/15 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-saffron-400/40 focus:border-saffron-400 transition-all font-medium"
-                ></textarea>
-              </div>
+                {/* Customer Action Buttons */}
+                <div className="flex flex-wrap items-center gap-2.5 pt-1">
+                  {activeBookingData.status !== "cancelled" && (
+                    <>
+                      <button
+                        onClick={handleOpenReschedule}
+                        className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold transition-colors cursor-pointer"
+                      >
+                        <Clock className="w-3.5 h-3.5" />
+                        <span>Update Time Slot</span>
+                      </button>
 
-              <div className="pt-2 flex justify-center">
-                <MagneticButton>
+                      <button
+                        onClick={handleCancelBooking}
+                        className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-xs font-bold transition-colors cursor-pointer"
+                      >
+                        <XCircle className="w-3.5 h-3.5" />
+                        <span>Cancel Booking</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleCopyBookingLink}
+                        className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 text-xs font-bold transition-colors cursor-pointer"
+                        title="Copy direct status link"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>Save Link</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleShareBookingWhatsApp}
+                        className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-xs font-bold transition-colors cursor-pointer"
+                        title="Share on WhatsApp"
+                      >
+                        <Share2 className="w-3.5 h-3.5" />
+                        <span>WhatsApp</span>
+                      </button>
+                    </>
+                  )}
+
                   <button
-                    type="submit"
-                    disabled={submittingBooking}
-                    className="w-full sm:w-auto min-w-[260px] py-3.5 px-8 rounded-xl bg-gradient-to-r from-saffron-400 to-saffron-500 hover:from-saffron-300 hover:to-saffron-400 text-slate-950 font-black text-sm tracking-wide shadow-xl shadow-saffron-500/25 transition-all disabled:opacity-50 cursor-pointer"
+                    onClick={() => {
+                      localStorage.removeItem("active_table_booking_id");
+                      setActiveBookingId(null);
+                      setActiveBookingData(null);
+                    }}
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-white/[0.06] hover:bg-white/10 text-slate-300 text-xs font-medium border border-white/10 transition-colors cursor-pointer"
                   >
-                    {submittingBooking ? "Submitting Reservation..." : "Confirm Table Reservation Request"}
+                    <span>+ Book Another Table</span>
                   </button>
-                </MagneticButton>
+                </div>
               </div>
-            </form>
+            )}
+
+            {/* Find Reservation by Mobile Box (If no active reservation displayed) */}
+            {(!activeBookingData ||
+              activeBookingData.status === "cancelled" ||
+              activeBookingData.status === "completed") && (
+              <div className="bg-[#0A2F2F]/50 backdrop-blur-xl border border-cyan-500/30 rounded-3xl p-5 shadow-xl">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 rounded-2xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 shrink-0">
+                      <Search className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-black text-white">Already Have a Reservation?</h3>
+                      <p className="text-[11px] text-slate-300">
+                        Enter your mobile number to view live status, reschedule 15-min slot, or cancel anytime.
+                      </p>
+                    </div>
+                  </div>
+
+                  <form onSubmit={handleTrackBookingByMobile} className="flex items-center gap-2 w-full sm:w-auto">
+                    <input
+                      type="tel"
+                      placeholder="10-digit mobile"
+                      maxLength={10}
+                      value={trackBookingMobile}
+                      onChange={(e) => setTrackBookingMobile(e.target.value)}
+                      className="w-full sm:w-40 bg-[#061C1C]/90 border border-cyan-500/30 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 font-mono"
+                    />
+                    <button
+                      type="submit"
+                      disabled={searchingBookingTrack}
+                      className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-slate-950 font-black text-xs shadow-md transition-all cursor-pointer shrink-0 disabled:opacity-50"
+                    >
+                      {searchingBookingTrack ? "Searching..." : "Find"}
+                    </button>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* New Reservation Form Card (Shown when customer wants to book) */}
+            {(!activeBookingData ||
+              activeBookingData.status === "cancelled" ||
+              activeBookingData.status === "completed") && (
+              <div className="bg-[#0A2F2F]/60 backdrop-blur-xl border border-white/15 rounded-3xl p-6 md:p-8 shadow-2xl">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2.5 rounded-xl bg-saffron-500/20 text-saffron-400 border border-saffron-500/30">
+                    <CalendarDays className="w-5 h-5" />
+                  </div>
+                  <h2 className="text-lg font-black text-white font-display">Reserve a Dining Table</h2>
+                </div>
+                <p className="text-xs text-slate-300 mb-6 leading-relaxed">
+                  Planning dining at {hotel.name}? Reserve a table with a 15-minute arrival window to avoid waiting.
+                </p>
+
+                <form onSubmit={handleTableBooking} className="flex flex-col gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div>
+                      <label className="text-xs text-slate-200 font-bold mb-1.5 block">Full Name *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="Enter your name"
+                        value={customerName}
+                        onChange={(e) => setCustomerName(e.target.value)}
+                        className="w-full bg-[#061C1C]/80 border border-white/15 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-saffron-400/40 focus:border-saffron-400 transition-all font-medium"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs text-slate-200 font-bold mb-1.5 block">Mobile Number *</label>
+                      <input
+                        type="tel"
+                        required
+                        placeholder="10-digit mobile"
+                        value={customerMobile}
+                        onChange={(e) => setCustomerMobile(e.target.value)}
+                        className="w-full bg-[#061C1C]/80 border border-white/15 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-saffron-400/40 focus:border-saffron-400 transition-all font-medium"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div>
+                      <label className="text-xs text-slate-200 font-bold mb-1.5 block">Booking Date *</label>
+                      <input
+                        type="date"
+                        required
+                        min={new Date().toISOString().split("T")[0]}
+                        value={bookingDate}
+                        onChange={(e) => setBookingDate(e.target.value)}
+                        className="w-full bg-[#061C1C]/80 border border-white/15 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:ring-2 focus:ring-saffron-400/40 focus:border-saffron-400 transition-all font-medium"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs text-slate-200 font-bold mb-1.5 block">Party Size (Guests) *</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="50"
+                        required
+                        value={guestsCount}
+                        onChange={(e) => setGuestsCount(e.target.value)}
+                        className="w-full bg-[#061C1C]/80 border border-white/15 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:ring-2 focus:ring-saffron-400/40 focus:border-saffron-400 transition-all font-medium"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 15-Minute Time Slot Picker */}
+                  <div className="bg-[#061C1C]/60 p-4 rounded-2xl border border-white/10 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs text-amber-400 font-bold flex items-center gap-1.5">
+                        <Clock className="w-4 h-4" />
+                        <span>Select Arrival Time Window (15-Minute Gap) *</span>
+                      </label>
+                      <span className="text-[10px] text-slate-400 font-medium hidden sm:inline">Exact 15-min window</span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <span className="text-[10px] text-slate-300 block mb-1">From (Start Time)</span>
+                        <input
+                          type="time"
+                          required
+                          value={bookingStartTime}
+                          onChange={(e) => {
+                            setBookingStartTime(e.target.value);
+                            setBookingEndTime(add15Minutes(e.target.value));
+                          }}
+                          className="w-full bg-[#0A2F2F] border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400 font-semibold"
+                        />
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-slate-300 block mb-1">To (15 Min Gap)</span>
+                        <input
+                          type="time"
+                          required
+                          value={bookingEndTime}
+                          onChange={(e) => setBookingEndTime(e.target.value)}
+                          className="w-full bg-[#0A2F2F] border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400 font-semibold"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Calculated Time Slot Badge */}
+                    <div className="flex items-center gap-2 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-300 text-xs font-bold">
+                      <Clock className="w-4 h-4 text-amber-400 shrink-0" />
+                      <span>
+                        Reserved Slot: {formatTime12h(bookingStartTime)} to {formatTime12h(bookingEndTime || add15Minutes(bookingStartTime))} (15-min arrival buffer)
+                      </span>
+                    </div>
+
+                    {/* Quick 15-Min Slot Presets */}
+                    <div>
+                      <span className="text-[10px] text-slate-400 uppercase tracking-wider font-bold block mb-1.5">Quick 15-Min Slot Chips:</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {PRESET_15MIN_SLOTS.map((slot) => {
+                          const isSelected = bookingStartTime === slot.start && bookingEndTime === slot.end;
+                          return (
+                            <button
+                              key={slot.label}
+                              type="button"
+                              onClick={() => {
+                                setBookingStartTime(slot.start);
+                                setBookingEndTime(slot.end);
+                              }}
+                              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                                isSelected
+                                  ? "bg-amber-500 text-slate-950 shadow-md font-black"
+                                  : "bg-white/[0.06] hover:bg-white/15 text-slate-200 border border-white/10"
+                              }`}
+                            >
+                              {slot.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs text-slate-200 font-bold mb-1.5 block">Special Requests (Optional)</label>
+                    <textarea
+                      rows="2"
+                      placeholder="Birthday celebration, quiet corner, high chair..."
+                      value={bookingNotes}
+                      onChange={(e) => setBookingNotes(e.target.value)}
+                      className="w-full bg-[#061C1C]/80 border border-white/15 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-saffron-400/40 focus:border-saffron-400 transition-all font-medium"
+                    ></textarea>
+                  </div>
+
+                  <div className="pt-2 flex justify-center">
+                    <MagneticButton>
+                      <button
+                        type="submit"
+                        disabled={submittingBooking}
+                        className="w-full sm:w-auto min-w-[260px] py-3.5 px-8 rounded-xl bg-gradient-to-r from-saffron-400 to-saffron-500 hover:from-saffron-300 hover:to-saffron-400 text-slate-950 font-black text-sm tracking-wide shadow-xl shadow-saffron-500/25 transition-all disabled:opacity-50 cursor-pointer"
+                      >
+                        {submittingBooking ? "Reserving Table..." : "Reserve Table (15-Min Slot)"}
+                      </button>
+                    </MagneticButton>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {/* Customer Reschedule Slot Modal */}
+            {showRescheduleModal && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+                <div className="bg-[#0A2F2F] border border-amber-500/30 p-6 rounded-3xl w-full max-w-md shadow-2xl text-white animate-scale-up">
+                  <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-4">
+                    <div className="flex items-center gap-2 text-amber-400 font-bold">
+                      <Clock className="w-5 h-5" />
+                      <h3 className="text-base font-black">Reschedule Time Slot</h3>
+                    </div>
+                    <button
+                      onClick={() => setShowRescheduleModal(false)}
+                      className="p-1 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleRescheduleBooking} className="space-y-4 text-xs">
+                    <div>
+                      <label className="text-slate-300 font-bold block mb-1">New Booking Date</label>
+                      <input
+                        type="date"
+                        required
+                        min={new Date().toISOString().split("T")[0]}
+                        value={rescheduleDate}
+                        onChange={(e) => setRescheduleDate(e.target.value)}
+                        className="w-full bg-[#061C1C] border border-white/15 rounded-xl px-3 py-2 text-white font-medium"
+                      />
+                    </div>
+
+                    <div className="bg-[#061C1C]/80 p-3.5 rounded-2xl border border-white/10 space-y-2.5">
+                      <span className="text-amber-400 font-bold block">New 15-Minute Arrival Window</span>
+                      <div className="grid grid-cols-2 gap-2.5">
+                        <div>
+                          <span className="text-[10px] text-slate-400 block mb-1">Start Time</span>
+                          <input
+                            type="time"
+                            required
+                            value={rescheduleStartTime}
+                            onChange={(e) => {
+                              setRescheduleStartTime(e.target.value);
+                              setRescheduleEndTime(add15Minutes(e.target.value));
+                            }}
+                            className="w-full bg-[#0A2F2F] border border-white/15 rounded-xl px-2.5 py-1.5 text-white text-xs font-semibold"
+                          />
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-slate-400 block mb-1">End Time (+15 min)</span>
+                          <input
+                            type="time"
+                            required
+                            value={rescheduleEndTime}
+                            onChange={(e) => setRescheduleEndTime(e.target.value)}
+                            className="w-full bg-[#0A2F2F] border border-white/15 rounded-xl px-2.5 py-1.5 text-white text-xs font-semibold"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-300 text-[11px] font-bold">
+                        New Slot: {formatTime12h(rescheduleStartTime)} - {formatTime12h(rescheduleEndTime || add15Minutes(rescheduleStartTime))}
+                      </div>
+
+                      {/* Quick chips in modal */}
+                      <div className="flex flex-wrap gap-1 pt-1">
+                        {PRESET_15MIN_SLOTS.map((slot) => (
+                          <button
+                            key={slot.label}
+                            type="button"
+                            onClick={() => {
+                              setRescheduleStartTime(slot.start);
+                              setRescheduleEndTime(slot.end);
+                            }}
+                            className="px-2 py-0.5 rounded text-[10px] bg-white/[0.06] hover:bg-amber-500/20 hover:text-amber-300 border border-white/10 transition-colors"
+                          >
+                            {slot.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowRescheduleModal(false)}
+                        className="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold"
+                      >
+                        Close
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={rescheduling}
+                        className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black disabled:opacity-50"
+                      >
+                        {rescheduling ? "Saving..." : "Confirm New Slot"}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
           </motion.div>
         ) : activeTab === "waitlist" ? (
           /* VIEW 4: LIVE WAITING QUEUE TOKEN & FORM */
@@ -1525,7 +2400,7 @@ export default function PublicGuestPortal() {
             </div>
 
             {/* IF GUEST HAS AN ACTIVE TOKEN */}
-            {waitlistData && (waitlistData.status === "waiting" || waitlistData.status === "called" || waitlistData.status === "seated") ? (
+            {waitlistData && (waitlistData.status === "waiting" || waitlistData.status === "called") ? (
               <div className="bg-gradient-to-b from-[#0A2F2F]/80 to-[#061C1C]/90 backdrop-blur-2xl border-2 border-saffron-500/40 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-saffron-500/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -1751,132 +2626,318 @@ export default function PublicGuestPortal() {
             )}
           </motion.div>
         ) : (
-          /* VIEW 4: TRACK ORDER BY MOBILE */
+          /* VIEW 4: ALL-IN-ONE TRACK BY MOBILE */
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-[#0A2F2F]/60 backdrop-blur-xl border border-white/15 rounded-3xl p-6 md:p-8 shadow-2xl space-y-5"
+            className="bg-[#0A2F2F]/60 backdrop-blur-xl border border-white/15 rounded-3xl p-6 md:p-8 shadow-2xl space-y-6"
           >
             <div>
-              <h2 className="text-base font-black text-white flex items-center gap-2 font-display">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-[10px] font-black uppercase tracking-wider mb-2">
+                <Sparkles className="w-3.5 h-3.5" />
+                All-in-One Live Activity Tracking
+              </div>
+              <h2 className="text-lg font-black text-white flex items-center gap-2 font-display">
                 <Search className="w-5 h-5 text-saffron-400" />
-                Track Your Active Order
+                Track All Live Activities
               </h2>
               <p className="text-xs text-slate-300 mt-1 leading-relaxed">
-                Enter your 10-digit mobile number used during ordering to check live preparation status, bill details, or add more items to your table.
+                Enter your 10-digit mobile number to track live queue tokens, advance table bookings, or running food orders (Dine-in / Takeaway).
               </p>
             </div>
 
             <form onSubmit={handleTrackByMobile} className="flex flex-col gap-3">
               <div>
-                <label className="text-xs text-slate-200 font-bold mb-1.5 block">Your Mobile Number *</label>
+                <label className="text-xs text-slate-200 font-bold mb-1.5 block">Your 10-Digit Mobile Number *</label>
                 <div className="flex gap-2">
                   <input
                     type="tel"
                     required
+                    maxLength={10}
                     placeholder="Enter 10-digit mobile"
                     value={trackMobile}
                     onChange={(e) => setTrackMobile(e.target.value)}
-                    className="flex-1 bg-[#061C1C]/80 border border-white/15 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-saffron-400/40 focus:border-saffron-400 transition-all font-medium"
+                    className="flex-1 bg-[#061C1C]/80 border border-white/15 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-saffron-400/40 focus:border-saffron-400 transition-all font-mono"
                   />
                   <MagneticButton>
                     <button
                       type="submit"
                       disabled={searchingTrack}
-                      className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-saffron-400 to-saffron-500 text-slate-950 font-black text-xs hover:opacity-95 active:scale-95 transition-all shrink-0 flex items-center gap-1.5 shadow-lg shadow-saffron-500/25 cursor-pointer"
+                      className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-saffron-400 to-saffron-500 text-slate-950 font-black text-xs hover:opacity-95 active:scale-95 transition-all shrink-0 flex items-center gap-1.5 shadow-lg shadow-saffron-500/25 cursor-pointer disabled:opacity-50"
                     >
                       {searchingTrack ? (
                         <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                       ) : (
                         <Search className="w-3.5 h-3.5 stroke-[2.5]" />
                       )}
-                      <span>{searchingTrack ? "Searching..." : "Track Order"}</span>
+                      <span>{searchingTrack ? "Searching..." : "Track Activities"}</span>
                     </button>
                   </MagneticButton>
                 </div>
               </div>
             </form>
 
-            {/* Display Tracked Order Details if Found */}
-            {trackedOrder && (
-              <div className="p-4 rounded-2xl bg-[#061C1C]/80 border border-white/15 space-y-3">
-                <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
-                  <div>
-                    <span className="text-xs font-black text-white font-display">Order #{trackedOrder.orderDisplayId}</span>
-                    <span className="text-[10px] ml-2 px-2.5 py-0.5 rounded-full bg-saffron-500/20 border border-saffron-500/30 text-saffron-300 font-bold">
-                      {trackedOrder.orderType === "Table" ? `Table ${trackedOrder.tableNo}` : "Takeaway"}
-                    </span>
-                  </div>
-                  <span
-                    className={`text-[10px] px-2.5 py-0.5 rounded-full font-black uppercase ${
-                      trackedOrder.approvalStatus === "approved"
-                        ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
-                        : trackedOrder.approvalStatus === "pending"
-                        ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
-                        : "bg-rose-500/20 text-rose-300 border border-rose-500/30"
-                    }`}
-                  >
-                    {trackedOrder.approvalStatus === "approved"
-                      ? `Active (${trackedOrder.kdsStatus || "Preparing"})`
-                      : trackedOrder.approvalStatus}
-                  </span>
-                </div>
-
-                {/* Items Summary */}
-                <div className="space-y-1.5 max-h-48 overflow-y-auto custom-scrollbar text-xs pr-1">
-                  {trackedOrder.items?.map((item, idx) => (
-                    <div key={idx} className="flex justify-between items-center text-slate-300">
-                      <span>
-                        <span className="font-bold text-saffron-400">{item.quantity}x</span> {item.name}
-                      </span>
-                      <span className="text-white font-mono font-bold">₹{item.price * item.quantity}</span>
-                    </div>
-                  ))}
-
-                  {/* Pending Addons */}
-                  {trackedOrder.pendingAddons?.filter((a) => a.status === "pending").map((addon, aIdx) => (
-                    <div key={aIdx} className="p-2.5 rounded-xl bg-saffron-500/10 border border-saffron-500/30 text-[11px] text-saffron-200">
-                      <div className="font-bold flex items-center gap-1.5 text-saffron-400">
-                        <Clock className="w-3.5 h-3.5 animate-spin" /> Additional Items Pending Approval:
+            {/* RESULTS CONTAINER */}
+            {hasSearchedActivities && (
+              <div className="space-y-4 pt-2">
+                {/* 1. LIVE QUEUE TOKEN CARD */}
+                {trackedActivities?.activeWaitlist &&
+                  (trackedActivities.activeWaitlist.status === "waiting" || trackedActivities.activeWaitlist.status === "called") && (
+                  <div className="p-4 rounded-2xl bg-[#061C1C]/85 border border-cyan-500/40 space-y-3 shadow-xl">
+                    <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
+                      <div className="flex items-center gap-2">
+                        <span className="p-2 rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                          <Ticket className="w-4 h-4" />
+                        </span>
+                        <div>
+                          <span className="text-xs font-black text-white">Live Queue Token #{trackedActivities.activeWaitlist.tokenNo}</span>
+                          <p className="text-[10px] text-slate-400">Digital Waiting Turn</p>
+                        </div>
                       </div>
-                      {addon.items?.map((adItem, i) => (
-                        <div key={i} className="flex justify-between text-slate-300 ml-2 mt-1">
-                          <span>{adItem.quantity}x {adItem.name}</span>
-                          <span className="font-bold text-white">₹{adItem.price * adItem.quantity}</span>
+                      <span
+                        className={`text-[10px] px-2.5 py-0.5 rounded-full font-black uppercase ${
+                          trackedActivities.activeWaitlist.status === "called"
+                            ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 animate-pulse"
+                            : "bg-amber-500/20 text-amber-300 border border-amber-500/40"
+                        }`}
+                      >
+                        {trackedActivities.activeWaitlist.status === "called" ? "Table Ready!" : "Waiting in Queue"}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2 text-xs bg-white/[0.03] p-3 rounded-xl border border-white/5">
+                      <div>
+                        <span className="text-slate-400 text-[10px] block">Position Ahead</span>
+                        <span className="font-bold text-white text-xs">{trackedActivities.activeWaitlist.positionAhead || 0} Parties</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 text-[10px] block">Est. Wait</span>
+                        <span className="font-bold text-cyan-300 text-xs">~{trackedActivities.activeWaitlist.estimatedWaitMinutes || 10} Mins</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 text-[10px] block">Party Size</span>
+                        <span className="font-bold text-white text-xs">{trackedActivities.activeWaitlist.guestsCount} Guests</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab("waitlist")}
+                        className="flex-1 py-2 px-3 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        <Ticket className="w-3.5 h-3.5" />
+                        <span>View Token Ticket</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleCancelWaitlist(trackedActivities.activeWaitlist._id)}
+                        className="py-2 px-3 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
+                      >
+                        <XCircle className="w-3.5 h-3.5" />
+                        <span>Cancel Token</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* 2. ADVANCE TABLE RESERVATION CARD */}
+                {trackedActivities?.activeBooking &&
+                  trackedActivities.activeBooking.status !== "cancelled" &&
+                  trackedActivities.activeBooking.status !== "completed" && (
+                  <div className="p-4 rounded-2xl bg-[#061C1C]/85 border border-amber-500/40 space-y-3 shadow-xl">
+                    <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
+                      <div className="flex items-center gap-2">
+                        <span className="p-2 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                          <CalendarDays className="w-4 h-4" />
+                        </span>
+                        <div>
+                          <span className="text-xs font-black text-white">Advance Table Reservation</span>
+                          <p className="text-[10px] text-slate-400">Ref #{trackedActivities.activeBooking._id?.slice(-6).toUpperCase()}</p>
+                        </div>
+                      </div>
+                      <span
+                        className={`text-[10px] px-2.5 py-0.5 rounded-full font-black uppercase ${
+                          isBookingConfirmed(trackedActivities.activeBooking)
+                            ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
+                            : trackedActivities.activeBooking.status === "cancelled"
+                            ? "bg-rose-500/20 text-rose-300 border border-rose-500/40"
+                            : "bg-amber-500/20 text-amber-300 border border-amber-500/40"
+                        }`}
+                      >
+                        {isBookingConfirmed(trackedActivities.activeBooking)
+                          ? "Confirmed"
+                          : trackedActivities.activeBooking.status === "cancelled"
+                          ? "Cancelled"
+                          : "Pending Approval"}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs bg-white/[0.03] p-3 rounded-xl border border-white/5">
+                      <div>
+                        <span className="text-slate-400 text-[10px] block">Date</span>
+                        <span className="font-bold text-white text-xs">{trackedActivities.activeBooking.bookingDate}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 text-[10px] block">15-Min Arrival Window</span>
+                        <span className="font-mono font-bold text-amber-400 text-xs flex items-center gap-1">
+                          <Clock className="w-3 h-3 shrink-0" />
+                          {trackedActivities.activeBooking.bookingTime}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 text-[10px] block">Party Size</span>
+                        <span className="font-bold text-white text-xs">{trackedActivities.activeBooking.guestsCount} Guests</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 text-[10px] block">Assigned Table</span>
+                        <span className="font-bold text-emerald-400 text-xs">
+                          {trackedActivities.activeBooking.tableNo ? `Table ${trackedActivities.activeBooking.tableNo}` : "Assigning upon arrival"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Action buttons */}
+                    <div className="flex flex-wrap items-center gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={handleOpenReschedule}
+                        className="flex-1 sm:flex-none py-2 px-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        <Clock className="w-3.5 h-3.5" />
+                        <span>Update Time Slot</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleCancelBooking(trackedActivities.activeBooking._id)}
+                        className="flex-1 sm:flex-none py-2 px-3 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer"
+                      >
+                        <XCircle className="w-3.5 h-3.5" />
+                        <span>Cancel Booking</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleShareBookingWhatsApp}
+                        className="py-2 px-3 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
+                        title="Share on WhatsApp"
+                      >
+                        <Share2 className="w-3.5 h-3.5" />
+                        <span>WhatsApp</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* 3. ACTIVE FOOD ORDER CARD */}
+                {trackedActivities?.activeOrder &&
+                  trackedActivities.activeOrder.status !== "Billed" &&
+                  trackedActivities.activeOrder.status !== "Cancelled" &&
+                  trackedActivities.activeOrder.status !== "Completed" && (
+                  <div className="p-4 rounded-2xl bg-[#061C1C]/85 border border-white/15 space-y-3 shadow-xl">
+                    <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
+                      <div>
+                        <span className="text-xs font-black text-white font-display">Order #{trackedActivities.activeOrder.orderDisplayId}</span>
+                        <span className="text-[10px] ml-2 px-2.5 py-0.5 rounded-full bg-saffron-500/20 border border-saffron-500/30 text-saffron-300 font-bold">
+                          {trackedActivities.activeOrder.orderType === "Table" ? `Table ${trackedActivities.activeOrder.tableNo}` : "Takeaway / Parcel"}
+                        </span>
+                      </div>
+                      <span
+                        className={`text-[10px] px-2.5 py-0.5 rounded-full font-black uppercase ${
+                          trackedActivities.activeOrder.approvalStatus === "approved"
+                            ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                            : "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                        }`}
+                      >
+                        {trackedActivities.activeOrder.approvalStatus === "approved"
+                          ? `Active (${trackedActivities.activeOrder.kdsStatus || "Preparing"})`
+                          : "Pending Approval"}
+                      </span>
+                    </div>
+
+                    {/* Items Summary */}
+                    <div className="space-y-1.5 max-h-48 overflow-y-auto custom-scrollbar text-xs pr-1">
+                      {trackedActivities.activeOrder.items?.map((item, idx) => (
+                        <div key={idx} className="flex justify-between items-center text-slate-300">
+                          <span>
+                            <span className="font-bold text-saffron-400">{item.quantity}x</span> {item.name}
+                          </span>
+                          <span className="text-white font-mono font-bold">₹{item.price * item.quantity}</span>
                         </div>
                       ))}
                     </div>
-                  ))}
-                </div>
 
-                <div className="border-t border-white/10 pt-2.5 flex items-center justify-between">
-                  <span className="text-xs text-slate-300 font-semibold">Total Bill Amount:</span>
-                  <span className="text-base font-black text-saffron-400 font-mono">₹{trackedOrder.grandTotal}</span>
-                </div>
+                    <div className="border-t border-white/10 pt-2.5 flex items-center justify-between">
+                      <span className="text-xs text-slate-300 font-semibold">Total Bill Amount:</span>
+                      <span className="text-base font-black text-saffron-400 font-mono">₹{trackedActivities.activeOrder.grandTotal}</span>
+                    </div>
 
-                {/* Action button: Order more items */}
-                <div className="pt-1 flex justify-center">
-                  <MagneticButton>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setActiveTab("dine_in");
-                        if (trackedOrder.tableNo) setSelectedTable(trackedOrder.tableNo);
-                        Swal.fire({
-                          icon: "info",
-                          title: "Add More Items",
-                          text: `Select any item from the menu to add to your Table ${trackedOrder.tableNo} order!`,
-                          timer: 2000,
-                          showConfirmButton: false,
-                        });
-                      }}
-                      className="w-full py-3 px-6 rounded-xl bg-gradient-to-r from-saffron-400 to-saffron-500 text-slate-950 font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-saffron-500/25 cursor-pointer"
-                    >
-                      <Plus className="w-4 h-4 stroke-[2.5]" />
-                      <span>+ Order More Food for This Table</span>
-                    </button>
-                  </MagneticButton>
-                </div>
+                    <div className="pt-1 flex justify-center">
+                      <MagneticButton>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveTab(trackedActivities.activeOrder.orderType === "Table" ? "dine_in" : "parcel");
+                            if (trackedActivities.activeOrder.tableNo) setSelectedTable(trackedActivities.activeOrder.tableNo);
+                            Swal.fire({
+                              icon: "info",
+                              title: "Add More Items",
+                              text: `Select any item from the menu to add to your order!`,
+                              timer: 2000,
+                              showConfirmButton: false,
+                            });
+                          }}
+                          className="w-full py-2.5 px-6 rounded-xl bg-gradient-to-r from-saffron-400 to-saffron-500 text-slate-950 font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-saffron-500/25 cursor-pointer"
+                        >
+                          <Plus className="w-4 h-4 stroke-[2.5]" />
+                          <span>+ Order More Food for This {trackedActivities.activeOrder.orderType === "Table" ? `Table ${trackedActivities.activeOrder.tableNo}` : "Takeaway"}</span>
+                        </button>
+                      </MagneticButton>
+                    </div>
+                  </div>
+                )}
+
+                {/* EMPTY STATE (No active activities for this mobile) */}
+                {(!trackedActivities ||
+                  !(
+                    (trackedActivities.activeWaitlist && (trackedActivities.activeWaitlist.status === "waiting" || trackedActivities.activeWaitlist.status === "called")) ||
+                    (trackedActivities.activeBooking && trackedActivities.activeBooking.status !== "cancelled" && trackedActivities.activeBooking.status !== "completed") ||
+                    (trackedActivities.activeOrder && trackedActivities.activeOrder.status !== "Billed" && trackedActivities.activeOrder.status !== "Cancelled" && trackedActivities.activeOrder.status !== "Completed")
+                  )) && (
+                  <div className="p-6 rounded-2xl bg-[#061C1C]/60 border border-white/10 text-center space-y-3">
+                    <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 mx-auto">
+                      <Search className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-white">No Live Activities Found</h3>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        No active queue tokens, table bookings, or running food orders found for <span className="font-mono text-saffron-400">{trackMobile}</span>.
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab("dine_in")}
+                        className="px-4 py-2 rounded-xl bg-saffron-500/20 text-saffron-300 border border-saffron-500/30 text-xs font-bold hover:bg-saffron-500/30 transition-all cursor-pointer"
+                      >
+                        🍽️ Explore Menu & Order
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab("table_booking")}
+                        className="px-4 py-2 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold hover:bg-amber-500/30 transition-all cursor-pointer"
+                      >
+                        📅 Book a Table
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab("waitlist")}
+                        className="px-4 py-2 rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-xs font-bold hover:bg-cyan-500/30 transition-all cursor-pointer"
+                      >
+                        🎫 Join Live Queue
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </motion.div>

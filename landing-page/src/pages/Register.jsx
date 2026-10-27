@@ -28,7 +28,7 @@ export default function Register() {
         plan: requestedPlan,
         claimTrial: isTrial,
       }
-      const res = await api.post('/auth/register-hotel', payload);
+      const res = await api.post('/api/auth/register-hotel', payload);
       if (res.data.success) {
         showToast(isTrial ? '7-Day Free Trial activated successfully!' : 'Hotel registered successfully!');
         setDone(true);

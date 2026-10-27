@@ -6,7 +6,7 @@ const userSchema = new mongoose.Schema(
     hotelId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Hotel',
-      required: true
+      required: function() { return this.role !== 'super_admin'; }
     },
     name: {
       type: String,
@@ -23,7 +23,7 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["super_admin", "hotel_admin", "staff"],
+      enum: ["super_admin", "hotel_admin", "sub_admin", "staff"],
       default: "staff",
     },
     mobile: {

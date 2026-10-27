@@ -3,13 +3,16 @@ import axios from 'axios';
 // Since this is for local development, we point to the backend's local URL
 // In production, you would use an environment variable (e.g. import.meta.env.VITE_API_URL)
 // const API_URL = 'http://localhost:5000/api';
-const API_URL = 'https://annapurna-astra.onrender.com/api';
+const getBaseUrl = () => {
+  if (import.meta.env?.VITE_API_URL) return import.meta.env.VITE_API_URL;
+  if (typeof window !== "undefined" && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
+    return "https://annapurna-astra.onrender.com/";
+  }
+  return "http://localhost:5000/";
+};
 
 const api = axios.create({
-  baseURL: API_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  baseURL: getBaseUrl(),
 });
 
 let activeRequests = 0;
@@ -50,4 +53,5 @@ api.interceptors.response.use(
   }
 );
 
+export { api };
 export default api;
