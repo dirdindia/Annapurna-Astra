@@ -113,7 +113,7 @@ export default function AdminDashboard() {
       
       {/* HEADER SECTION WITH MODERN CHIPS */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2 no-print">
-        <div>
+        <div data-tour="dashboard-header">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-saffron-500/10 border border-saffron-500/25 text-saffron-400 text-xs font-semibold mb-2">
             {isSubAdmin ? (
               <>
@@ -139,7 +139,7 @@ export default function AdminDashboard() {
         </div>
         
         {/* DATA SOURCE FILTER TABS WITH MAGNETIC FEEL */}
-        <div className="flex items-center gap-1.5 bg-slate-900/80 p-1.5 rounded-2xl border border-slate-800/80 shrink-0 shadow-lg backdrop-blur-md">
+        <div data-tour="dashboard-tabs" className="flex items-center gap-1.5 bg-slate-900/80 p-1.5 rounded-2xl border border-slate-800/80 shrink-0 shadow-lg backdrop-blur-md">
           <MagneticButton>
             <button
               onClick={() => setDataSource('all')}

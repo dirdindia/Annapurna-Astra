@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { LogOut, User, Coffee, Sun, Moon, Menu, X, Utensils, BedDouble, FileText, CalendarClock, Building2 } from "lucide-react";
+import { LogOut, User, Coffee, Sun, Moon, Menu, X, Utensils, BedDouble, FileText, CalendarClock, Building2, BookOpen } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import MagneticButton from "./MagneticButton";
 
@@ -99,6 +99,21 @@ export default function Navbar({ currentUser, onLogout, theme, toggleTheme, togg
               )}
             </div>
           )}
+
+          <MagneticButton>
+            <button
+              onClick={() => navigate("/admin/manual")}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all border shadow-sm ${
+                window.location.pathname === "/admin/manual"
+                  ? "bg-saffron-500 text-slate-950 border-saffron-400 font-extrabold shadow-saffron-500/20"
+                  : "bg-slate-900/60 border-slate-800/80 text-saffron-300 hover:text-white hover:bg-slate-800/80 hover:border-saffron-500/40"
+              }`}
+              title="Open User Manual & Tour"
+            >
+              <BookOpen className="w-4 h-4 text-saffron-400" />
+              <span className="hidden lg:inline">User Manual</span>
+            </button>
+          </MagneticButton>
 
           <MagneticButton>
             <button

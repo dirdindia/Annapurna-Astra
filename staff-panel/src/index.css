@@ -860,3 +860,146 @@ div:where(.swal2-container) .swal2-input:focus {
   border-color: #F2A33A !important;
   box-shadow: 0 0 0 3px rgba(242, 163, 58, 0.25) !important;
 }
+
+/* ==========================================================================
+   User Manual & Tour Guide Light Mode Harmonization
+   ========================================================================== */
+body.light .manual-hero {
+  background: linear-gradient(135deg, #FFFDF8 0%, #FFFFFF 50%, #F0FDF4 100%) !important;
+  border-color: rgba(245, 158, 11, 0.35) !important;
+  box-shadow: 0 10px 30px -5px rgba(10, 47, 47, 0.08) !important;
+}
+body.light .manual-hero h1,
+body.light .manual-hero h1 span:first-child {
+  color: #0A2F2F !important;
+}
+body.light .manual-hero p {
+  color: #334155 !important;
+}
+body.light .manual-hero input {
+  background-color: #FFFFFF !important;
+  border-color: #CBD5E1 !important;
+  color: #0F172A !important;
+}
+body.light .manual-hero input::placeholder {
+  color: #64748B !important;
+}
+body.light .manual-card {
+  background-color: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  box-shadow: 0 4px 20px -2px rgba(10, 47, 47, 0.06) !important;
+}
+body.light .manual-card h3 {
+  color: #0A2F2F !important;
+}
+body.light .manual-card p {
+  color: #334155 !important;
+}
+body.light .manual-step {
+  background-color: #F8FAFC !important;
+  border-color: #E2E8F0 !important;
+}
+body.light .manual-step span.text-white {
+  color: #0F172A !important;
+}
+body.light .manual-step p {
+  color: #475569 !important;
+}
+body.light .manual-table-box {
+  background-color: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+}
+body.light .manual-table-box thead {
+  background-color: #F1F5F9 !important;
+}
+body.light .manual-table-box thead th {
+  color: #475569 !important;
+}
+body.light .manual-table-box tbody tr {
+  border-color: #F1F5F9 !important;
+}
+body.light .manual-table-box tbody tr:hover {
+  background-color: #F8FAFC !important;
+}
+body.light .manual-table-box tbody td {
+  color: #334155 !important;
+}
+body.light .manual-table-box tbody td.font-bold {
+  color: #0F172A !important;
+}
+
+body.light .manual-quick-link {
+  background-color: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  color: #334155 !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
+}
+body.light .manual-quick-link:hover {
+  background-color: #F8FAFC !important;
+  border-color: #F59E0B !important;
+  color: #0A2F2F !important;
+}
+
+/* Tour Popover Light Mode */
+body.light .tour-popover-card {
+  background: #FFFFFF !important;
+  border: 2px solid #F59E0B !important;
+  color: #0A2F2F !important;
+  box-shadow: 0 25px 50px -12px rgba(10, 47, 47, 0.25) !important;
+}
+body.light .tour-popover-card h3 {
+  color: #0A2F2F !important;
+}
+body.light .tour-popover-card p {
+  color: #334155 !important;
+}
+body.light .tour-popover-card .tour-fields-container {
+  background-color: #F8FAFC !important;
+  border-color: #E2E8F0 !important;
+}
+body.light .tour-popover-card .tour-field-box {
+  background-color: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+}
+body.light .tour-popover-card .tour-field-box span.font-bold {
+  color: #0F172A !important;
+}
+body.light .tour-popover-card .tour-field-box p {
+  color: #475569 !important;
+}
+body.light .tour-popover-card .tour-link-box {
+  background-color: #FEF3C7 !important;
+  border-color: #FDE68A !important;
+}
+body.light .tour-popover-card .tour-link-box span.font-mono {
+  color: #78350F !important;
+}
+body.light .tour-popover-card .tour-back-btn {
+  background-color: #F1F5F9 !important;
+  color: #334155 !important;
+  border: 1px solid #CBD5E1 !important;
+}
+body.light .tour-popover-card .tour-back-btn:hover {
+  background-color: #E2E8F0 !important;
+  color: #0F172A !important;
+}
+body.light .tour-popover-card .tour-close-btn {
+  color: #64748B !important;
+}
+body.light .tour-popover-card .tour-close-btn:hover {
+  color: #0F172A !important;
+  background-color: #F1F5F9 !important;
+}
+body.light .tour-popover-card .tour-counter {
+  color: #64748B !important;
+}
+body.light .tour-popover-card .tour-footer {
+  border-color: #E2E8F0 !important;
+}
+body.light .tour-popover-card .tour-dot-inactive {
+  background-color: #CBD5E1 !important;
+}
+body.light .tour-popover-card .tour-dot-active {
+  background-color: #F59E0B !important;
+}

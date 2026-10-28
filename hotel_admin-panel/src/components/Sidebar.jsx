@@ -14,6 +14,7 @@ import {
   Layers,
   ChevronDown,
   ShieldCheck,
+  Compass,
 } from "lucide-react";
 
 export default function Sidebar({ isOpen, closeSidebar, currentUser }) {
@@ -35,30 +36,35 @@ export default function Sidebar({ isOpen, closeSidebar, currentUser }) {
       path: "/admin",
       icon: LayoutDashboard,
       show: true,
+      tourId: "sidebar-dashboard",
     },
     {
       name: "Scan & Order (QR)",
       path: "/admin/qr-orders",
       icon: QrCode,
       show: true,
+      tourId: "sidebar-qr-orders",
     },
     {
       name: "KOT Billing",
       path: "/admin/kot-reports",
       icon: UtensilsCrossed,
       show: true,
+      tourId: "sidebar-kot-billing",
     },
     {
       name: "Print Pending KOT",
       path: "/admin/kot-print",
       icon: FileText,
       show: true,
+      tourId: "sidebar-kot-print",
     },
     {
       name: "Room Bookings",
       path: "/admin/room-reports",
       icon: BookOpen,
       show: true,
+      tourId: "sidebar-room-bookings",
     },
   ];
 
@@ -69,32 +75,44 @@ export default function Sidebar({ isOpen, closeSidebar, currentUser }) {
         name: "Staff & Sub-Admins",
         path: "/admin/staff",
         icon: Users,
+        tourId: "sidebar-staff",
       }
     ]),
     {
       name: "Dishes",
       path: "/admin/dishes",
       icon: UtensilsCrossed,
+      tourId: "sidebar-dishes",
     },
     {
       name: "Rooms",
       path: "/admin/rooms",
       icon: BedDouble,
+      tourId: "sidebar-rooms",
     },
     {
       name: "Tables",
       path: "/admin/tables",
       icon: Grid,
+      tourId: "sidebar-tables",
     },
     {
       name: "Inventory",
       path: "/admin/inventory",
       icon: FileText,
+      tourId: "sidebar-inventory",
     },
   ];
 
   // Bottom items - Subscription is restricted to primary hotel_admin
   const secondaryMenuItems = [
+    {
+      name: "User Manual",
+      path: "/admin/manual",
+      icon: BookOpen,
+      show: true,
+      tourId: "sidebar-manual",
+    },
     ...(isSubAdmin ? [] : [
       {
         name: "Subscription",
@@ -108,6 +126,7 @@ export default function Sidebar({ isOpen, closeSidebar, currentUser }) {
       path: "/admin/settings",
       icon: Settings,
       show: true,
+      tourId: "sidebar-settings",
     },
   ];
 
@@ -120,6 +139,24 @@ export default function Sidebar({ isOpen, closeSidebar, currentUser }) {
       setIsManageOpen(true);
     }
   }, [location.pathname, isManageActive]);
+
+  // Expand manage submenu during tour if targeting any sidebar sub-item
+  useEffect(() => {
+    const handleTourTarget = (e) => {
+      const target = e.detail?.target;
+      if (
+        target === "sidebar-rooms" ||
+        target === "sidebar-tables" ||
+        target === "sidebar-dishes" ||
+        target === "sidebar-staff" ||
+        target === "sidebar-inventory"
+      ) {
+        setIsManageOpen(true);
+      }
+    };
+    window.addEventListener("annapurna-tour-target", handleTourTarget);
+    return () => window.removeEventListener("annapurna-tour-target", handleTourTarget);
+  }, []);
 
   return (
     <>
@@ -157,6 +194,7 @@ export default function Sidebar({ isOpen, closeSidebar, currentUser }) {
               <Link
                 key={item.path}
                 to={item.path}
+                data-tour={item.tourId || undefined}
                 onClick={() => closeSidebar && closeSidebar()}
                 className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all duration-300 group text-sm font-semibold ${
                   isActive
@@ -222,6 +260,7 @@ export default function Sidebar({ isOpen, closeSidebar, currentUser }) {
                     <Link
                       key={sub.path}
                       to={sub.path}
+                      data-tour={sub.tourId || undefined}
                       onClick={() => closeSidebar && closeSidebar()}
                       className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all text-xs font-semibold ${
                         isSubActive
@@ -254,6 +293,7 @@ export default function Sidebar({ isOpen, closeSidebar, currentUser }) {
               <Link
                 key={item.path}
                 to={item.path}
+                data-tour={item.tourId || undefined}
                 onClick={() => closeSidebar && closeSidebar()}
                 className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all duration-300 group text-sm font-semibold ${
                   isActive
@@ -279,6 +319,31 @@ export default function Sidebar({ isOpen, closeSidebar, currentUser }) {
               </Link>
             );
           })}
+
+          {/* Interactive Tour Trigger Pill */}
+          <button
+            type="button"
+            onClick={() => {
+              if (window.startAnnapurnaTour) {
+                window.startAnnapurnaTour(0);
+              }
+              if (closeSidebar) closeSidebar();
+            }}
+            className="mt-3 flex items-center justify-between p-3 rounded-2xl bg-gradient-to-r from-saffron-500/20 via-amber-500/15 to-transparent border border-saffron-500/30 text-saffron-300 hover:text-white hover:border-saffron-400 transition group text-left cursor-pointer"
+          >
+            <div className="flex items-center gap-2.5">
+              <div className="p-1.5 rounded-lg bg-saffron-500/20 border border-saffron-500/30 text-saffron-400 group-hover:scale-110 transition-transform">
+                <Compass className="w-4 h-4 text-saffron-300 animate-spin" style={{ animationDuration: '10s' }} />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-white leading-none">Interactive Tour</p>
+                <p className="text-[10px] text-slate-400 mt-1">Explore Key Features</p>
+              </div>
+            </div>
+            <span className="text-[10px] font-bold text-saffron-400 uppercase tracking-widest bg-saffron-500/10 px-2 py-0.5 rounded-full border border-saffron-500/25">
+              Tour
+            </span>
+          </button>
 
           {isSubAdmin && (
             <div className="mt-4 p-3 bg-amber-500/10 border border-amber-500/25 rounded-2xl text-center">

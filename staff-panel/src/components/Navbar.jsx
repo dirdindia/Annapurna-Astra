@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { LogOut, User, Sun, Moon, Menu, X, Utensils, BedDouble, FileText, Tv, ChefHat } from "lucide-react";
+import { LogOut, User, Sun, Moon, Menu, X, Utensils, BedDouble, FileText, Tv, ChefHat, BookOpen, Compass } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import MagneticButton from "./MagneticButton";
 
@@ -72,6 +72,7 @@ export default function Navbar({ currentUser, onLogout, theme, toggleTheme, togg
             }`}>
               <MagneticButton>
                 <button
+                  data-tour="nav-staff-dashboard"
                   onClick={() => navigate("/staff")}
                   className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                     isActive("/staff")
@@ -88,6 +89,7 @@ export default function Navbar({ currentUser, onLogout, theme, toggleTheme, togg
               {(!currentUser.staffPermissions || currentUser.staffPermissions.roomBooking) && (
                 <MagneticButton>
                   <button
+                    data-tour="nav-staff-rooms"
                     onClick={() => navigate("/staff/rooms")}
                     className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                       isActive("/staff/rooms")
@@ -105,6 +107,7 @@ export default function Navbar({ currentUser, onLogout, theme, toggleTheme, togg
               {(!currentUser.staffPermissions || currentUser.staffPermissions.kot) && (
                 <MagneticButton>
                   <button
+                    data-tour="nav-staff-kot"
                     onClick={() => navigate("/staff/kot")}
                     className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                       isActive("/staff/kot")
@@ -122,6 +125,7 @@ export default function Navbar({ currentUser, onLogout, theme, toggleTheme, togg
               {(!currentUser.staffPermissions || currentUser.staffPermissions.grc) && (
                 <MagneticButton>
                   <button
+                    data-tour="nav-staff-grc"
                     onClick={() => navigate("/staff/grc")}
                     className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                       isActive("/staff/grc")
@@ -139,6 +143,7 @@ export default function Navbar({ currentUser, onLogout, theme, toggleTheme, togg
               {(!currentUser.staffPermissions || currentUser.staffPermissions.restaurant) && (
                 <MagneticButton>
                   <button
+                    data-tour="nav-staff-kds"
                     onClick={() => navigate("/staff/kds")}
                     className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                       isActive("/staff/kds")
@@ -156,6 +161,7 @@ export default function Navbar({ currentUser, onLogout, theme, toggleTheme, togg
               {(!currentUser.staffPermissions || currentUser.staffPermissions.restaurant) && (
                 <MagneticButton>
                   <button
+                    data-tour="nav-staff-hall"
                     onClick={() => navigate("/staff/hall-display")}
                     className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                       isActive("/staff/hall-display")
@@ -169,6 +175,24 @@ export default function Navbar({ currentUser, onLogout, theme, toggleTheme, togg
                   </button>
                 </MagneticButton>
               )}
+
+              <MagneticButton>
+                <button
+                  data-tour="nav-staff-manual"
+                  onClick={() => navigate("/staff/manual")}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    isActive("/staff/manual")
+                      ? "bg-gradient-to-r from-saffron-500 to-amber-500 text-slate-950 font-black shadow-md shadow-saffron-500/20"
+                      : theme === "light"
+                      ? "text-saffron-700 hover:text-saffron-900 hover:bg-slate-200/70"
+                      : "text-saffron-300 hover:text-white hover:bg-white/5"
+                  }`}
+                  title="Staff Operations Manual"
+                >
+                  <BookOpen className="w-3.5 h-3.5 text-saffron-400" />
+                  <span>Manual</span>
+                </button>
+              </MagneticButton>
             </div>
           )}
 
@@ -200,6 +224,27 @@ export default function Navbar({ currentUser, onLogout, theme, toggleTheme, togg
               </div>
             </div>
           )}
+
+          {/* Interactive Tour Guide Button */}
+          <MagneticButton>
+            <button
+              onClick={() => {
+                if (window.startStaffTour) {
+                  window.startStaffTour(0);
+                } else {
+                  navigate("/staff");
+                }
+              }}
+              className={`p-2.5 rounded-xl border transition-all flex items-center justify-center active:scale-95 no-print cursor-pointer shadow-sm ${
+                theme === "light"
+                  ? "bg-slate-100 border-slate-200 text-saffron-700 hover:bg-slate-200"
+                  : "bg-slate-900/60 border-slate-800/80 text-saffron-400 hover:bg-lagoon-800/40 hover:text-white"
+              }`}
+              title="Launch Interactive Staff Tour"
+            >
+              <Compass className="w-4 h-4 text-saffron-400 animate-spin" style={{ animationDuration: '12s' }} />
+            </button>
+          </MagneticButton>
 
           {/* Theme Toggle with Magnetic Effect */}
           <MagneticButton>

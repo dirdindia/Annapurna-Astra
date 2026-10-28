@@ -11,6 +11,8 @@ import StaffKotBilling from "./pages/staff/StaffKotBilling";
 import StaffGRC from "./pages/staff/StaffGRC";
 import StaffKDS from "./pages/staff/StaffKDS";
 import StaffHallDisplay from "./pages/staff/StaffHallDisplay";
+import StaffManual from "./pages/staff/StaffManual";
+import StaffTourGuide from "./components/StaffTourGuide";
 
 import { authAPI } from "./api";
 
@@ -26,6 +28,7 @@ const StaffRoute = ({ children, currentUser, handleLogout, theme, toggleTheme })
       <div className="flex-1">
         {children}
       </div>
+      <StaffTourGuide />
     </div>
   );
 };
@@ -185,6 +188,15 @@ export default function App() {
           element={
             <StaffRoute currentUser={currentUser} handleLogout={handleLogout} theme={theme} toggleTheme={toggleTheme}>
               <StaffHallDisplay />
+            </StaffRoute>
+          }
+        />
+
+        <Route
+          path="/staff/manual"
+          element={
+            <StaffRoute currentUser={currentUser} handleLogout={handleLogout} theme={theme} toggleTheme={toggleTheme}>
+              <StaffManual />
             </StaffRoute>
           }
         />

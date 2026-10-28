@@ -22,6 +22,8 @@ import AdminQrOrders from "./pages/admin/AdminQrOrders";
 import AdminHallDisplay from "./pages/admin/AdminHallDisplay";
 import PublicGuestPortal from "./pages/public/PublicGuestPortal";
 import PublicBillView from "./pages/public/PublicBillView";
+import AdminManual from "./pages/admin/AdminManual";
+import AppTourGuide from "./components/AppTourGuide";
 
 
 // Guard for Admin Routes
@@ -45,6 +47,7 @@ const AdminRoute = ({ children, currentUser, handleLogout, theme, toggleTheme })
           {children}
         </div>
       </div>
+      <AppTourGuide />
     </div>
   );
 };
@@ -171,6 +174,15 @@ export default function App() {
           element={
             <AdminRoute currentUser={currentUser} handleLogout={handleLogout} theme={theme} toggleTheme={toggleTheme}>
               <AdminSettings />
+            </AdminRoute>
+          }
+        />
+
+        <Route
+          path="/admin/manual"
+          element={
+            <AdminRoute currentUser={currentUser} handleLogout={handleLogout} theme={theme} toggleTheme={toggleTheme}>
+              <AdminManual />
             </AdminRoute>
           }
         />
