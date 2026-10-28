@@ -247,7 +247,7 @@ export default function Home() {
               <span className="text-saffron-400">fir decide karo.</span>
             </h2>
             <p className="mx-auto mt-5 max-w-lg text-lg text-lagoon-100/90 leading-relaxed">
-              Plans sirf ₹{plans[0].monthly}/month se shuru. Kisi credit card ya technical hardware ki zaroorat nahi.
+              Plans sirf ₹{plans[1].monthly}/month se shuru (Special Offer: ₹1000 OFF). Kisi credit card ya technical hardware ki zaroorat nahi.
             </p>
             <div className="mt-10 flex flex-wrap justify-center items-center gap-4">
               <MagneticButton>

@@ -26,7 +26,7 @@ export default function Pricing() {
             animate={{ opacity: 1, scale: 1 }}
             className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-saffron-500/10 border border-saffron-400/30 text-saffron-400 text-xs font-bold uppercase tracking-wider mb-4"
           >
-            <Sparkles size={14} /> Transparent & Flexible Plans • All Prices With GST
+            <Sparkles size={14} /> Special Offer: Flat ₹1,000 OFF On All Plans • All Prices With GST
           </motion.div>
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
@@ -41,7 +41,7 @@ export default function Pricing() {
             transition={{ delay: 0.15 }}
             className="text-base md:text-lg text-lagoon-100/80 leading-relaxed"
           >
-            Pehle 7 din bilkul free chalao, ya apne hotel & restaurant ke liye perfect monthly plan chunein.
+            Pehle 7 din bilkul free chalao, ya limited-time ₹1,000 offer discount ke sath apna perfect monthly plan chunein.
           </motion.p>
         </div>
 
@@ -102,16 +102,28 @@ export default function Pricing() {
                   <p className="mt-2 text-xs text-lagoon-100/70 min-h-[38px] leading-relaxed">{p.desc}</p>
 
                   {/* Price */}
-                  <div className="mt-5 pt-4 border-t border-white/10 flex flex-wrap items-baseline gap-2">
-                    <span className={`font-display text-3xl lg:text-4xl font-extrabold tracking-tight ${isTrial ? 'text-emerald-400' : 'text-white'}`}>
-                      ₹{p.monthly.toLocaleString('en-IN')}
-                    </span>
-                    <span className="text-xs font-semibold text-lagoon-100/60">
-                      {isTrial ? '/ 7 days free' : '/month'}
-                    </span>
-                    <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
-                      {isTrial ? '100% Free' : 'With GST'}
-                    </span>
+                  <div className="mt-5 pt-4 border-t border-white/10">
+                    {p.originalPrice && (
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <span className="text-xs text-lagoon-100/50 line-through font-mono">
+                          ₹{p.originalPrice.toLocaleString('en-IN')}
+                        </span>
+                        <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-300 border border-rose-500/40">
+                          🔥 ₹1,000 OFF
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex flex-wrap items-baseline gap-2">
+                      <span className={`font-display text-3xl lg:text-4xl font-extrabold tracking-tight ${isTrial ? 'text-emerald-400' : 'text-white'}`}>
+                        ₹{p.monthly.toLocaleString('en-IN')}
+                      </span>
+                      <span className="text-xs font-semibold text-lagoon-100/60">
+                        {isTrial ? '/ 7 days free' : '/month'}
+                      </span>
+                      <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+                        {isTrial ? '100% Free' : 'With GST'}
+                      </span>
+                    </div>
                   </div>
 
                   {/* Perks List */}

@@ -387,6 +387,26 @@ export default function StaffTourGuide() {
               {currentStep.description}
             </p>
 
+            {/* Direct Link - Placed right at the top for instant visibility */}
+            {currentStep.url && (
+              <div className="tour-link-box p-2.5 rounded-2xl bg-white/[0.05] border border-saffron-500/35 flex items-center justify-between gap-2 shadow-sm">
+                <div className="text-xs text-slate-300 min-w-0">
+                  <span className="text-saffron-400 font-bold block text-[10px] uppercase tracking-wider flex items-center gap-1">
+                    <ExternalLink size={11} /> Direct Page Link:
+                  </span>
+                  <span className="font-mono text-slate-200 text-[11px] truncate block font-bold">{currentStep.url}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleNavigateToUrl(currentStep.url)}
+                  className="shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-saffron-500/25 to-amber-500/25 hover:from-saffron-500/35 hover:to-amber-500/35 text-saffron-300 hover:text-white text-xs font-bold transition border border-saffron-500/40 cursor-pointer shadow-sm active:scale-95"
+                >
+                  <span>{currentStep.urlLabel || "Go to Page"}</span>
+                  <ArrowRight size={13} />
+                </button>
+              </div>
+            )}
+
             {/* FIELD-BY-FIELD DETAILED ACCORDION LIST */}
             {currentStep.fields && (
               <div className="tour-fields-container border border-white/10 rounded-2xl p-2.5 bg-black/40 space-y-2">
@@ -421,23 +441,6 @@ export default function StaffTourGuide() {
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
-
-            {/* Direct Link */}
-            {currentStep.url && (
-              <div className="tour-link-box p-2.5 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-between gap-2">
-                <div className="text-xs text-slate-300 min-w-0">
-                  <span className="text-saffron-400 font-bold block text-[10px] uppercase tracking-wider">Direct Page Link:</span>
-                  <span className="font-mono text-slate-200 text-[11px] truncate block">{currentStep.url}</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleNavigateToUrl(currentStep.url)}
-                  className="shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-lg bg-saffron-500/20 hover:bg-saffron-500/30 text-saffron-300 text-xs font-bold transition border border-saffron-500/30 cursor-pointer"
-                >
-                  Go to Page <ExternalLink size={12} />
-                </button>
               </div>
             )}
           </div>

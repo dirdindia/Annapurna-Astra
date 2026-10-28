@@ -41,9 +41,11 @@ const PLANS = {
   Hotel: {
     id: "Hotel",
     name: "Hotel Only",
-    monthlyPrice: 2499,
+    originalPrice: 2499,
+    monthlyPrice: 1499,
+    discountAmount: 1000,
     durationDays: { monthly: 30 },
-    description: "Sirf hotel & room booking manage karne ke liye",
+    description: "Sirf hotel & room booking manage karne ke liye (Special Offer: ₹1000 OFF)",
     features: [
       "Room booking & Front desk",
       "Guest Check-in / Check-out & GRC",
@@ -57,9 +59,11 @@ const PLANS = {
   Restaurant: {
     id: "Restaurant",
     name: "Restaurant Only",
-    monthlyPrice: 2499,
+    originalPrice: 2499,
+    monthlyPrice: 1499,
+    discountAmount: 1000,
     durationDays: { monthly: 30 },
-    description: "Standalone restaurant, café, dhaba ya bar ke liye",
+    description: "Standalone restaurant, café, dhaba ya bar ke liye (Special Offer: ₹1000 OFF)",
     features: [
       "Restaurant Table Map & POS Billing",
       "Instant Kitchen Order Ticket (KOT)",
@@ -73,10 +77,12 @@ const PLANS = {
   Combo: {
     id: "Combo",
     name: "Combo (Hotel + Restaurant)",
-    monthlyPrice: 3499,
+    originalPrice: 3499,
+    monthlyPrice: 2499,
+    discountAmount: 1000,
     popular: true,
     durationDays: { monthly: 30 },
-    description: "Hotel aur Restaurant dono ka complete all-in-one setup",
+    description: "Hotel aur Restaurant dono ka complete all-in-one setup (Special Offer: ₹1000 OFF)",
     features: [
       "Hotel + Restaurant ke saare features",
       "Room booking + Table POS + KOT",

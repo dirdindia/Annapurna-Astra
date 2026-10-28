@@ -40,7 +40,9 @@ export const plans = [
   },
   { 
     name: 'Hotel Only', 
-    monthly: 2499, 
+    monthly: 1499, 
+    originalPrice: 2499,
+    discount: 1000,
     badge: 'Hotel Management',
     desc: 'Sirf hotel & room booking manage karne ke liye', 
     perks: [
@@ -55,7 +57,9 @@ export const plans = [
   },
   { 
     name: 'Restaurant Only', 
-    monthly: 2499, 
+    monthly: 1499, 
+    originalPrice: 2499,
+    discount: 1000,
     badge: 'Restaurant POS',
     desc: 'Standalone restaurant, café, dhaba ya bar ke liye', 
     perks: [
@@ -70,7 +74,9 @@ export const plans = [
   },
   { 
     name: 'Combo (Hotel + Restaurant)', 
-    monthly: 3499, 
+    monthly: 2499, 
+    originalPrice: 3499,
+    discount: 1000,
     popular: true, 
     badge: 'Best Value',
     desc: 'Hotel aur Restaurant dono ka complete all-in-one setup', 

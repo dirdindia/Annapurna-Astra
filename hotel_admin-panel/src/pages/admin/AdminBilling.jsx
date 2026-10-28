@@ -56,8 +56,10 @@ const DEFAULT_PLANS = {
   Hotel: {
     id: "Hotel",
     name: "Hotel Only",
-    monthlyPrice: 2499,
-    description: "Sirf hotel & room booking manage karne ke liye",
+    originalPrice: 2499,
+    monthlyPrice: 1499,
+    discountAmount: 1000,
+    description: "Sirf hotel & room booking manage karne ke liye (Special Offer: ₹1000 OFF)",
     features: [
       "Room booking & Management",
       "Guest Check-in / Check-out & GRC",
@@ -71,8 +73,10 @@ const DEFAULT_PLANS = {
   Restaurant: {
     id: "Restaurant",
     name: "Restaurant Only",
-    monthlyPrice: 2499,
-    description: "Standalone restaurant, café, dhaba ya bar ke liye",
+    originalPrice: 2499,
+    monthlyPrice: 1499,
+    discountAmount: 1000,
+    description: "Standalone restaurant, café, dhaba ya bar ke liye (Special Offer: ₹1000 OFF)",
     features: [
       "Restaurant Table Map & POS Billing",
       "Instant Kitchen Order Ticket (KOT)",
@@ -86,9 +90,11 @@ const DEFAULT_PLANS = {
   Combo: {
     id: "Combo",
     name: "Combo (Hotel + Restaurant)",
-    monthlyPrice: 3499,
+    originalPrice: 3499,
+    monthlyPrice: 2499,
+    discountAmount: 1000,
     popular: true,
-    description: "Hotel aur Restaurant dono ka complete all-in-one setup",
+    description: "Hotel aur Restaurant dono ka complete all-in-one setup (Special Offer: ₹1000 OFF)",
     features: [
       "Hotel + Restaurant ke saare features",
       "Room booking + Table POS + KOT",
@@ -436,7 +442,7 @@ export default function AdminBilling() {
         {/* Refresh Status Button */}
         <button
           onClick={fetchSubscriptionData}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:border-slate-700 transition-colors"
+          className="billing-refresh-btn flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:border-slate-700 transition-colors shadow-sm"
         >
           <RefreshCw className="w-3.5 h-3.5" /> Refresh Status
         </button>
@@ -444,7 +450,7 @@ export default function AdminBilling() {
 
       {/* Subscription Status Alert Banner */}
       {!subscription.isActive || subscription.plan === "none" ? (
-        <div className="mb-8 p-5 rounded-2xl bg-gradient-to-r from-red-950/40 via-red-900/20 to-slate-900 border border-red-500/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
+        <div className="billing-alert-inactive mb-8 p-5 rounded-2xl bg-gradient-to-r from-red-950/40 via-red-900/20 to-slate-900 border border-red-500/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
           <div className="flex items-start gap-4">
             <div className="p-3 bg-red-500/20 text-red-400 rounded-xl shrink-0 mt-0.5 border border-red-500/30">
               <Lock className="w-6 h-6" />
@@ -470,21 +476,21 @@ export default function AdminBilling() {
               <button
                 onClick={handleClaimTrial}
                 disabled={claimingTrial}
-                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 hover:brightness-110 text-slate-950 font-black text-sm shadow-lg shadow-emerald-500/20 transition-transform active:scale-95 flex items-center justify-center gap-2"
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 hover:brightness-110 text-slate-950 font-black text-sm shadow-lg shadow-emerald-500/20 transition-transform active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Gift className="w-4 h-4" /> {claimingTrial ? "Activating..." : "Claim 7-Day Free Trial"}
               </button>
             )}
             <a
               href="#plans-section"
-              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-saffron-500 to-amber-500 hover:from-saffron-400 hover:to-amber-400 text-slate-950 font-bold text-sm shadow-lg shadow-saffron-500/20 transition-transform active:scale-95 flex items-center justify-center gap-2"
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-saffron-500 to-amber-500 hover:from-saffron-400 hover:to-amber-400 text-slate-950 font-bold text-sm shadow-lg shadow-saffron-500/20 transition-transform active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
             >
               Choose a Plan <ArrowRight className="w-4 h-4" />
             </a>
           </div>
         </div>
       ) : (
-        <div className="mb-8 p-5 rounded-2xl bg-gradient-to-r from-lagoon-950/60 via-lagoon-900/40 to-slate-900 border border-emerald-500/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
+        <div className="billing-alert-active mb-8 p-5 rounded-2xl bg-gradient-to-r from-lagoon-950/60 via-lagoon-900/40 to-slate-900 border border-emerald-500/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
           <div className="flex items-start gap-4">
             <div className="p-3 bg-emerald-500/20 text-emerald-400 rounded-xl shrink-0 mt-0.5 border border-emerald-500/30">
               <Unlock className="w-6 h-6" />
@@ -526,11 +532,11 @@ export default function AdminBilling() {
 
       {/* Pricing Header Strip */}
       <div id="plans-section" className="flex flex-col items-center justify-center my-8">
-        <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-900/90 border border-slate-800 rounded-2xl shadow-inner text-sm font-bold text-saffron-400">
+        <div className="billing-pricing-strip inline-flex items-center gap-2 px-5 py-2.5 bg-slate-900/90 border border-slate-800 rounded-2xl shadow-inner text-sm font-bold text-saffron-400">
           <Sparkles className="w-4 h-4 text-saffron-400" />
           <span>Transparent Pricing • All Taxes & 18% GST Included • No Extra Charges</span>
         </div>
-        <p className="text-xs text-slate-400 mt-2">
+        <p className="billing-pricing-sub text-xs text-slate-400 mt-2">
           Payments powered by Razorpay. UPI, NetBanking, Debit/Credit Cards & Wallets supported.
         </p>
       </div>
@@ -555,13 +561,13 @@ export default function AdminBilling() {
           return (
             <div
               key={key}
-              className={`rounded-3xl p-6 lg:p-7 relative flex flex-col justify-between transition-all duration-300 ${
+              className={`billing-card rounded-3xl p-6 lg:p-7 relative flex flex-col justify-between transition-all duration-300 ${
                 isActive
-                  ? "bg-gradient-to-b from-lagoon-900/40 to-slate-900 border-2 border-emerald-500 shadow-xl shadow-emerald-500/10"
+                  ? "is-active bg-gradient-to-b from-lagoon-900/40 to-slate-900 border-2 border-emerald-500 shadow-xl shadow-emerald-500/10"
                   : isTrial && !isTrialUsed
-                  ? "bg-gradient-to-b from-emerald-950/30 via-slate-900 to-slate-950 border-2 border-emerald-500/60 shadow-xl shadow-emerald-500/10 hover:border-emerald-400"
+                  ? "is-trial bg-gradient-to-b from-emerald-950/30 via-slate-900 to-slate-950 border-2 border-emerald-500/60 shadow-xl shadow-emerald-500/10 hover:border-emerald-400"
                   : isPopular
-                  ? "bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 border-2 border-saffron-500/60 shadow-xl shadow-saffron-500/10 transform lg:-translate-y-2"
+                  ? "is-popular bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 border-2 border-saffron-500/60 shadow-xl shadow-saffron-500/10 transform lg:-translate-y-2"
                   : "bg-slate-900/60 border border-slate-800/80 hover:border-slate-700 hover:bg-slate-900/80"
               }`}
             >
@@ -594,30 +600,42 @@ export default function AdminBilling() {
                       {isTrial && <Gift className="w-5 h-5 text-emerald-400" />}
                     </h3>
                   </div>
-                  <p className="text-xs text-slate-400 min-h-[32px]">{plan.description}</p>
+                  <p className="plan-desc text-xs text-slate-400 min-h-[32px] leading-relaxed">{plan.description}</p>
 
                   {/* Price Display */}
-                  <div className="mt-5 pt-4 border-t border-slate-800/80 flex flex-wrap items-baseline gap-2">
-                    <span className={`text-3xl lg:text-4xl font-black font-display ${isTrial ? "text-emerald-400" : "text-white"}`}>
-                      ₹{price.toLocaleString("en-IN")}
-                    </span>
-                    <span className="text-xs text-slate-400 font-medium">
-                      {isTrial ? "/ 7 days free" : "/month"}
-                    </span>
-                    <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
-                      {isTrial ? "100% Free" : "GST Included"}
-                    </span>
+                  <div className="mt-5 pt-4 border-t border-slate-800/80">
+                    {!isTrial && plan.originalPrice && (
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <span className="plan-original-price text-xs text-slate-500 line-through font-mono">
+                          ₹{plan.originalPrice.toLocaleString("en-IN")}
+                        </span>
+                        <span className="plan-discount-badge text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-300 border border-rose-500/40">
+                          🔥 ₹1,000 OFF
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex flex-wrap items-baseline gap-2">
+                      <span className={`plan-price text-3xl lg:text-4xl font-black font-display ${isTrial ? "text-emerald-400" : "text-white"}`}>
+                        ₹{price.toLocaleString("en-IN")}
+                      </span>
+                      <span className="plan-cycle-text text-xs text-slate-400 font-medium">
+                        {isTrial ? "/ 7 days free" : "/month"}
+                      </span>
+                      <span className="plan-gst-badge text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                        {isTrial ? "100% Free" : "GST Included"}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
                 {/* Features List */}
                 <div className="my-4">
-                  <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Included Features:</p>
+                  <p className="plan-features-heading text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Included Features:</p>
                   <ul className="space-y-2.5">
                     {plan.features.map((feature, i) => (
                       <li key={i} className="flex items-start gap-2.5 text-slate-300 text-xs sm:text-sm">
                         <Check className={`w-4 h-4 shrink-0 mt-0.5 ${isTrial ? "text-emerald-400" : "text-saffron-500"}`} />
-                        <span>{feature}</span>
+                        <span className="plan-feature-text leading-tight">{feature}</span>
                       </li>
                     ))}
                   </ul>
@@ -629,7 +647,7 @@ export default function AdminBilling() {
                 isActive ? (
                   <button
                     disabled
-                    className="mt-6 w-full py-3.5 px-6 rounded-2xl font-bold text-sm bg-emerald-600/20 border border-emerald-500/40 text-emerald-300 cursor-default flex items-center justify-center gap-2"
+                    className="billing-btn-active mt-6 w-full py-3.5 px-6 rounded-2xl font-bold text-sm bg-emerald-600/20 border border-emerald-500/40 text-emerald-300 cursor-default flex items-center justify-center gap-2"
                   >
                     <CheckCircle2 className="w-4 h-4" /> Trial Active ({subscription.daysRemaining}d left)
                   </button>
@@ -644,7 +662,7 @@ export default function AdminBilling() {
                   <button
                     disabled={claimingTrial}
                     onClick={handleClaimTrial}
-                    className="mt-6 w-full py-3.5 px-6 rounded-2xl font-black text-sm bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-500 hover:brightness-110 active:scale-95 text-slate-950 shadow-lg shadow-emerald-500/25 transition-all flex items-center justify-center gap-2"
+                    className="billing-btn-trial mt-6 w-full py-3.5 px-6 rounded-2xl font-black text-sm bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-500 hover:brightness-110 active:scale-95 text-slate-950 shadow-lg shadow-emerald-500/25 transition-all flex items-center justify-center gap-2"
                   >
                     {claimingTrial ? (
                       <>
@@ -663,10 +681,10 @@ export default function AdminBilling() {
                   onClick={() => handleSubscribe(key)}
                   className={`mt-6 w-full py-3.5 px-6 rounded-2xl font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-lg ${
                     isActive
-                      ? "bg-emerald-600/20 border border-emerald-500/40 text-emerald-300 hover:bg-emerald-600/30"
+                      ? "billing-btn-active bg-emerald-600/20 border border-emerald-500/40 text-emerald-300 hover:bg-emerald-600/30"
                       : isPopular
-                      ? "bg-gradient-to-r from-saffron-500 via-amber-500 to-yellow-500 text-slate-950 hover:brightness-110 active:scale-95 shadow-saffron-500/20"
-                      : "bg-slate-800 hover:bg-slate-700 text-white active:scale-95 border border-slate-700"
+                      ? "billing-btn-popular bg-gradient-to-r from-saffron-500 via-amber-500 to-yellow-500 text-slate-950 hover:brightness-110 active:scale-95 shadow-saffron-500/20"
+                      : "billing-btn-standard bg-slate-800 hover:bg-slate-700 text-white active:scale-95 border border-slate-700"
                   }`}
                 >
                   {isProcessing ? (
@@ -690,7 +708,7 @@ export default function AdminBilling() {
       </div>
 
       {/* Trust & Guarantee Box */}
-      <div className="mt-12 max-w-4xl mx-auto p-6 rounded-2xl bg-slate-900/40 border border-slate-800/60 text-center flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="billing-trust-box mt-12 max-w-4xl mx-auto p-6 rounded-2xl bg-slate-900/40 border border-slate-800/60 text-center flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3 text-left">
           <div className="p-3 bg-saffron-500/10 text-saffron-500 rounded-xl">
             <Shield className="w-6 h-6" />
@@ -713,7 +731,7 @@ export default function AdminBilling() {
       </div>
 
       {/* Invoices / Billing History Section */}
-      <div className="mt-12 max-w-6xl mx-auto bg-slate-900/60 p-6 sm:p-8 rounded-3xl border border-slate-800/80 shadow-xl">
+      <div className="billing-invoices-box mt-12 max-w-6xl mx-auto bg-slate-900/60 p-6 sm:p-8 rounded-3xl border border-slate-800/80 shadow-xl">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div>
             <h3 className="text-xl font-bold text-slate-200 flex items-center gap-2">
