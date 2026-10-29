@@ -94,7 +94,7 @@ export default function StaffGRC() {
         </div>
       </div>
 
-      <div className="bg-white shadow-2xl rounded-sm overflow-hidden p-8 print:p-0 print:shadow-none print:bg-white print:rounded-none">
+      <div className="grc-paper-wrapper bg-white text-black shadow-2xl rounded-sm overflow-hidden p-8 print:p-0 print:shadow-none print:bg-white print:rounded-none">
         <PrintableGRC grcNo={grcNo} />
       </div>
     </div>

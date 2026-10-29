@@ -131,6 +131,43 @@ body:not(.light) .text-saffron-400 {
   color: #FFC56B !important;
 }
 
+/* ==========================================================================
+   Printable GRC (Guest Registration Card) & Print Paper Styling
+   Must always remain pure black text on white paper in both Dark and Light modes
+   ========================================================================== */
+.grc-paper-wrapper,
+.grc-form-container {
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+}
+
+body:not(.light) .grc-paper-wrapper,
+body:not(.light) .grc-form-container,
+body:not(.light) .grc-form-container *,
+body:not(.light) .grc-form-container p,
+body:not(.light) .grc-form-container span,
+body:not(.light) .grc-form-container div,
+body:not(.light) .grc-form-container label,
+body:not(.light) .grc-form-container h1,
+body:not(.light) .grc-form-container h2,
+body:not(.light) .grc-form-container h3,
+body:not(.light) .grc-form-container h4,
+body:not(.light) .grc-form-container b,
+body:not(.light) .grc-form-container strong,
+body.light .grc-paper-wrapper,
+body.light .grc-form-container,
+body.light .grc-form-container *,
+.grc-form-container,
+.grc-form-container * {
+  color: #000000 !important;
+}
+
+.grc-form-container .border-black,
+body:not(.light) .grc-form-container .border-black,
+body.light .grc-form-container .border-black {
+  border-color: #000000 !important;
+}
+
 /* Dedicated Search Section Dark Theming */
 body:not(.light) .search-dark-container {
   background: rgba(6, 28, 28, 0.95) !important;

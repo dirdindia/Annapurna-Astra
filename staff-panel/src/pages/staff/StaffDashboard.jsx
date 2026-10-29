@@ -45,6 +45,7 @@ export default function StaffDashboard({ currentUser, theme }) {
   const [recentInvoices, setRecentInvoices] = useState([]);
   const [activeGuests, setActiveGuests] = useState([]);
   const [liveOrders, setLiveOrders] = useState([]);
+  const [forecastSummary, setForecastSummary] = useState(null);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -71,6 +72,15 @@ export default function StaffDashboard({ currentUser, theme }) {
         api.get("api/orders/virtual/active"),
         api.get(`api/invoices?limit=6&fromDate=${todayStr}`),
       ]);
+
+      // Fetch AI Prep Forecast
+      api.get("/api/inventory/ai-forecast")
+        .then((res) => {
+          if (res.data?.success && res.data.data) {
+            setForecastSummary(res.data.data);
+          }
+        })
+        .catch((err) => console.log("AI forecast silent error:", err));
 
       // Tables
       let totalTables = 0;
@@ -274,6 +284,47 @@ export default function StaffDashboard({ currentUser, theme }) {
           </div>
         </div>
       </div>
+
+      {/* AI Daily Wastage & Raw Material Kitchen Briefing Widget */}
+      {forecastSummary && (
+        <div className={`p-5 rounded-3xl border transition-all duration-300 relative overflow-hidden shadow-lg ${
+          theme === "light"
+            ? "bg-gradient-to-r from-emerald-50/80 via-white to-amber-50/60 border-emerald-500/30 text-slate-900"
+            : "bg-gradient-to-r from-emerald-950/40 via-slate-900/80 to-slate-900 border-emerald-500/30 text-white"
+        }`}>
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="flex items-start gap-3.5">
+              <div className="p-3 bg-emerald-500/20 text-emerald-400 rounded-2xl border border-emerald-500/30 shrink-0 mt-0.5 shadow-sm text-xl">
+                🥦
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+                    AI Kitchen Guidance • {forecastSummary.dayName}
+                  </span>
+                  <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+                    Peak Dinner: {forecastSummary.rushHours?.dinner}
+                  </span>
+                </div>
+                <h3 className="text-base sm:text-lg font-bold font-display text-emerald-800 dark:text-emerald-300 leading-snug">
+                  "{forecastSummary.prepAdvice}"
+                </h3>
+                <p className="text-xs text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                  <span>Wastage Rule: {forecastSummary.wastageTip}</span>
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => navigate("/staff/prep-forecast")}
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-saffron-500 to-amber-500 hover:from-saffron-400 hover:to-amber-400 text-slate-950 font-black text-xs shadow-md shadow-saffron-500/20 flex items-center gap-1.5 shrink-0 transition-transform active:scale-95 cursor-pointer"
+            >
+              <span>View Full AI Prep Sheet</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Staff Key Metrics Bar */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

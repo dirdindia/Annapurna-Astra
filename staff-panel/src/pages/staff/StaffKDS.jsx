@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../../api";
-import { Bell } from "lucide-react";
+import { Bell, Sparkles } from "lucide-react";
 
 export default function StaffKDS() {
+  const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const audioRef = useRef(null);
@@ -90,12 +92,20 @@ export default function StaffKDS() {
           </h1>
           <p className="text-slate-300 text-xs md:text-sm mt-1 font-medium">Real-time live kitchen tickets and order preparation station</p>
         </div>
-        <button 
-          onClick={() => audioRef.current?.play()}
-          className="px-4 py-2.5 bg-saffron-500/15 border border-saffron-500/30 text-saffron-300 text-xs md:text-sm font-bold rounded-xl hover:bg-saffron-500/25 transition-all cursor-pointer"
-        >
-          🔔 Enable Sound Notification
-        </button>
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <button 
+            onClick={() => navigate("/staff/prep-forecast")}
+            className="px-4 py-2.5 bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs md:text-sm font-bold rounded-xl hover:bg-emerald-500/25 transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
+          >
+            <span>🥦 AI Prep Guide</span>
+          </button>
+          <button 
+            onClick={() => audioRef.current?.play()}
+            className="px-4 py-2.5 bg-saffron-500/15 border border-saffron-500/30 text-saffron-300 text-xs md:text-sm font-bold rounded-xl hover:bg-saffron-500/25 transition-all cursor-pointer"
+          >
+            🔔 Enable Sound Notification
+          </button>
+        </div>
       </div>
 
       <audio ref={audioRef} src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto" />

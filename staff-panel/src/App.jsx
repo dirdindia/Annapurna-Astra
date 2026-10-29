@@ -12,6 +12,7 @@ import StaffGRC from "./pages/staff/StaffGRC";
 import StaffKDS from "./pages/staff/StaffKDS";
 import StaffHallDisplay from "./pages/staff/StaffHallDisplay";
 import StaffManual from "./pages/staff/StaffManual";
+import StaffPrepForecast from "./pages/staff/StaffPrepForecast";
 import StaffTourGuide from "./components/StaffTourGuide";
 
 import { authAPI } from "./api";
@@ -169,7 +170,7 @@ export default function App() {
           path="/staff/kot"
           element={
             <StaffRoute currentUser={currentUser} handleLogout={handleLogout} theme={theme} toggleTheme={toggleTheme}>
-              <StaffKotBilling />
+              <StaffKotBilling theme={theme} />
             </StaffRoute>
           }
         />
@@ -188,6 +189,15 @@ export default function App() {
           element={
             <StaffRoute currentUser={currentUser} handleLogout={handleLogout} theme={theme} toggleTheme={toggleTheme}>
               <StaffHallDisplay />
+            </StaffRoute>
+          }
+        />
+
+        <Route
+          path="/staff/prep-forecast"
+          element={
+            <StaffRoute currentUser={currentUser} handleLogout={handleLogout} theme={theme} toggleTheme={toggleTheme}>
+              <StaffPrepForecast currentUser={currentUser} theme={theme} />
             </StaffRoute>
           }
         />

@@ -176,6 +176,25 @@ export default function Navbar({ currentUser, onLogout, theme, toggleTheme, togg
                 </MagneticButton>
               )}
 
+              {(!currentUser.staffPermissions || currentUser.staffPermissions.restaurant) && (
+                <MagneticButton>
+                  <button
+                    data-tour="nav-staff-prep"
+                    onClick={() => navigate("/staff/prep-forecast")}
+                    className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      isActive("/staff/prep-forecast")
+                        ? "bg-gradient-to-r from-saffron-500 to-amber-500 text-slate-950 font-black shadow-md shadow-saffron-500/20"
+                        : theme === "light"
+                        ? "text-slate-700 hover:text-slate-950 hover:bg-slate-200/70"
+                        : "text-slate-300 hover:text-white hover:bg-white/5"
+                    }`}
+                    title="AI Daily Wastage & Raw Material Forecaster"
+                  >
+                    <span>🥦 AI Prep Forecast</span>
+                  </button>
+                </MagneticButton>
+              )}
+
               <MagneticButton>
                 <button
                   data-tour="nav-staff-manual"
@@ -406,6 +425,22 @@ export default function Navbar({ currentUser, onLogout, theme, toggleTheme, togg
                 >
                   <ChefHat className="w-4 h-4" />
                   KDS (Kitchen)
+                </button>
+              )}
+
+              {(!currentUser.staffPermissions || currentUser.staffPermissions.restaurant) && (
+                <button
+                  onClick={() => { navigate("/staff/prep-forecast"); setIsStaffMenuOpen(false); }}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left text-xs font-bold ${
+                    isActive("/staff/prep-forecast")
+                      ? "bg-gradient-to-r from-saffron-500 to-amber-500 text-slate-950 font-black shadow-md"
+                      : theme === "light"
+                      ? "text-slate-700 hover:text-slate-950 hover:bg-slate-100"
+                      : "text-slate-300 hover:text-white hover:bg-slate-900/60"
+                  }`}
+                >
+                  <ChefHat className="w-4 h-4 text-emerald-400" />
+                  🥦 AI Daily Prep Forecast
                 </button>
               )}
 

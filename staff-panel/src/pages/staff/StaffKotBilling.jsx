@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import api, { tableAPI, orderAPI, tableBookingAPI, waitlistAPI } from "../../api";
-import { UtensilsCrossed, Users, Plus, Minus, Trash2, Search, ArrowUpRight, ArrowLeft, Bike, ShoppingBag, Truck, X, BedDouble, CalendarClock, Calendar, Clock, Phone, AlertCircle, CalendarDays, CheckCircle, Hotel, Ticket, UserPlus, PhoneCall, Check, RefreshCw, UserCheck, ShieldAlert, KeyRound, ShieldCheck } from "lucide-react";
+import { UtensilsCrossed, Users, Plus, Minus, Trash2, Search, ArrowUpRight, ArrowLeft, Bike, ShoppingBag, Truck, X, BedDouble, CalendarClock, Calendar, Clock, Phone, AlertCircle, CalendarDays, CheckCircle, Hotel, Ticket, UserPlus, PhoneCall, Check, RefreshCw, UserCheck, ShieldAlert, KeyRound, ShieldCheck, Flame } from "lucide-react";
 import { showError, showSuccess, showConfirm } from "../../utils/alerts";
 import ThermalReceipt from "../../components/ThermalReceipt";
 import MagneticButton from "../../components/MagneticButton";
 
-export default function StaffKotBilling() {
+export default function StaffKotBilling({ theme: propTheme }) {
+  const currentTheme = propTheme || (typeof document !== "undefined" && document.body.classList.contains("light") ? "light" : "dark");
   const [tables, setTables] = useState([]);
   const [virtualOrders, setVirtualOrders] = useState([]);
   const [selectedTable, setSelectedTable] = useState(null);
@@ -22,7 +23,7 @@ export default function StaffKotBilling() {
   const [dishes, setDishes] = useState([]);
   const [filteredDishes, setFilteredDishes] = useState([]);
   const [search, setSearch] = useState("");
-  const [categories, setCategories] = useState(["All"]);
+  const [categories, setCategories] = useState(["All", "🔥 Top Orders"]);
   const [selectedCategory, setSelectedCategory] = useState("All");
 
   // Pagination
@@ -265,8 +266,9 @@ export default function StaffKotBilling() {
     try {
       const res = await api.get("/api/dishes");
       if (res.data.success) {
-        const cats = ["All", ...new Set(res.data.dishes.map((d) => d.category))];
-        setCategories(cats);
+        const rawCats = [...new Set(res.data.dishes.map((d) => d.category))].filter(Boolean);
+        // "All" followed by "🔥 Top Orders", then standard menu categories
+        setCategories(["All", "🔥 Top Orders", ...rawCats]);
       }
     } catch (error) {
       console.error(error);
@@ -275,11 +277,18 @@ export default function StaffKotBilling() {
 
   const fetchDishes = async () => {
     try {
-      const categoryParam = selectedCategory === "All" ? "" : encodeURIComponent(selectedCategory);
-      const res = await api.get(`/api/dishes?page=${currentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(search)}&category=${categoryParam}`);
+      let url = "";
+      if (selectedCategory === "🔥 Top Orders" || selectedCategory === "Top Orders") {
+        url = `/api/dishes?topOrders=true&search=${encodeURIComponent(search)}`;
+      } else {
+        const categoryParam = selectedCategory === "All" ? "" : encodeURIComponent(selectedCategory);
+        url = `/api/dishes?page=${currentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(search)}&category=${categoryParam}`;
+      }
+
+      const res = await api.get(url);
       if (res.data.success) {
         // filter out unavailable dishes just in case, though ideally backend does this
-        const available = res.data.dishes.filter(d => d.available);
+        const available = res.data.dishes.filter(d => d.available !== false);
         setFilteredDishes(available);
         if (res.data.pagination) {
           setServerTotalPages(res.data.pagination.totalPages || 1);
@@ -1637,29 +1646,69 @@ export default function StaffKotBilling() {
         {/* Search & Categories (Moved to Top) */}
         <div className="flex flex-col gap-3">
           <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+            <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
+              currentTheme === "light" ? "text-slate-400" : "text-slate-500"
+            }`} />
             <input
               type="text"
               placeholder="Search dishes..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-slate-900/60 border border-slate-800 text-slate-200 rounded-xl py-2 pl-10 pr-4 text-sm outline-none focus:border-saffron-500 transition-colors"
+              className={`w-full rounded-xl py-2.5 pl-10 pr-4 text-sm outline-none transition-colors border ${
+                currentTheme === "light"
+                  ? "bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-saffron-500 shadow-sm"
+                  : "bg-slate-900/60 border-slate-800 text-slate-200 placeholder:text-slate-500 focus:border-saffron-500"
+              }`}
             />
           </div>
           <div className="flex flex-wrap gap-2 pb-1">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className={`px-4 py-2 text-xs font-bold rounded-xl whitespace-nowrap transition-all duration-200 ${
-                  selectedCategory === cat
-                    ? "bg-gradient-to-r from-saffron-500 to-saffron-600 text-lagoon-950 shadow-md shadow-saffron-500/20"
-                    : "glass-card text-slate-400 hover:text-slate-200 hover:border-saffron-500/30"
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
+            {categories.map((cat) => {
+              const isTop = cat === "🔥 Top Orders" || cat === "Top Orders";
+              const isSelected = selectedCategory === cat;
+
+              let btnClasses = "px-4 py-2 text-xs font-bold rounded-xl whitespace-nowrap transition-all duration-200 flex items-center gap-1.5 cursor-pointer ";
+
+              if (isSelected) {
+                if (isTop) {
+                  btnClasses += "bg-gradient-to-r from-rose-600 via-amber-600 to-saffron-600 text-white shadow-lg shadow-rose-500/30 font-black scale-105 border border-rose-500/40";
+                } else {
+                  btnClasses += "bg-gradient-to-r from-saffron-500 to-saffron-600 text-slate-950 font-black shadow-md shadow-saffron-500/20";
+                }
+              } else {
+                if (isTop) {
+                  btnClasses += currentTheme === "light"
+                    ? "bg-rose-50 border-2 border-rose-300 text-rose-700 hover:bg-rose-100 font-black shadow-sm"
+                    : "bg-rose-950/40 border border-rose-500/40 text-rose-300 hover:bg-rose-900/40 font-extrabold";
+                } else {
+                  btnClasses += currentTheme === "light"
+                    ? "bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-saffron-500/30 shadow-sm font-semibold"
+                    : "glass-card text-slate-400 hover:text-slate-200 hover:border-saffron-500/30";
+                }
+              }
+
+              return (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={btnClasses}
+                >
+                  {isTop && (
+                    <Flame
+                      className={`w-3.5 h-3.5 shrink-0 ${
+                        isSelected
+                          ? "text-white fill-white"
+                          : currentTheme === "light"
+                          ? "text-rose-600 fill-rose-600"
+                          : "text-rose-400 fill-rose-400"
+                      }`}
+                    />
+                  )}
+                  <span className={isSelected && isTop ? "text-white font-black" : ""}>
+                    {cat.replace(/^🔥\s*/, "")}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -1703,7 +1752,16 @@ export default function StaffKotBilling() {
                     onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&q=60"; }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-60"></div>
-                  <span className="absolute bottom-2.5 right-2.5 bg-white/95 dark:bg-lagoon-950/90 text-saffron-700 dark:text-saffron-400 border border-saffron-400/50 dark:border-saffron-500/30 font-black px-2 py-0.5 rounded-lg text-xs font-mono backdrop-blur-sm shadow-sm">
+                  {/* Top Order / Bestseller Badge */}
+                  {dish.topRank && (
+                    <span className="absolute top-2 left-2 bg-rose-600 text-white font-black text-[10px] px-2.5 py-1 rounded-lg shadow-md flex items-center gap-1 backdrop-blur-sm border border-rose-400/40 z-10">
+                      <Flame className="w-3 h-3 fill-white text-white shrink-0" />
+                      <span className="text-white font-black whitespace-nowrap">
+                        #{dish.topRank} Top Seller {dish.salesCount > 0 ? `(${dish.salesCount} sold)` : ''}
+                      </span>
+                    </span>
+                  )}
+                  <span className="absolute bottom-2.5 right-2.5 bg-white/95 dark:bg-lagoon-950/90 text-saffron-700 dark:text-saffron-400 border border-saffron-400/50 dark:border-saffron-500/30 font-black px-2 py-0.5 rounded-lg text-xs font-mono backdrop-blur-sm shadow-sm z-10">
                     ₹{dish.price}
                   </span>
                 </div>
@@ -1713,11 +1771,23 @@ export default function StaffKotBilling() {
                       <h3 className="font-bold text-sm text-slate-900 dark:text-slate-200 line-clamp-2 leading-snug break-words">
                         {dish.name}
                       </h3>
-                      {dish.dishId && <span className="shrink-0 text-[10px] bg-slate-100 dark:bg-lagoon-900/80 text-saffron-700 dark:text-saffron-400 font-bold px-1.5 py-0.5 rounded border border-saffron-500/20 whitespace-nowrap">{dish.dishId}</span>}
+                      {dish.dishId && (
+                        <span className={`shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded border whitespace-nowrap ${
+                          currentTheme === "light"
+                            ? "bg-slate-100 text-saffron-700 border-saffron-500/30"
+                            : "bg-lagoon-900/80 text-saffron-400 border-saffron-500/20"
+                        }`}>
+                          {dish.dishId}
+                        </span>
+                      )}
                     </div>
                     <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-widest mt-0.5 font-semibold">{dish.category}</p>
                   </div>
-                  <button className="w-full mt-auto py-1.5 bg-slate-100 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-800 text-slate-800 dark:text-slate-300 hover:border-saffron-500/40 group-hover:bg-saffron-500/15 group-hover:text-saffron-700 dark:group-hover:text-saffron-400 rounded-lg text-[10px] font-bold uppercase tracking-wider flex items-center justify-center gap-1 transition-all">
+                  <button className={`w-full mt-auto py-1.5 border rounded-lg text-[10px] font-bold uppercase tracking-wider flex items-center justify-center gap-1 transition-all cursor-pointer ${
+                    currentTheme === "light"
+                      ? "bg-slate-100 hover:bg-saffron-50 border-slate-200 hover:border-saffron-500/40 text-slate-800 hover:text-saffron-700 font-bold"
+                      : "bg-slate-900/60 hover:bg-saffron-500/15 border-slate-800 hover:border-saffron-500/40 text-slate-300 hover:text-saffron-400 font-bold"
+                  }`}>
                     <span>Add to Cart</span>
                     <ArrowUpRight className="w-3 h-3" />
                   </button>

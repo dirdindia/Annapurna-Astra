@@ -1,13 +1,91 @@
 const Dish = require("../models/Dish");
+const Order = require("../models/Order");
+const InventoryItem = require("../models/InventoryItem");
+
+/**
+ * Normalizes dish names by stripping item code prefixes (e.g. [VE01], [ST01], VE01 -)
+ */
+const cleanDishName = (raw) => {
+  if (!raw) return "";
+  return raw
+    .replace(/^\[[A-Za-z0-9_.-]+\]\s*/i, "")
+    .replace(/^[A-Za-z0-9_.-]{2,8}\s*[-:]\s*/i, "")
+    .replace(/\s+/g, " ")
+    .trim();
+};
 
 // @desc    Get all dishes
 // @route   GET /api/dishes
 // @access  Private (both staff and admin)
 const getDishes = async (req, res) => {
   try {
-    const { page, limit, search, category } = req.query;
-    
-    let query = { hotelId: req.user.hotelId };
+    const { page, limit, search, category, topOrders } = req.query;
+    const hotelId = req.user.hotelId || req.user._id;
+
+    const isTopOrders =
+      category === "Top Orders" ||
+      category === "🔥 Top Orders" ||
+      topOrders === "true";
+
+    // 1. If staff selects "🔥 Top Orders", return the top 10 highest-selling dishes in the hotel
+    if (isTopOrders) {
+      const thirtyDaysAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
+      const orders = await Order.find({
+        hotelId,
+        status: { $ne: "Cancelled" },
+        createdAt: { $gte: thirtyDaysAgo },
+      }).select("items");
+
+      const salesMap = {};
+      orders.forEach((order) => {
+        if (Array.isArray(order.items)) {
+          order.items.forEach((it) => {
+            const raw = (it.name || "").trim();
+            if (!raw) return;
+            const cleaned = cleanDishName(raw).toLowerCase();
+            salesMap[cleaned] = (salesMap[cleaned] || 0) + (Number(it.quantity) || 1);
+          });
+        }
+      });
+
+      // Fetch all available dishes
+      let dishQuery = { hotelId, available: true };
+      if (search) {
+        dishQuery.name = { $regex: search, $options: "i" };
+      }
+
+      const allDishes = await Dish.find(dishQuery).populate("recipe.item", "name unit currentStock");
+
+      // Score and sort descending by real sales volume
+      const scoredDishes = allDishes.map((dish) => {
+        const cleaned = cleanDishName(dish.name).toLowerCase();
+        const salesCount = salesMap[cleaned] || salesMap[dish.name.toLowerCase()] || 0;
+        return {
+          ...dish.toObject(),
+          salesCount,
+        };
+      });
+
+      scoredDishes.sort((a, b) => b.salesCount - a.salesCount);
+      const top10 = scoredDishes.slice(0, 10).map((d, idx) => ({
+        ...d,
+        topRank: idx + 1,
+        isTopOrder: true,
+      }));
+
+      return res.json({
+        success: true,
+        dishes: top10,
+        pagination: {
+          currentPage: 1,
+          totalPages: 1,
+          totalItems: top10.length,
+        },
+      });
+    }
+
+    // 2. Standard Category / All Dishes Query
+    let query = { hotelId };
     if (search) {
       query.name = { $regex: search, $options: "i" };
     }
@@ -29,18 +107,18 @@ const getDishes = async (req, res) => {
       .populate("recipe.item", "name unit currentStock")
       .skip(skip)
       .limit(pageSize);
-      
+
     const totalDishes = await Dish.countDocuments(query);
     const totalPages = Math.ceil(totalDishes / pageSize);
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       dishes,
       pagination: {
         currentPage: pageNumber,
         totalPages,
-        totalItems: totalDishes
-      }
+        totalItems: totalDishes,
+      },
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

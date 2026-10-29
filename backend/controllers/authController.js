@@ -2,6 +2,8 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
 const Hotel = require('../models/Hotel');
+const Otp = require('../models/Otp');
+const { sendOtpEmail } = require('../utils/emailService');
 
 // Generate JWT token
 const generateToken = (id) => {
@@ -256,6 +258,74 @@ const deleteStaff = async (req, res) => {
     res.json({ success: true, message: `${staff.role === 'sub_admin' ? 'Sub-Admin' : 'Staff'} member deleted successfully` });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Update a staff member or sub-admin (including password)
+// @route   PUT /api/auth/staff/:id
+// @access  Private/Admin
+const updateStaff = async (req, res) => {
+  if (req.user.role === 'sub_admin') {
+    return res.status(403).json({ success: false, message: 'Sub-Admins are not authorized to edit staff accounts.' });
+  }
+
+  const { name, email, password, mobile, age, address, city, role, staffPermissions } = req.body;
+
+  try {
+    const staff = await User.findOne({ _id: req.params.id, hotelId: req.user.hotelId });
+
+    if (!staff || !['staff', 'sub_admin'].includes(staff.role)) {
+      return res.status(404).json({ success: false, message: 'Staff member not found or unauthorized' });
+    }
+
+    // Check if email changed and is already taken by another user
+    if (email && email.trim().toLowerCase() !== staff.email.toLowerCase()) {
+      const emailExists = await User.findOne({ 
+        email: email.trim().toLowerCase(), 
+        _id: { $ne: staff._id } 
+      });
+      if (emailExists) {
+        return res.status(400).json({ success: false, message: 'Is email se doosra account pehle se maujood hai.' });
+      }
+      staff.email = email.trim().toLowerCase();
+    }
+
+    if (name) staff.name = name.trim();
+    if (mobile) staff.mobile = mobile.trim();
+    if (age !== undefined && age !== '') staff.age = Number(age);
+    if (address !== undefined) staff.address = address.trim();
+    if (city !== undefined) staff.city = city.trim();
+    if (role && ['staff', 'sub_admin'].includes(role)) staff.role = role;
+    if (staffPermissions) staff.staffPermissions = { ...staff.staffPermissions, ...staffPermissions };
+
+    // Update password if hotel admin provided a new password
+    if (password && password.trim().length > 0) {
+      if (password.trim().length < 6) {
+        return res.status(400).json({ success: false, message: 'Password kam se kam 6 characters ka hona chahiye.' });
+      }
+      staff.password = password.trim();
+    }
+
+    await staff.save();
+
+    res.json({
+      success: true,
+      message: `${staff.role === 'sub_admin' ? 'Sub-Admin' : 'Staff'} account updated successfully!`,
+      staff: {
+        _id: staff._id,
+        name: staff.name,
+        email: staff.email,
+        role: staff.role,
+        mobile: staff.mobile,
+        age: staff.age,
+        address: staff.address,
+        city: staff.city,
+        staffPermissions: staff.staffPermissions,
+      },
+    });
+  } catch (error) {
+    console.error("updateStaff error:", error);
+    res.status(500).json({ success: false, message: error.message || 'Failed to update staff' });
   }
 };
 
@@ -519,14 +589,166 @@ const getProfile = async (req, res) => {
   }
 };
 
+// @desc    Request Password Reset OTP
+// @route   POST /api/auth/forgot-password
+// @access  Public
+const requestPasswordResetOtp = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ success: false, message: "Email is required" });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    const user = await User.findOne({ email: cleanEmail });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Is email se koi registered account nahi mila. Kripya apna registered email check karein.",
+      });
+    }
+
+    // Generate 6-digit numeric OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Expire in 10 minutes
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+    // Remove any existing OTP for this email
+    await Otp.deleteMany({ email: cleanEmail, purpose: "password_reset" });
+
+    // Save new OTP
+    await Otp.create({
+      email: cleanEmail,
+      otp,
+      purpose: "password_reset",
+      expiresAt,
+    });
+
+    // Send email
+    await sendOtpEmail({
+      to: cleanEmail,
+      otp,
+      userName: user.name || "Hotel Partner",
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Verification code (OTP) aapke registered email par bhej diya gaya hai.",
+    });
+  } catch (error) {
+    console.error("requestPasswordResetOtp error:", error);
+    res.status(500).json({ success: false, message: error.message || "Failed to send OTP" });
+  }
+};
+
+// @desc    Verify Password Reset OTP
+// @route   POST /api/auth/verify-reset-otp
+// @access  Public
+const verifyResetOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) {
+      return res.status(400).json({ success: false, message: "Email aur OTP dono zaroori hain." });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanOtp = otp.toString().trim();
+
+    const otpRecord = await Otp.findOne({
+      email: cleanEmail,
+      purpose: "password_reset",
+      expiresAt: { $gt: new Date() },
+    });
+
+    if (!otpRecord || otpRecord.otp !== cleanOtp) {
+      return res.status(400).json({
+        success: false,
+        message: "Galat ya expired OTP! Kripya sahi 6-digit code daalein.",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "OTP successfully verified.",
+    });
+  } catch (error) {
+    console.error("verifyResetOtp error:", error);
+    res.status(500).json({ success: false, message: error.message || "Failed to verify OTP" });
+  }
+};
+
+// @desc    Reset Password with verified OTP
+// @route   POST /api/auth/reset-password-with-otp
+// @access  Public
+const resetPasswordWithOtp = async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+    if (!email || !otp || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Email, OTP aur Naya Password sabhi required hain.",
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "Password kam se kam 6 characters ka hona chahiye.",
+      });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanOtp = otp.toString().trim();
+
+    const otpRecord = await Otp.findOne({
+      email: cleanEmail,
+      purpose: "password_reset",
+      expiresAt: { $gt: new Date() },
+    });
+
+    if (!otpRecord || otpRecord.otp !== cleanOtp) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid ya expired OTP! Kripya naya OTP request karein.",
+      });
+    }
+
+    const user = await User.findOne({ email: cleanEmail });
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User account nahi mila." });
+    }
+
+    // Set new password (pre-save hook in User model will hash it)
+    user.password = newPassword;
+    await user.save();
+
+    // Delete used OTP
+    await Otp.deleteMany({ email: cleanEmail, purpose: "password_reset" });
+
+    res.status(200).json({
+      success: true,
+      message: "Password successfully change ho gaya hai! Ab aap naye password se login kar sakte hain.",
+    });
+  } catch (error) {
+    console.error("resetPasswordWithOtp error:", error);
+    res.status(500).json({ success: false, message: error.message || "Failed to reset password" });
+  }
+};
+
 module.exports = {
   loginUser,
   registerHotel,
   registerStaff,
   getStaff,
+  updateStaff,
   deleteStaff,
   updateAdminPassword,
   updateStaffPermissions,
   updateProfile,
   getProfile,
+  requestPasswordResetOtp,
+  verifyResetOtp,
+  resetPasswordWithOtp,
 };

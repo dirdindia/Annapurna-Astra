@@ -290,8 +290,24 @@ export default function PrintableGRC({ grcNo }) {
 
       {/* Global Print Styles */}
       <style>{`
+        .grc-form-container,
+        .grc-form-container *,
+        .grc-form-container p,
+        .grc-form-container span,
+        .grc-form-container div,
+        .grc-form-container label,
+        .grc-form-container h1,
+        .grc-form-container h2,
+        .grc-form-container h3,
+        .grc-form-container b,
+        .grc-form-container strong {
+          color: #000000 !important;
+        }
+        .grc-form-container .border-black {
+          border-color: #000000 !important;
+        }
         .grc-form-container {
-          background-color: white;
+          background-color: white !important;
           padding: 10mm;
           margin: 0 auto;
           max-width: 210mm;
