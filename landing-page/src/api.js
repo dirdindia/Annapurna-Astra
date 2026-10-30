@@ -5,7 +5,7 @@ import Swal from 'sweetalert2';
 const getBaseUrl = () => {
   if (import.meta.env?.VITE_API_URL) return import.meta.env.VITE_API_URL;
   if (typeof window !== "undefined" && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
-    return "https://annapurna-astra.onrender.com/";
+    return "https://api.e-annapurna.co.in/";
   }
   return "http://localhost:5000/";
 };
