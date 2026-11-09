@@ -36,8 +36,15 @@ const loginUser = async (req, res) => {
 
       // Staff / Sub-admin Login Subscription Restriction:
       if (user.role === 'staff' || user.role === 'sub_admin') {
-        const isExpired = hotel?.subscription?.validUntil ? new Date(hotel.subscription.validUntil) < new Date() : false;
-        const isSubActive = Boolean(hotel && hotel.subscription && hotel.subscription.isActive && hotel.subscription.plan !== 'none' && !isExpired);
+        const sub = hotel?.subscription;
+        const expiryTime = sub?.validUntil ? new Date(sub.validUntil).getTime() : 0;
+        const isExpired = expiryTime > 0 ? expiryTime < Date.now() : true;
+        const isPlanActive = Boolean(sub?.isActive && sub?.plan && sub.plan.toLowerCase() !== 'none');
+        const isSubActive = Boolean(hotel && isPlanActive && !isExpired);
+
+        console.log(`[Staff Login] User: ${user.email} | Hotel: ${hotel?.name || 'NOT FOUND'} (${user.hotelId})`);
+        console.log(`[Staff Login] Plan: ${sub?.plan}, isActive: ${sub?.isActive}, validUntil: ${sub?.validUntil}`);
+        console.log(`[Staff Login] isExpired: ${isExpired}, isSubActive: ${isSubActive}`);
 
         if (!isSubActive) {
           return res.status(403).json({
@@ -380,7 +387,7 @@ const updateProfile = async (req, res) => {
     foodGstRate, roomGstRate, idProofPolicy,
     upiId, bankName, bankAccountNumber, bankIfscCode, bankAccountName,
     receptionPhone, websiteUrl, googleMapsUrl, instagramUrl, facebookUrl, starRating,
-    telegramAlertsEnabled, telegramChatId, antiTheftOtpRequired
+    telegramAlertsEnabled, telegramBotToken, telegramChatId, antiTheftOtpRequired
   } = req.body;
   try {
     const user = await User.findById(req.user._id);
@@ -456,6 +463,7 @@ const updateProfile = async (req, res) => {
 
       // Anti-theft & Telegram Alerts
       if (telegramAlertsEnabled !== undefined) hotel.telegramAlertsEnabled = Boolean(telegramAlertsEnabled);
+      if (telegramBotToken !== undefined) hotel.telegramBotToken = String(telegramBotToken).trim();
       if (telegramChatId !== undefined) hotel.telegramChatId = String(telegramChatId).trim();
       if (antiTheftOtpRequired !== undefined) hotel.antiTheftOtpRequired = Boolean(antiTheftOtpRequired);
 
@@ -511,6 +519,7 @@ const updateProfile = async (req, res) => {
         subscriptionStatus: hotel && hotel.subscription ? (hotel.subscription.isActive ? 'active' : 'inactive') : 'inactive',
         subscriptionExpiresAt: hotel && hotel.subscription ? hotel.subscription.validUntil : null,
         telegramAlertsEnabled: hotel ? (user.role === 'sub_admin' ? false : Boolean(hotel.telegramAlertsEnabled)) : false,
+        telegramBotToken: hotel ? (user.role === 'sub_admin' ? '' : hotel.telegramBotToken || '') : '',
         telegramChatId: hotel ? (user.role === 'sub_admin' ? '' : hotel.telegramChatId || '') : '',
         antiTheftOtpRequired: hotel && hotel.antiTheftOtpRequired !== undefined ? Boolean(hotel.antiTheftOtpRequired) : true,
       }
@@ -580,6 +589,7 @@ const getProfile = async (req, res) => {
         subscriptionStatus: hotel && hotel.subscription ? (hotel.subscription.isActive ? 'active' : 'inactive') : 'inactive',
         subscriptionExpiresAt: hotel && hotel.subscription ? hotel.subscription.validUntil : null,
         telegramAlertsEnabled: hotel ? (user.role === 'sub_admin' ? false : Boolean(hotel.telegramAlertsEnabled)) : false,
+        telegramBotToken: hotel ? (user.role === 'sub_admin' ? '' : hotel.telegramBotToken || '') : '',
         telegramChatId: hotel ? (user.role === 'sub_admin' ? '' : hotel.telegramChatId || '') : '',
         antiTheftOtpRequired: hotel && hotel.antiTheftOtpRequired !== undefined ? Boolean(hotel.antiTheftOtpRequired) : true,
       }

@@ -210,8 +210,8 @@ export const waitlistAPI = {
 };
 
 export const antiTheftAPI = {
-  testTelegramAlert: (chatId) => api.post("/api/orders/telegram-test", { chatId }),
-  detectChatId: () => api.get("/api/orders/telegram-detect-chat-id"),
+  testTelegramAlert: (chatId, botToken) => api.post("/api/orders/telegram-test", { chatId, botToken }),
+  detectChatId: (botToken) => api.get("/api/orders/telegram-detect-chat-id", { params: { botToken } }),
   getCancellationAudits: (params) => api.get("/api/orders/cancellation-audits", { params }),
 };
 

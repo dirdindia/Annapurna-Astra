@@ -4,14 +4,14 @@ const axios = require("axios");
  * Send a raw Telegram message via the Telegram Bot API.
  * 100% Free - uses official Telegram Bot API
  */
-const sendTelegramMessage = async (chatId, text, parseMode = "HTML") => {
-  const token = process.env.TELEGRAM_BOT_TOKEN;
+const sendTelegramMessage = async (chatId, text, parseMode = "HTML", botToken = null) => {
+  const token = botToken || process.env.TELEGRAM_BOT_TOKEN;
 
   if (!token) {
-    console.warn("[TelegramService] TELEGRAM_BOT_TOKEN is not set in backend/.env");
+    console.warn("[TelegramService] Telegram Bot Token is not provided or set in backend/.env");
     return {
       success: false,
-      message: "Telegram Bot Token configure nahi hai! Kripya backend/.env me TELEGRAM_BOT_TOKEN add karein (@BotFather se free token milta hai).",
+      message: "Telegram Bot Token configure nahi hai! Kripya Admin Settings me Bot Token add karein ya backend/.env me TELEGRAM_BOT_TOKEN set karein (@BotFather se free token milta hai).",
     };
   }
 
@@ -40,8 +40,10 @@ const sendTelegramMessage = async (chatId, text, parseMode = "HTML") => {
       error.response?.data?.description || error.message || "Failed to send message";
     console.error("[TelegramService] Error:", errorMsg);
 
-    if (errorMsg.includes("chat not found")) {
-      errorMsg = "Telegram Error: 'chat not found'. Kripya pehle apne phone Telegram me bot (@e_annapurna_alerts_bot) open karke 'START' dabayein. Aur check karein ki aapne numeric Chat ID (e.g. 123456789) dali hai, username nahi.";
+    if (errorMsg.includes("Unauthorized") || errorMsg.includes("Not Found")) {
+      errorMsg = "Telegram Error: Invalid Bot Token. Kripya apna Telegram Bot Token check karein jo aapko @BotFather se mila tha.";
+    } else if (errorMsg.includes("chat not found")) {
+      errorMsg = "Telegram Error: 'chat not found'. Kripya pehle apne phone Telegram me bot open karke 'START' dabayein. Aur check karein ki numeric Chat ID dali hai, username nahi.";
     } else if (errorMsg.includes("bot was blocked by the user")) {
       errorMsg = "Telegram Error: Bot blocked. Kripya Telegram bot ko unblock karein aur 'START' dabayein.";
     }
@@ -55,6 +57,7 @@ const sendTelegramMessage = async (chatId, text, parseMode = "HTML") => {
  */
 const sendCancelAlertOtp = async ({
   chatId,
+  botToken,
   hotelName,
   tableOrOrder,
   items,
@@ -98,7 +101,7 @@ ${itemsText}
 ⏱️ <i>Yeh OTP agle 5 minute ke liye valid hai.</i>
 ⚠️ <i>Sirf tabhi cashier ko OTP batayein jab cancellation genuine ho. Cash lene ke baad KOT cancel karna fraud ho sakta hai!</i>`;
 
-  return await sendTelegramMessage(chatId, message);
+  return await sendTelegramMessage(chatId, message, "HTML", botToken);
 };
 
 /**
@@ -106,6 +109,7 @@ ${itemsText}
  */
 const sendCancelApprovedNotification = async ({
   chatId,
+  botToken,
   hotelName,
   tableOrOrder,
   totalAmount,
@@ -122,13 +126,13 @@ const sendCancelApprovedNotification = async ({
 
 ℹ️ <i>Action authorized via OTP and recorded in system audit log.</i>`;
 
-  return await sendTelegramMessage(chatId, message);
+  return await sendTelegramMessage(chatId, message, "HTML", botToken);
 };
 
 /**
  * Send a Test Notification to verify bot connection
  */
-const sendTestAlert = async (chatId, hotelName) => {
+const sendTestAlert = async (chatId, hotelName, botToken = null) => {
   const message = `🎉 <b>TELEGRAM ALERTS CONNECTED!</b>
 
 🏨 <b>Hotel:</b> ${hotelName || "Your Restaurant"}
@@ -138,7 +142,7 @@ Ab se jab bhi koi cashier printed KOT ya item cancel karega, aapke is Telegram p
 
 Aapka restaurant business ab 100% fraud-proof hai! 🚀`;
 
-  return await sendTelegramMessage(chatId, message);
+  return await sendTelegramMessage(chatId, message, "HTML", botToken);
 };
 
 module.exports = {

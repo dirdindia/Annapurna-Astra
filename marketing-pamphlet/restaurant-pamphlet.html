@@ -412,13 +412,14 @@
       background: var(--gold-gradient);
       color: var(--lagoon-950);
       border-radius: 9px;
-      padding: 5px 13px;
+      padding: 5px 12px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       box-shadow: 0 3px 10px rgba(0,0,0,0.35);
       border: 1px solid #FFF3C4;
+      min-width: 130px;
     }
 
     .price-tag-bubble .starting-from {
@@ -427,14 +428,49 @@
       text-transform: uppercase;
       letter-spacing: 0.6px;
       line-height: 1;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .price-tag-bubble .offer-pill {
+      background: #DC2626;
+      color: #FFFFFF;
+      font-size: 7px;
+      font-weight: 800;
+      padding: 1px 5px;
+      border-radius: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      line-height: 1.1;
+      box-shadow: 0 1px 3px rgba(220, 38, 38, 0.4);
+    }
+
+    .price-tag-bubble .price-amount-wrap {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 6px;
+      margin: 2px 0 1px 0;
+    }
+
+    .price-tag-bubble .price-original {
+      font-size: 13px;
+      font-weight: 800;
+      color: #78350F;
+      text-decoration: line-through;
+      text-decoration-color: #DC2626;
+      text-decoration-thickness: 2.2px;
+      line-height: 1;
+      opacity: 0.85;
     }
 
     .price-tag-bubble .price-amount {
       font-family: var(--font-display);
-      font-size: 23px;
+      font-size: 24px;
       font-weight: 800;
       line-height: 1;
-      margin: 2px 0 1px 0;
+      color: var(--lagoon-950);
     }
 
     .price-tag-bubble .per-month {
@@ -1069,9 +1105,9 @@
       <span class="badge">A4 Print Ready</span>
     </div>
     <div class="toolbar-nav">
-      <a href="index.html" class="toolbar-link">Combo Edition</a>
-      <a href="hotel-pamphlet.html" class="toolbar-link">Hotel PMS (₹2,499)</a>
-      <a href="restaurant-pamphlet.html" class="toolbar-link active">Restaurant (₹2,499)</a>
+      <a href="index.html" class="toolbar-link">Combo Edition (Offer ₹2,499)</a>
+      <a href="hotel-pamphlet.html" class="toolbar-link">Hotel PMS (Offer ₹1,499)</a>
+      <a href="restaurant-pamphlet.html" class="toolbar-link active">Restaurant (Offer ₹1,499)</a>
     </div>
     <button class="toolbar-btn" onclick="window.print()">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
@@ -1150,12 +1186,15 @@
       </div>
     </section>
 
-    <!-- ATTRACTIVE PRICING & SPECIAL OFFER STRIP (₹2,499/MO) -->
+    <!-- ATTRACTIVE PRICING & SPECIAL OFFER STRIP (OFFER ₹1,499/MO) -->
     <section class="pricing-banner">
       <div class="price-hook">
         <div class="price-tag-bubble">
-          <span class="starting-from">Starts At Just</span>
-          <span class="price-amount">₹2,499</span>
+          <span class="starting-from">Starts At Just <span class="offer-pill">OFFER</span></span>
+          <div class="price-amount-wrap">
+            <span class="price-original">₹2,499</span>
+            <span class="price-amount">₹1,499</span>
+          </div>
           <span class="per-month">/ Month</span>
         </div>
         <div class="price-hook-text">
@@ -1326,7 +1365,7 @@
           <span class="comp-old">✕ ₹40,000+ Heavy POS Hardware Cost</span>
           <span class="comp-new">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            Only ₹2,499/mo + 7-Day Free Trial
+            Offer: <s style="opacity:0.75; text-decoration:line-through; text-decoration-color:#DC2626;">₹2,499</s> Only ₹1,499/mo + 7-Day Free Trial
           </span>
         </div>
       </div>

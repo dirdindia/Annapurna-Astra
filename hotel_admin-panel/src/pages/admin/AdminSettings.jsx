@@ -3,7 +3,7 @@ import {
   Settings, Shield, LayoutGrid, Check, X, AlertCircle, Database, User, 
   MapPin, Building2, Landmark, FileText, Clock, CreditCard, Globe, QrCode, ShieldCheck, Phone, Star, Percent, Share2,
   Loader2, CheckCircle2, ShieldAlert, BellRing, Send, KeyRound, Smartphone, ExternalLink, Sparkles,
-  Bot, ChevronDown, ChevronUp, Copy
+  Bot, ChevronDown, ChevronUp, Copy, Eye, EyeOff
 } from "lucide-react";
 import AdminLookups from "./AdminLookups";
 import { authAPI, uploadAPI, antiTheftAPI } from "../../api";
@@ -21,6 +21,7 @@ export default function AdminSettings() {
   const [detectingChatId, setDetectingChatId] = useState(false);
   const [showBotInstructions, setShowBotInstructions] = useState(false);
   const [copiedBotCommand, setCopiedBotCommand] = useState(false);
+  const [showBotToken, setShowBotToken] = useState(false);
 
   const handleCopyCommand = (text) => {
     navigator.clipboard.writeText(text);
@@ -74,6 +75,7 @@ export default function AdminSettings() {
     facebookUrl: "",
     starRating: "3-Star",
     telegramAlertsEnabled: false,
+    telegramBotToken: "",
     telegramChatId: "",
     antiTheftOtpRequired: true,
   });
@@ -216,6 +218,7 @@ export default function AdminSettings() {
             facebookUrl: user.facebookUrl || "",
             starRating: user.starRating || "3-Star",
             telegramAlertsEnabled: Boolean(user.telegramAlertsEnabled),
+            telegramBotToken: user.telegramBotToken || "",
             telegramChatId: user.telegramChatId || "",
             antiTheftOtpRequired: user.antiTheftOtpRequired !== undefined ? Boolean(user.antiTheftOtpRequired) : true,
           });
@@ -274,6 +277,7 @@ export default function AdminSettings() {
             facebookUrl: user.facebookUrl || "",
             starRating: user.starRating || "3-Star",
             telegramAlertsEnabled: Boolean(user.telegramAlertsEnabled),
+            telegramBotToken: user.telegramBotToken || "",
             telegramChatId: user.telegramChatId || "",
             antiTheftOtpRequired: user.antiTheftOtpRequired !== undefined ? Boolean(user.antiTheftOtpRequired) : true,
           });
@@ -363,7 +367,7 @@ export default function AdminSettings() {
     }
     setTestingTelegram(true);
     try {
-      const res = await antiTheftAPI.testTelegramAlert(profileData.telegramChatId);
+      const res = await antiTheftAPI.testTelegramAlert(profileData.telegramChatId, profileData.telegramBotToken);
       if (res.data.success) {
         Swal.fire({
           icon: "success",
@@ -377,7 +381,7 @@ export default function AdminSettings() {
       Swal.fire({
         icon: "error",
         title: "Test Alert Failed",
-        text: err.response?.data?.message || "Make sure you started the bot on Telegram and your Chat ID is correct.",
+        text: err.response?.data?.message || "Make sure your Bot Token and Chat ID are valid, and you have clicked START on your Telegram Bot.",
         background: '#ffffff',
         color: '#1e293b',
       });
@@ -387,9 +391,20 @@ export default function AdminSettings() {
   };
 
   const handleDetectChatId = async () => {
+    if (!profileData.telegramBotToken) {
+      Swal.fire({
+        icon: "warning",
+        title: "Bot Token Required",
+        text: "Auto-detect karne ke liye pehle apna Telegram Bot Token enter karein (@BotFather se mila hua API Token).",
+        background: '#ffffff',
+        color: '#1e293b',
+      });
+      return;
+    }
+
     setDetectingChatId(true);
     try {
-      const res = await antiTheftAPI.detectChatId();
+      const res = await antiTheftAPI.detectChatId(profileData.telegramBotToken);
       if (res.data.success && res.data.chatId) {
         setProfileData((prev) => ({
           ...prev,
@@ -409,30 +424,24 @@ export default function AdminSettings() {
     } catch (err) {
       Swal.fire({
         icon: "info",
-        title: "Pehle Telegram Bot me 'START' dabayein",
+        title: "Pehle Apne Telegram Bot me 'START' dabayein",
         html: `
           <div style="text-align: left; font-size: 13px; line-height: 1.6; color: #334155;">
-            <p>Bot ko abhi tak aapka koi message nahi mila!</p>
+            <p>${err.response?.data?.message || "Bot ko abhi tak aapka koi message nahi mila!"}</p>
             <div style="background: #f1f5f9; padding: 12px; border-radius: 8px; margin: 10px 0; border: 1px solid #e2e8f0;">
               <b>Aasan 2 Steps:</b>
               <ol style="margin-top: 6px; padding-left: 18px;">
-                <li>Niche diye gaye link se official bot open karein: <br/><a href="https://t.me/e_annapurna_alerts_bot" target="_blank" style="color: #0284c7; font-weight: bold; text-decoration: underline;">@e_annapurna_alerts_bot</a></li>
-                <li>Telegram me niche <b>START</b> button dabayein.</li>
+                <li>Apne banaye hue Telegram Bot ko Telegram app me open karein.</li>
+                <li>Chat me niche <b>START</b> button dabayein.</li>
               </ol>
             </div>
-            <p style="margin: 0; font-size: 12px; color: #64748b;">START dabate hi wapas aakar <b>Auto-Detect</b> dabayein, aapka Chat ID bina type kiye automatic aa jayega!</p>
+            <p style="margin: 0; font-size: 12px; color: #64748b;">START dabate hi wapas aakar <b>Auto-Detect Chat ID</b> dabayein, aapka Chat ID bina type kiye automatic aa jayega!</p>
           </div>
         `,
-        confirmButtonText: "Open Telegram Bot (@e_annapurna_alerts_bot)",
-        showCancelButton: true,
-        cancelButtonText: "Cancel",
+        confirmButtonText: "Okay, Got It",
         background: '#ffffff',
         color: '#1e293b',
         customClass: { confirmButton: 'bg-sky-500 hover:bg-sky-600 text-white font-bold py-2 px-4 rounded border-none shadow' }
-      }).then((result) => {
-        if (result.isConfirmed) {
-          window.open("https://t.me/e_annapurna_alerts_bot", "_blank");
-        }
       });
     } finally {
       setDetectingChatId(false);
@@ -1609,6 +1618,44 @@ export default function AdminSettings() {
                     </div>
                   </div>
 
+                  {/* Hotel's Custom Telegram Bot Token */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-slate-300 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <Bot className="w-3.5 h-3.5 text-sky-400" />
+                        Hotel Telegram Bot Token (HTTP API Token) <span className="text-rose-500">*</span>
+                      </span>
+                      <span className="text-[11px] text-slate-400 font-normal">
+                        Har hotel admin ka apna bot token (@BotFather)
+                      </span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showBotToken ? "text" : "password"}
+                        value={profileData.telegramBotToken}
+                        onChange={(e) =>
+                          setProfileData((prev) => ({
+                            ...prev,
+                            telegramBotToken: e.target.value.trim(),
+                          }))
+                        }
+                        placeholder="e.g. 7192849201:AAHkL78912..."
+                        className="anti-theft-input w-full bg-slate-950/80 border border-white/15 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 rounded-xl pl-4 pr-11 py-3 text-sm text-white placeholder-slate-500 font-mono"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowBotToken((prev) => !prev)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-1 transition-colors cursor-pointer"
+                        title={showBotToken ? "Hide Token" : "Show Token"}
+                      >
+                        {showBotToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                    <p className="text-[11px] text-slate-400">
+                      💡 Yeh token aapke hotel ke bot ka hai jo aapko Telegram par <b>@BotFather</b> se milta hai. Niche <b>1-Minute Guide</b> me dekhein bot kaise banayein.
+                    </p>
+                  </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
                     <div className="md:col-span-6 space-y-1.5">
                       <label className="text-xs font-semibold text-slate-300 flex items-center justify-between">
@@ -1855,8 +1902,7 @@ export default function AdminSettings() {
                         </div>
                         <p className="text-[11px] text-slate-400 leading-relaxed">
                           BotFather aapko ek <b>HTTP API Token</b> dega (jaise <code>8963016276:AA...</code>).<br/>
-                          Use project ke <b><code>backend/.env</code></b> file me daalein:<br/>
-                          <code className="text-sky-400 font-bold">TELEGRAM_BOT_TOKEN=your_token</code>
+                          Use upar diye gaye <b>Hotel Telegram Bot Token</b> box me paste karein aur <b>Save Anti-Theft Preferences</b> dabayein!
                         </p>
                       </div>
                     </div>

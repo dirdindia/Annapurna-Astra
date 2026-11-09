@@ -393,7 +393,8 @@ exports.requestCancelOrder = async (req, res) => {
 
     // Check if any item in the order has already been printed in kitchen
     const hasPrintedItems = order.items.some((item) => (item.printedQuantity || 0) > 0);
-    const antiTheftActive = Boolean(hotel?.antiTheftOtpRequired && hotel?.telegramAlertsEnabled && hotel?.telegramChatId);
+    const botToken = hotel?.telegramBotToken || process.env.TELEGRAM_BOT_TOKEN;
+    const antiTheftActive = Boolean(hotel?.antiTheftOtpRequired && hotel?.telegramAlertsEnabled && hotel?.telegramChatId && botToken);
 
     // If items were printed OR anti-theft OTP is strictly enforced with telegram configured:
     if ((hasPrintedItems || hotel?.antiTheftOtpRequired) && antiTheftActive) {
@@ -420,6 +421,7 @@ exports.requestCancelOrder = async (req, res) => {
       // Send Instant Telegram Notification & OTP to Owner
       const tgResult = await sendCancelAlertOtp({
         chatId: hotel.telegramChatId,
+        botToken: hotel.telegramBotToken,
         hotelName: hotel.name,
         tableOrOrder: tableNo,
         items: order.items,
@@ -532,6 +534,7 @@ exports.verifyCancelOrder = async (req, res) => {
     if (hotel?.telegramChatId) {
       await sendCancelApprovedNotification({
         chatId: hotel.telegramChatId,
+        botToken: hotel.telegramBotToken,
         hotelName: hotel.name,
         tableOrOrder: audit.tableNo,
         totalAmount: audit.totalAmount,
@@ -571,7 +574,8 @@ exports.requestItemVoid = async (req, res) => {
     const voidAmount = item.price * voidQty;
     const hotel = await Hotel.findById(req.user.hotelId);
     const tableNo = order.table ? `Table ${order.table.tableNo}` : (order.orderDisplayId || order.orderType || "Takeaway");
-    const antiTheftActive = Boolean(hotel?.antiTheftOtpRequired && hotel?.telegramAlertsEnabled && hotel?.telegramChatId);
+    const botToken = hotel?.telegramBotToken || process.env.TELEGRAM_BOT_TOKEN;
+    const antiTheftActive = Boolean(hotel?.antiTheftOtpRequired && hotel?.telegramAlertsEnabled && hotel?.telegramChatId && botToken);
 
     // If item was already printed and anti-theft is active, require OTP
     if ((item.printedQuantity || 0) > 0 && antiTheftActive) {
@@ -603,6 +607,7 @@ exports.requestItemVoid = async (req, res) => {
 
       await sendCancelAlertOtp({
         chatId: hotel.telegramChatId,
+        botToken: hotel.telegramBotToken,
         hotelName: hotel.name,
         tableOrOrder: tableNo,
         items: [{ name: item.name, price: item.price, quantity: voidQty }],
@@ -735,6 +740,7 @@ exports.verifyItemVoid = async (req, res) => {
     if (hotel?.telegramChatId) {
       await sendCancelApprovedNotification({
         chatId: hotel.telegramChatId,
+        botToken: hotel.telegramBotToken,
         hotelName: hotel.name,
         tableOrOrder: audit.tableNo,
         totalAmount: audit.totalAmount,
@@ -792,9 +798,17 @@ exports.getCancellationAudits = async (req, res) => {
 // @access  Private (Admin)
 exports.testTelegramAlert = async (req, res) => {
   try {
-    const { chatId } = req.body;
+    const { chatId, botToken } = req.body;
     const hotel = await Hotel.findById(req.user.hotelId);
     const targetChatId = chatId || hotel?.telegramChatId;
+    const targetBotToken = botToken || hotel?.telegramBotToken || process.env.TELEGRAM_BOT_TOKEN;
+
+    if (!targetBotToken) {
+      return res.status(400).json({
+        success: false,
+        message: "Please enter your Telegram Bot Token first (from @BotFather).",
+      });
+    }
 
     if (!targetChatId) {
       return res.status(400).json({
@@ -803,7 +817,7 @@ exports.testTelegramAlert = async (req, res) => {
       });
     }
 
-    const result = await sendTestAlert(targetChatId, hotel?.name || "Annapurna Astra");
+    const result = await sendTestAlert(targetChatId, hotel?.name || "Annapurna Astra", targetBotToken);
     if (!result.success) {
       return res.status(400).json({
         success: false,
@@ -825,11 +839,12 @@ exports.testTelegramAlert = async (req, res) => {
 // @access  Private (Admin)
 exports.detectTelegramChatId = async (req, res) => {
   try {
-    const token = process.env.TELEGRAM_BOT_TOKEN;
+    const hotel = await Hotel.findById(req.user.hotelId);
+    const token = req.query.botToken || hotel?.telegramBotToken || process.env.TELEGRAM_BOT_TOKEN;
     if (!token) {
       return res.status(400).json({
         success: false,
-        message: "TELEGRAM_BOT_TOKEN is missing in backend/.env",
+        message: "Telegram Bot Token is required! Kripya pehle Bot Token enter ya save karein (@BotFather se mila hua).",
       });
     }
 
@@ -838,7 +853,7 @@ exports.detectTelegramChatId = async (req, res) => {
     if (updates.length === 0) {
       return res.status(404).json({
         success: false,
-        message: "Abhi tak koi message nahi mila! Kripya apne Telegram bot (@e_annapurna_alerts_bot) par jakar 'START' dabayein.",
+        message: "Abhi tak koi message nahi mila! Kripya apne Telegram bot par jakar 'START' dabayein.",
       });
     }
 
@@ -858,7 +873,11 @@ exports.detectTelegramChatId = async (req, res) => {
       message: `Chat ID mil gaya: ${chat.id} (${chat.first_name || "User"})`,
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    let errorMsg = error.response?.data?.description || error.message || "Failed to detect Chat ID";
+    if (errorMsg.includes("Unauthorized") || errorMsg.includes("Not Found")) {
+      errorMsg = "Invalid Bot Token. Kripya apna Bot Token check karein jo aapko @BotFather se mila tha.";
+    }
+    res.status(500).json({ success: false, message: errorMsg });
   }
 };
 

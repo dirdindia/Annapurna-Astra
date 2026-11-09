@@ -149,6 +149,10 @@ const hotelSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    telegramBotToken: {
+      type: String,
+      default: '',
+    },
     telegramChatId: {
       type: String,
       default: '',
