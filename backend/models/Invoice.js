@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { generateUniqueInvoiceNumber } = require("../utils/prefixHelper");
 
 const invoiceSchema = new mongoose.Schema(
   {
@@ -109,10 +110,22 @@ invoiceSchema.pre("save", async function (next) {
     try {
       const Hotel = mongoose.model("Hotel");
       const hotel = await Hotel.findById(this.hotelId);
-      const prefix = (hotel && hotel.invoicePrefixRestaurant) ? hotel.invoicePrefixRestaurant.trim() : "REST-";
-      const count = await mongoose.model("Invoice").countDocuments({ hotelId: this.hotelId });
-      this.invoiceNumber = `${prefix}${1001 + count}`;
+      const { invoiceNumber, resolvedPrefix } = await generateUniqueInvoiceNumber({
+        hotelId: this.hotelId,
+        hotelName: hotel?.name,
+        configuredPrefix: hotel?.invoicePrefixRestaurant,
+        type: "restaurant",
+      });
+
+      this.invoiceNumber = invoiceNumber;
+
+      // If hotel had generic or missing prefix, persist the branded prefix
+      if (hotel && (!hotel.invoicePrefixRestaurant || hotel.invoicePrefixRestaurant === "REST-")) {
+        hotel.invoicePrefixRestaurant = resolvedPrefix;
+        hotel.save().catch((err) => console.warn("[Invoice pre-save] Failed to update hotel prefix:", err.message));
+      }
     } catch (err) {
+      console.error("[Invoice pre-save] Error generating invoice number:", err);
       this.invoiceNumber = `REST-${Date.now().toString().slice(-6)}`;
     }
   }

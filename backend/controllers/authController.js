@@ -4,6 +4,7 @@ const Notification = require('../models/Notification');
 const Hotel = require('../models/Hotel');
 const Otp = require('../models/Otp');
 const { sendOtpEmail } = require('../utils/emailService');
+const { getDefaultRestaurantPrefix, getDefaultRoomPrefix } = require('../utils/prefixHelper');
 
 // Generate JWT token
 const generateToken = (id) => {
@@ -142,6 +143,8 @@ const registerHotel = async (req, res) => {
       phone,
       city,
       type: type || 'Hotel',
+      invoicePrefixRestaurant: getDefaultRestaurantPrefix(hotel),
+      invoicePrefixRoom: getDefaultRoomPrefix(hotel),
       subscription: {
         plan: 'none',
         isActive: false,

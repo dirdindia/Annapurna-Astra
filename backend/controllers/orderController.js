@@ -211,8 +211,9 @@ exports.checkoutOrder = async (req, res) => {
       invoiceStatus = "Added to Room";
     }
 
-    // Create Invoice
-    const invoice = await Invoice.create({
+    // Create Invoice with collision protection
+    let invoice;
+    const invoicePayload = {
       hotelId: req.user.hotelId,
       customerName: cName,
       customerMobile: customerMobile || "N/A",
@@ -230,7 +231,19 @@ exports.checkoutOrder = async (req, res) => {
       orderId: order._id,
       roomBookingId: effectiveRoomBookingId || null,
       status: invoiceStatus,
-    });
+    };
+
+    try {
+      invoice = await Invoice.create(invoicePayload);
+    } catch (err) {
+      if (err.code === 11000) {
+        console.warn("[orderController] Duplicate invoice number detected, retrying generation...");
+        delete invoicePayload.invoiceNumber;
+        invoice = await Invoice.create(invoicePayload);
+      } else {
+        throw err;
+      }
+    }
 
     if (effectiveRoomBookingId) {
       await RoomBooking.findOneAndUpdate(

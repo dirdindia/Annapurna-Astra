@@ -68,11 +68,11 @@ const hotelSchema = new mongoose.Schema(
     },
     invoicePrefixRestaurant: {
       type: String,
-      default: 'REST-',
+      default: '',
     },
     invoicePrefixRoom: {
       type: String,
-      default: 'ROOM-',
+      default: '',
     },
     invoiceTerms: {
       type: String,

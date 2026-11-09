@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { generateUniqueInvoiceNumber } = require('../utils/prefixHelper');
 
 const roomBookingSchema = new mongoose.Schema({
     hotelId: {
@@ -98,16 +99,25 @@ roomBookingSchema.pre("save", async function (next) {
     try {
       const Hotel = mongoose.model('Hotel');
       const hotel = await Hotel.findById(this.hotelId);
-      const prefix = (hotel && hotel.invoicePrefixRoom) ? hotel.invoicePrefixRoom.trim() : "ROOM-";
-      const count = await mongoose.model('RoomBooking').countDocuments({
+      const { invoiceNumber, resolvedPrefix } = await generateUniqueInvoiceNumber({
         hotelId: this.hotelId,
-        invoiceNumber: { $exists: true, $ne: null }
+        hotelName: hotel?.name,
+        configuredPrefix: hotel?.invoicePrefixRoom,
+        type: 'room',
       });
-      this.invoiceNumber = `${prefix}${1001 + count}`;
+
+      this.invoiceNumber = invoiceNumber;
+
+      if (hotel && (!hotel.invoicePrefixRoom || hotel.invoicePrefixRoom === 'ROOM-')) {
+        hotel.invoicePrefixRoom = resolvedPrefix;
+        hotel.save().catch((err) => console.warn('[RoomBooking pre-save] Failed to update hotel prefix:', err.message));
+      }
+
       if (this.roomGstRate === undefined && hotel && hotel.roomGstRate !== undefined) {
         this.roomGstRate = hotel.roomGstRate;
       }
     } catch (err) {
+      console.error('[RoomBooking pre-save] Error generating invoice number:', err);
       this.invoiceNumber = `ROOM-${Date.now().toString().slice(-6)}`;
     }
   }

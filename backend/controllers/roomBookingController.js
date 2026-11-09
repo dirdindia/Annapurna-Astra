@@ -2,6 +2,7 @@ const RoomBooking = require('../models/RoomBooking');
 const Room = require('../models/Room');
 const Hotel = require('../models/Hotel');
 const ExcelJS = require('exceljs');
+const { generateUniqueInvoiceNumber } = require('../utils/prefixHelper');
 
 // @desc    Get all room bookings
 // @route   GET /api/room-bookings
@@ -303,12 +304,13 @@ exports.checkOut = async (req, res) => {
     if (hotel) {
       booking.roomGstRate = hotel.roomGstRate !== undefined ? hotel.roomGstRate : 12;
       if (!booking.invoiceNumber) {
-        const prefix = hotel.invoicePrefixRoom ? hotel.invoicePrefixRoom.trim() : "ROOM-";
-        const count = await RoomBooking.countDocuments({
+        const { invoiceNumber } = await generateUniqueInvoiceNumber({
           hotelId: req.user.hotelId,
-          invoiceNumber: { $exists: true, $ne: null }
+          hotelName: hotel.name,
+          configuredPrefix: hotel.invoicePrefixRoom,
+          type: 'room',
         });
-        booking.invoiceNumber = `${prefix}${1001 + count}`;
+        booking.invoiceNumber = invoiceNumber;
       }
     }
     
