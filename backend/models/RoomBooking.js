@@ -78,6 +78,10 @@ const roomBookingSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Invoice'
   }],
+  extraCharges: [{
+    name: { type: String, required: true },
+    amount: { type: Number, required: true, default: 0 }
+  }],
   staffId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

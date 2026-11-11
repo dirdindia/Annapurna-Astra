@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import Webcam from "react-webcam";
-import { BedDouble, CheckCircle, UploadCloud, FileText, Camera } from "lucide-react";
+import { BedDouble, CheckCircle, UploadCloud, FileText, Camera, Plus, Trash2, PlusCircle, Bed, X } from "lucide-react";
 import api from "../../api";
 import { showError, showSuccess, showAlert, showConfirm } from "../../utils/alerts";
 import PremiumRoomInvoice from "../../components/PremiumRoomInvoice";
@@ -14,6 +14,10 @@ export default function StaffRoomBooking() {
   const [showCheckInModal, setShowCheckInModal] = useState(false);
   const [showCheckOutModal, setShowCheckOutModal] = useState(false);
   const [showAdvanceModal, setShowAdvanceModal] = useState(false);
+  const [showExtraModal, setShowExtraModal] = useState(false);
+  const [extraModalBooking, setExtraModalBooking] = useState(null);
+  const [modalExtraCharges, setModalExtraCharges] = useState([]);
+  const [savingExtra, setSavingExtra] = useState(false);
   
   const [numGuests, setNumGuests] = useState(1);
   const [guests, setGuests] = useState([
@@ -45,6 +49,9 @@ export default function StaffRoomBooking() {
   const [manualTotalAmount, setManualTotalAmount] = useState(0);
   const [finalPaymentMode, setFinalPaymentMode] = useState("Cash");
   const [splitBill, setSplitBill] = useState(false);
+  const [extraCharges, setExtraCharges] = useState([]);
+  const [baseRoomTotal, setBaseRoomTotal] = useState(0);
+  const [baseRestaurantTotal, setBaseRestaurantTotal] = useState(0);
 
   useEffect(() => {
     fetchRooms();
@@ -114,8 +121,16 @@ export default function StaffRoomBooking() {
           if (active.restaurantBills && active.restaurantBills.length > 0) {
             restaurantTotal = active.restaurantBills.reduce((s, bill) => s + bill.grandTotal, 0);
           }
+
+          const initialExtraCharges = (active.extraCharges && active.extraCharges.length > 0)
+            ? active.extraCharges.map(c => ({ name: c.name, amount: c.amount }))
+            : [];
+          const initialExtraTotal = initialExtraCharges.reduce((s, c) => s + (Number(c.amount) || 0), 0);
           
-          setManualTotalAmount(roomTotal + restaurantTotal);
+          setBaseRoomTotal(roomTotal);
+          setBaseRestaurantTotal(restaurantTotal);
+          setExtraCharges(initialExtraCharges);
+          setManualTotalAmount(roomTotal + restaurantTotal + initialExtraTotal);
           setFinalPaymentMode("Cash");
           setSplitBill(false);
 
@@ -333,14 +348,41 @@ export default function StaffRoomBooking() {
     setGuests(updated);
   };
 
+  const handleAddExtraCharge = (defaultName = "", defaultAmount = "") => {
+    const updated = [...extraCharges, { name: defaultName, amount: defaultAmount }];
+    setExtraCharges(updated);
+    const newExtraTotal = updated.reduce((s, c) => s + (Number(c.amount) || 0), 0);
+    setManualTotalAmount(baseRoomTotal + baseRestaurantTotal + newExtraTotal);
+  };
+
+  const handleUpdateExtraCharge = (index, field, value) => {
+    const updated = [...extraCharges];
+    updated[index][field] = value;
+    setExtraCharges(updated);
+    const newExtraTotal = updated.reduce((s, c) => s + (Number(c.amount) || 0), 0);
+    setManualTotalAmount(baseRoomTotal + baseRestaurantTotal + newExtraTotal);
+  };
+
+  const handleRemoveExtraCharge = (index) => {
+    const updated = extraCharges.filter((_, i) => i !== index);
+    setExtraCharges(updated);
+    const newExtraTotal = updated.reduce((s, c) => s + (Number(c.amount) || 0), 0);
+    setManualTotalAmount(baseRoomTotal + baseRestaurantTotal + newExtraTotal);
+  };
+
   const handleCheckOut = async () => {
     try {
       setSubmitting(true);
+      const validExtraCharges = extraCharges
+        .filter(c => c.name && !isNaN(Number(c.amount)) && Number(c.amount) > 0)
+        .map(c => ({ name: c.name.trim(), amount: Number(c.amount) }));
+
       const res = await api.post(`/api/room-bookings/checkout/${activeBooking._id}`, { 
         manualTotalAmount,
-        finalPaymentMode 
+        finalPaymentMode,
+        extraCharges: validExtraCharges
       });
-      setActiveBooking(res.data.data); // Update with final total amount
+      setActiveBooking(res.data.data); // Update with final total amount & extra charges
       setShowCheckOutModal(false);
       setShowInvoice(true);
       fetchRooms();
@@ -348,6 +390,69 @@ export default function StaffRoomBooking() {
       showError("Error", error.response?.data?.message || "Check-out failed");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleOpenExtraModal = async (room, e) => {
+    if (e) e.stopPropagation();
+    setSelectedRoom(room);
+    try {
+      const res = await api.get("/api/room-bookings");
+      const bookings = res.data.data;
+      const active = bookings.find(b => b.room._id === room._id && b.status === 'Checked-In');
+      if (active) {
+        setExtraModalBooking(active);
+        setModalExtraCharges(
+          (active.extraCharges && active.extraCharges.length > 0)
+            ? active.extraCharges.map(c => ({ name: c.name, amount: c.amount }))
+            : []
+        );
+        setShowExtraModal(true);
+      } else {
+        showError("Error", "No active checked-in booking found for this room");
+      }
+    } catch (err) {
+      showError("Error", "Failed to load booking details");
+    }
+  };
+
+  const handleModalAddExtra = (name = "", amount = "") => {
+    setModalExtraCharges(prev => [...prev, { name, amount }]);
+  };
+
+  const handleModalUpdateExtra = (index, field, value) => {
+    setModalExtraCharges(prev => {
+      const updated = [...prev];
+      updated[index][field] = value;
+      return updated;
+    });
+  };
+
+  const handleModalRemoveExtra = (index) => {
+    setModalExtraCharges(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSaveExtraCharges = async () => {
+    if (!extraModalBooking) return;
+    try {
+      setSavingExtra(true);
+      const valid = modalExtraCharges
+        .filter(c => c.name && !isNaN(Number(c.amount)) && Number(c.amount) > 0)
+        .map(c => ({ name: c.name.trim(), amount: Number(c.amount) }));
+
+      const res = await api.put(`/api/room-bookings/${extraModalBooking._id}/extra-charges`, {
+        extraCharges: valid
+      });
+
+      if (res.data.success) {
+        showSuccess("Saved!", "Extra bed / items saved successfully! Yeh bill me checkout ke time automatically jud jayenge.");
+        setShowExtraModal(false);
+        fetchRooms();
+      }
+    } catch (err) {
+      showError("Error", err.response?.data?.message || "Failed to save extra charges");
+    } finally {
+      setSavingExtra(false);
     }
   };
 
@@ -384,27 +489,55 @@ export default function StaffRoomBooking() {
                   </span>
                 </h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                  {groupedRooms[type].map((room) => (
-                    <button
-                      key={room._id}
-                      onClick={() => handleRoomClick(room)}
-                      className={`relative p-4 rounded-2xl border-2 flex flex-col items-center justify-center transition-all duration-200 transform hover:-translate-y-1 active:scale-95 cursor-pointer shadow-md ${
-                        room.status === 'Available'
-                          ? 'bg-emerald-50 dark:bg-emerald-950/25 border-emerald-400 dark:border-emerald-500/50 hover:bg-emerald-100 dark:hover:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 hover:border-emerald-500'
-                          : room.status === 'Advance-Booked'
-                          ? 'bg-blue-50 dark:bg-blue-950/25 border-blue-400 dark:border-blue-500/50 hover:bg-blue-100 dark:hover:bg-blue-950/40 text-blue-800 dark:text-blue-300 hover:border-blue-500'
-                          : 'bg-rose-50 dark:bg-red-950/25 border-rose-400 dark:border-red-500/50 hover:bg-rose-100 dark:hover:bg-red-950/40 text-rose-800 dark:text-red-300 hover:border-red-500'
-                      }`}
-                    >
-                      <BedDouble className="w-7 h-7 mb-2" />
-                      <span className="font-black text-xl text-slate-900 dark:text-white font-mono">{room.roomNumber}</span>
-                      <span className="text-[10px] mt-1 font-bold px-2 py-0.5 rounded-md border bg-slate-100 dark:bg-slate-900/60 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700/50">
-                        {room.beds || 1} Bed{room.beds > 1 ? 's' : ''}
-                      </span>
-                      <span className="text-xs mt-1 text-saffron-700 dark:text-amber-300 font-black font-mono">₹{room.price}</span>
-                      <span className={`absolute top-2.5 right-2.5 w-2.5 h-2.5 rounded-full ${room.status === 'Available' ? 'bg-emerald-500' : room.status === 'Advance-Booked' ? 'bg-blue-500' : 'bg-rose-500'} shadow-sm`}></span>
-                    </button>
-                  ))}
+                  {groupedRooms[type].map((room) => {
+                    const isOccupied = room.status !== 'Available' && room.status !== 'Advance-Booked';
+                    return (
+                      <div
+                        key={room._id}
+                        onClick={() => handleRoomClick(room)}
+                        className={`relative p-3.5 sm:p-4 rounded-2xl border-2 flex flex-col items-center justify-center transition-all duration-200 transform hover:-translate-y-1 active:scale-[0.98] cursor-pointer shadow-md select-none ${
+                          room.status === 'Available'
+                            ? 'bg-emerald-50 dark:bg-emerald-950/25 border-emerald-400 dark:border-emerald-500/50 hover:bg-emerald-100 dark:hover:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 hover:border-emerald-500'
+                            : room.status === 'Advance-Booked'
+                            ? 'bg-blue-50 dark:bg-blue-950/25 border-blue-400 dark:border-blue-500/50 hover:bg-blue-100 dark:hover:bg-blue-950/40 text-blue-800 dark:text-blue-300 hover:border-blue-500'
+                            : 'bg-rose-50 dark:bg-red-950/25 border-rose-400 dark:border-red-500/50 hover:bg-rose-100 dark:hover:bg-red-950/40 text-rose-800 dark:text-red-300 hover:border-red-500'
+                        }`}
+                      >
+                        <BedDouble className="w-7 h-7 mb-1.5" />
+                        <span className="font-black text-xl text-slate-900 dark:text-white font-mono">{room.roomNumber}</span>
+                        <span className="text-[10px] mt-1 font-bold px-2 py-0.5 rounded-md border bg-slate-100 dark:bg-slate-900/60 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700/50">
+                          {room.beds || 1} Bed{room.beds > 1 ? 's' : ''}
+                        </span>
+                        <span className="text-xs mt-1 text-saffron-700 dark:text-amber-300 font-black font-mono">₹{room.price}</span>
+                        <span className={`absolute top-2.5 right-2.5 w-2.5 h-2.5 rounded-full ${room.status === 'Available' ? 'bg-emerald-500' : room.status === 'Advance-Booked' ? 'bg-blue-500' : 'bg-rose-500'} shadow-sm`}></span>
+
+                        {isOccupied ? (
+                          <div className="w-full mt-2">
+                            <button
+                              type="button"
+                              onClick={(e) => handleOpenExtraModal(room, e)}
+                              className="w-full py-1 px-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-800 dark:text-amber-300 border border-amber-500/40 text-[11px] font-bold flex items-center justify-center gap-1 transition-all active:scale-95 shadow-sm cursor-pointer"
+                              title="Check-in ke baad extra bed ya laundry service add karein"
+                            >
+                              <Plus className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                              <span>+ Extra Bed/Items</span>
+                            </button>
+                            <span className="text-[10px] text-rose-600 dark:text-rose-400 font-semibold block text-center mt-1">
+                              Occupied (Checkout)
+                            </span>
+                          </div>
+                        ) : room.status === 'Available' ? (
+                          <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold mt-1">
+                            Available (Check-in)
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold mt-1">
+                            Advance Booked
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )
@@ -694,79 +827,367 @@ export default function StaffRoomBooking() {
 
       {/* Check Out Modal */}
       {showCheckOutModal && activeBooking && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-gold-800/30 p-6 rounded-2xl w-full max-w-sm shadow-2xl text-center text-slate-900 dark:text-white">
-            <h3 className="text-xl font-bold text-saffron-600 dark:text-amber-500 mb-4 border-b border-slate-200 dark:border-slate-700 pb-2">
-              Check-Out: Room {selectedRoom?.roomNumber} <span className="text-sm text-slate-500 dark:text-slate-400 font-normal ml-2">({selectedRoom?.beds || 1} Bed{selectedRoom?.beds > 1 ? 's' : ''})</span>
-            </h3>
-            <div className="text-slate-800 dark:text-slate-300 space-y-2 mb-4 text-left bg-slate-50 dark:bg-slate-950 p-4 rounded-xl border border-slate-200 dark:border-slate-700 text-xs sm:text-sm">
-              <p><strong>Primary Guest:</strong> {activeBooking.guests && activeBooking.guests[0] ? activeBooking.guests[0].name : 'N/A'}</p>
-              <p><strong>Check-In:</strong> {new Date(activeBooking.checkInTime).toLocaleString()}</p>
-              <p><strong>Tariff:</strong> ₹{selectedRoom?.price} / night</p>
-              <p className="text-emerald-700 dark:text-emerald-400 font-bold"><strong>Advance Paid:</strong> ₹{activeBooking.advanceAmount || 0}</p>
-            </div>
-            <div className="mb-4 text-left">
-              <label className="block text-sm font-bold text-slate-800 dark:text-slate-300 mb-1">Final Total Amount (₹) & Payment Mode</label>
-              <div className="flex gap-2 mb-1">
-                <input
-                  type="number"
-                  value={manualTotalAmount}
-                  onChange={(e) => setManualTotalAmount(e.target.value)}
-                  className="w-2/3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-2.5 text-saffron-700 dark:text-amber-500 font-black text-lg"
-                />
-                <select
-                  value={finalPaymentMode}
-                  onChange={(e) => setFinalPaymentMode(e.target.value)}
-                  className="w-1/3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-2 py-2.5 text-slate-900 dark:text-white text-sm font-semibold"
-                >
-                  <option value="Cash">Cash</option>
-                  <option value="Card">Card</option>
-                  <option value="UPI">UPI</option>
-                  <option value="NC Bill">NC Bill</option>
-                  <option value="Credit Bill">Credit Bill</option>
-                </select>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-lg shadow-2xl text-slate-900 dark:text-white max-h-[92vh] flex flex-col overflow-hidden">
+            {/* Modal Header (Fixed) */}
+            <div className="px-5 py-3.5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0 bg-slate-50/70 dark:bg-slate-950/40">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white truncate flex items-center gap-2">
+                    Check-Out: Room {selectedRoom?.roomNumber}
+                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                      {selectedRoom?.beds || 1} Bed{selectedRoom?.beds > 1 ? 's' : ''}
+                    </span>
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                    Guest: <span className="font-semibold text-slate-700 dark:text-slate-300">{activeBooking.guests && activeBooking.guests[0] ? activeBooking.guests[0].name : 'N/A'}</span>
+                  </p>
+                </div>
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400">You can manually adjust the final price before billing.</p>
-            </div>
-            
-            {activeBooking.restaurantBills && activeBooking.restaurantBills.length > 0 && (
-              <div className="mb-6 text-left bg-slate-50 dark:bg-slate-950 p-3 rounded-xl border border-slate-200 dark:border-slate-700">
-                <label className="flex items-center gap-2 text-sm text-slate-800 dark:text-slate-300 cursor-pointer font-semibold">
-                  <input
-                    type="checkbox"
-                    checked={splitBill}
-                    onChange={(e) => setSplitBill(e.target.checked)}
-                    className="w-4 h-4 accent-amber-500 rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900"
-                  />
-                  Split Room & Restaurant Bills (Print Separately)
-                </label>
-              </div>
-            )}
-            
-            <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-3 mb-6">
-              <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Rest Amount to Collect:</span>
-              <span className="text-xl font-black text-emerald-700 dark:text-emerald-400">₹{Math.max(0, manualTotalAmount - (activeBooking.advanceAmount || 0))}</span>
+              <button
+                type="button"
+                onClick={() => setShowCheckOutModal(false)}
+                className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer shrink-0 ml-2"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
-            <div className="flex gap-3">
-              <MagneticButton className="flex-1">
+            {/* Modal Body (Scrollable with clean single scrollbar) */}
+            <div className="p-5 overflow-y-auto flex-1 space-y-4 [scrollbar-width:thin] scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700">
+              {/* Stay Summary Card */}
+              <div className="text-slate-800 dark:text-slate-300 space-y-1.5 bg-slate-50 dark:bg-slate-950/60 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 text-xs sm:text-sm">
+                <div className="flex justify-between items-center">
+                  <p><strong>Room Tariff:</strong> ₹{selectedRoom?.price} / night</p>
+                  <p className="text-emerald-700 dark:text-emerald-400 font-bold"><strong>Advance Paid:</strong> ₹{activeBooking.advanceAmount || 0}</p>
+                </div>
+                <div className="flex justify-between items-center text-xs text-slate-500 dark:text-slate-400">
+                  <p><strong>Check-In Time:</strong> {new Date(activeBooking.checkInTime).toLocaleString()}</p>
+                  {activeBooking.restaurantBills && activeBooking.restaurantBills.length > 0 && (
+                    <p className="font-semibold text-amber-600 dark:text-amber-400">
+                      Food Bills ({activeBooking.restaurantBills.length}): ₹{baseRestaurantTotal}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Extra Charges Section */}
+              <div className="bg-amber-500/5 dark:bg-slate-950/70 p-3.5 rounded-xl border border-amber-500/20 dark:border-slate-800">
+                <div className="flex items-center justify-between mb-2.5">
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                    <Bed className="w-4 h-4 text-amber-500" />
+                    Extra Bed & Additional Charges
+                  </span>
+                  <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
+                    Total Extra: ₹{extraCharges.reduce((s, c) => s + (Number(c.amount) || 0), 0)}
+                  </span>
+                </div>
+
+                {/* Quick Presets */}
+                <div className="flex flex-wrap gap-1.5 mb-3">
+                  <button
+                    type="button"
+                    onClick={() => handleAddExtraCharge("Extra Bed", 500)}
+                    className="px-2.5 py-1 bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-300 border border-amber-500/30 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer active:scale-95"
+                  >
+                    <Plus className="w-3 h-3" /> + Extra Bed (₹500)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleAddExtraCharge("Extra Mattress", 300)}
+                    className="px-2.5 py-1 bg-sky-500/15 hover:bg-sky-500/25 text-sky-700 dark:text-sky-300 border border-sky-500/30 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer active:scale-95"
+                  >
+                    <Plus className="w-3 h-3" /> + Mattress (₹300)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleAddExtraCharge("Laundry Service", 200)}
+                    className="px-2.5 py-1 bg-purple-500/15 hover:bg-purple-500/25 text-purple-700 dark:text-purple-300 border border-purple-500/30 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer active:scale-95"
+                  >
+                    <Plus className="w-3 h-3" /> + Laundry (₹200)
+                  </button>
+                </div>
+
+                {/* Extra Charges Line Items */}
+                {extraCharges.length > 0 && (
+                  <div className="space-y-2 mb-2.5">
+                    {extraCharges.map((charge, idx) => (
+                      <div key={idx} className="flex items-center gap-2 bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm">
+                        <input
+                          type="text"
+                          placeholder="Item (e.g. Extra Bed)"
+                          value={charge.name}
+                          onChange={(e) => handleUpdateExtraCharge(idx, "name", e.target.value)}
+                          className="flex-1 bg-transparent border-none text-xs font-semibold text-slate-800 dark:text-white focus:outline-none placeholder-slate-400"
+                        />
+                        <div className="flex items-center gap-1 w-24">
+                          <span className="text-xs text-slate-400 font-bold">₹</span>
+                          <input
+                            type="number"
+                            placeholder="Amount"
+                            value={charge.amount}
+                            onChange={(e) => handleUpdateExtraCharge(idx, "amount", e.target.value)}
+                            className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded px-2 py-1 text-xs font-bold text-amber-600 dark:text-amber-400 focus:outline-none"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveExtraCharge(idx)}
+                          className="text-rose-500 hover:text-rose-600 p-1 rounded hover:bg-rose-500/10 transition-colors cursor-pointer"
+                          title="Remove item"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 <button
-                  onClick={() => setShowCheckOutModal(false)}
-                  className="w-full py-3 text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors font-bold text-sm cursor-pointer"
+                  type="button"
+                  onClick={() => handleAddExtraCharge("", "")}
+                  className="w-full py-1.5 border border-dashed border-slate-300 dark:border-slate-700 hover:border-amber-500 text-slate-600 dark:text-slate-400 hover:text-amber-500 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition-all cursor-pointer"
                 >
-                  Cancel
+                  <PlusCircle className="w-3.5 h-3.5" /> + Custom Extra Charge Add Karein
                 </button>
-              </MagneticButton>
-              <MagneticButton className="flex-1">
+              </div>
+
+              {/* Final Amount & Payment Mode */}
+              <div className="space-y-1.5">
+                <label className="block text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">
+                  Final Total Amount (₹) & Payment Mode
+                </label>
+                <div className="flex gap-2">
+                  <div className="relative w-2/3">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">₹</span>
+                    <input
+                      type="number"
+                      value={manualTotalAmount}
+                      onChange={(e) => setManualTotalAmount(e.target.value)}
+                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl pl-7 pr-3 py-2 text-saffron-700 dark:text-amber-400 font-black text-base sm:text-lg focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
+                  <select
+                    value={finalPaymentMode}
+                    onChange={(e) => setFinalPaymentMode(e.target.value)}
+                    className="w-1/3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-2 py-2 text-slate-900 dark:text-white text-xs sm:text-sm font-semibold focus:outline-none focus:border-amber-500 cursor-pointer"
+                  >
+                    <option value="Cash">Cash</option>
+                    <option value="Card">Card</option>
+                    <option value="UPI">UPI</option>
+                    <option value="NC Bill">NC Bill</option>
+                    <option value="Credit Bill">Credit Bill</option>
+                  </select>
+                </div>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                  Aap total amount ko manually bhi adjust kar sakte hain (Discount/Rounding).
+                </p>
+              </div>
+
+              {/* Split Bill Checkbox */}
+              {activeBooking.restaurantBills && activeBooking.restaurantBills.length > 0 && (
+                <div className="bg-slate-50 dark:bg-slate-950 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
+                  <label className="flex items-center gap-2 text-xs sm:text-sm text-slate-800 dark:text-slate-300 cursor-pointer font-semibold">
+                    <input
+                      type="checkbox"
+                      checked={splitBill}
+                      onChange={(e) => setSplitBill(e.target.checked)}
+                      className="w-4 h-4 accent-amber-500 rounded border-slate-300 dark:border-slate-700"
+                    />
+                    Split Room & Restaurant Bills (Print Separately)
+                  </label>
+                </div>
+              )}
+
+              {/* Rest Amount Banner */}
+              <div className="flex justify-between items-center bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-500/30 rounded-xl p-3">
+                <span className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300">Rest Amount to Collect:</span>
+                <span className="text-lg sm:text-xl font-black text-emerald-700 dark:text-emerald-400">
+                  ₹{Math.max(0, (Number(manualTotalAmount) || 0) - (activeBooking.advanceAmount || 0))}
+                </span>
+              </div>
+            </div>
+
+            {/* Modal Footer (Fixed) */}
+            <div className="px-5 py-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/50 shrink-0 flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setShowCheckOutModal(false)}
+                className="flex-1 py-2.5 text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors font-bold text-xs sm:text-sm cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleCheckOut}
+                disabled={submitting}
+                className="flex-[2] py-2.5 text-slate-950 bg-amber-500 hover:bg-amber-400 rounded-xl font-black transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-md text-xs sm:text-sm cursor-pointer"
+              >
+                <FileText className="w-4 h-4 shrink-0" />
+                <span>{submitting ? "Processing..." : "Check Out & Print Bill"}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Extra Bed & Services Modal (Check-in ke baad kabhie bhi add karne ke liye) */}
+      {showExtraModal && extraModalBooking && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-lg shadow-2xl text-slate-900 dark:text-white max-h-[92vh] flex flex-col overflow-hidden">
+            {/* Modal Header (Fixed) */}
+            <div className="px-5 py-3.5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0 bg-slate-50/70 dark:bg-slate-950/40">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
+                  <Bed className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white truncate flex items-center gap-2">
+                    Extra Items & Services: Room {selectedRoom?.roomNumber}
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                    Guest: <span className="font-semibold text-slate-700 dark:text-slate-300">{extraModalBooking.guests && extraModalBooking.guests[0] ? extraModalBooking.guests[0].name : 'N/A'}</span>
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowExtraModal(false)}
+                className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer shrink-0 ml-2"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body (Scrollable with clean custom scrollbar) */}
+            <div className="p-5 overflow-y-auto flex-1 space-y-4 [scrollbar-width:thin] scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700">
+              {/* Quick Preset Buttons */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
+                  ⚡ Quick Add Presets (1-Click Add):
+                </label>
+                <div className="flex flex-wrap gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => handleModalAddExtra("Extra Bed", 500)}
+                    className="px-2.5 py-1.5 bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-300 border border-amber-500/30 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer active:scale-95"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> + Extra Bed (₹500)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleModalAddExtra("Extra Mattress", 300)}
+                    className="px-2.5 py-1.5 bg-sky-500/15 hover:bg-sky-500/25 text-sky-700 dark:text-sky-300 border border-sky-500/30 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer active:scale-95"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> + Mattress (₹300)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleModalAddExtra("Laundry Service", 200)}
+                    className="px-2.5 py-1.5 bg-purple-500/15 hover:bg-purple-500/25 text-purple-700 dark:text-purple-300 border border-purple-500/30 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer active:scale-95"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> + Laundry (₹200)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleModalAddExtra("Extra Blanket", 100)}
+                    className="px-2.5 py-1.5 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer active:scale-95"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> + Blanket (₹100)
+                  </button>
+                </div>
+              </div>
+
+              {/* Items List */}
+              <div className="bg-slate-50 dark:bg-slate-950/70 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800">
+                <div className="flex items-center justify-between mb-2.5">
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                    Added Extra Items ({modalExtraCharges.length}):
+                  </span>
+                  <span className="text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
+                    Total: ₹{modalExtraCharges.reduce((s, c) => s + (Number(c.amount) || 0), 0)}
+                  </span>
+                </div>
+
+                {modalExtraCharges.length === 0 ? (
+                  <div className="py-6 text-center text-slate-400 dark:text-slate-500 text-xs">
+                    <Bed className="w-8 h-8 mx-auto mb-2 opacity-30 text-amber-500" />
+                    <p className="font-semibold">Koi extra item add nahi kiya gaya hai.</p>
+                    <p className="text-[11px] mt-0.5">Upar diye presets ya niche button se add karein.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2 mb-3">
+                    {modalExtraCharges.map((charge, idx) => (
+                      <div key={idx} className="flex items-center gap-2 bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm">
+                        <input
+                          type="text"
+                          placeholder="Item Name (e.g. Extra Bed)"
+                          value={charge.name}
+                          onChange={(e) => handleModalUpdateExtra(idx, "name", e.target.value)}
+                          className="flex-1 bg-transparent border-none text-xs font-semibold text-slate-800 dark:text-white focus:outline-none placeholder-slate-400"
+                        />
+                        <div className="flex items-center gap-1 w-24">
+                          <span className="text-xs text-slate-400 font-bold">₹</span>
+                          <input
+                            type="number"
+                            placeholder="Amount"
+                            value={charge.amount}
+                            onChange={(e) => handleModalUpdateExtra(idx, "amount", e.target.value)}
+                            className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded px-2 py-1 text-xs font-bold text-amber-600 dark:text-amber-400 focus:outline-none"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleModalRemoveExtra(idx)}
+                          className="text-rose-500 hover:text-rose-600 p-1 rounded hover:bg-rose-500/10 transition-colors cursor-pointer"
+                          title="Remove item"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 <button
-                  onClick={handleCheckOut}
-                  disabled={submitting}
-                  className="w-full py-3 text-slate-950 bg-amber-500 rounded-xl hover:bg-amber-400 font-black transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-md text-sm cursor-pointer"
+                  type="button"
+                  onClick={() => handleModalAddExtra("", "")}
+                  className="w-full py-2 border border-dashed border-slate-300 dark:border-slate-700 hover:border-amber-500 text-slate-600 dark:text-slate-400 hover:text-amber-500 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition-all cursor-pointer bg-white dark:bg-slate-900/50"
                 >
-                  <FileText className="w-4 h-4" />
-                  Check Out & Print
+                  <PlusCircle className="w-4 h-4" /> + Custom Extra Charge Add Karein
                 </button>
-              </MagneticButton>
+              </div>
+
+              {/* Informative Tip */}
+              <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-xs text-amber-800 dark:text-amber-300 flex items-start gap-2">
+                <span className="text-base shrink-0 leading-none">💡</span>
+                <p className="text-[11px] leading-relaxed">
+                  <b>Faida:</b> Check-in ke baad customer kuch bhi extra mangwaye (Extra Bed, Mattress, Laundry), aap yaha se turant save kar sakte hain taaki check-out ke time bhul na jayein. Checkout ke time yeh bill me automatically jud jayenge.
+                </p>
+              </div>
+            </div>
+
+            {/* Modal Footer (Fixed) */}
+            <div className="px-5 py-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/50 shrink-0 flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setShowExtraModal(false)}
+                className="flex-1 py-2.5 text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors font-bold text-xs sm:text-sm cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveExtraCharges}
+                disabled={savingExtra}
+                className="flex-[2] py-2.5 text-slate-950 bg-amber-500 hover:bg-amber-400 rounded-xl font-black transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-md text-xs sm:text-sm cursor-pointer"
+              >
+                <CheckCircle className="w-4 h-4 shrink-0" />
+                <span>{savingExtra ? "Saving..." : "Save Extra Items"}</span>
+              </button>
             </div>
           </div>
         </div>

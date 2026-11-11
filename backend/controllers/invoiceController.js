@@ -418,11 +418,21 @@ const findInvoiceOrOrder = async (id) => {
         });
       }
 
+      if (booking.extraCharges && booking.extraCharges.length > 0) {
+        booking.extraCharges.forEach(extra => {
+          items.push({
+            name: `Extra: ${extra.name}`,
+            price: Number(extra.amount) || 0,
+            quantity: 1,
+          });
+        });
+      }
+
       return {
         type: "room_booking",
         data: {
           _id: booking._id,
-          invoiceNumber: `ROOM-${booking._id.toString().slice(-6).toUpperCase()}`,
+          invoiceNumber: booking.invoiceNumber || `ROOM-${booking._id.toString().slice(-6).toUpperCase()}`,
           customerName: guestName,
           customerMobile: guestMobile,
           items,

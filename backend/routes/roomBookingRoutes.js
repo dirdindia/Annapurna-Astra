@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getAllBookings, checkIn, checkOut, verifyGST, getGuestByPhone, exportBookingsToExcel } = require('../controllers/roomBookingController');
+const { getAllBookings, checkIn, checkOut, verifyGST, getGuestByPhone, exportBookingsToExcel, updateExtraCharges } = require('../controllers/roomBookingController');
 const { protect } = require('../middleware/auth');
 
 router.route('/')
@@ -21,6 +21,9 @@ router.route('/advance/:id')
 
 router.route('/convert/:id')
   .put(protect, require('../controllers/roomBookingController').convertToCheckIn);
+
+router.route('/:id/extra-charges')
+  .put(protect, updateExtraCharges);
 
 router.route('/checkout/:id')
   .post(protect, checkOut);

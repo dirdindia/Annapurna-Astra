@@ -150,6 +150,20 @@ export default function PremiumRoomInvoice({ booking, onClose, isSplit = false }
         });
         subTotal += roomTariff;
       }
+
+      // Extra Bed & Additional Service Charges
+      if (booking.extraCharges && booking.extraCharges.length > 0) {
+        booking.extraCharges.forEach((charge) => {
+          rows.push({
+            date: checkOutDate.toLocaleDateString("en-GB", {day:'2-digit', month:'short', year:'numeric'}),
+            vch: `EX/${billNo}`,
+            desc: `Extra: ${charge.name}`,
+            amt: Number(charge.amount) || 0
+          });
+          subTotal += Number(charge.amount) || 0;
+        });
+      }
+
       cgst += subTotal * ((roomTaxRate / 2) / 100);
       sgst += subTotal * ((roomTaxRate / 2) / 100);
     }

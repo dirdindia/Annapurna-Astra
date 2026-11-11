@@ -284,8 +284,24 @@ exports.checkOut = async (req, res) => {
     let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     if (diffDays === 0) diffDays = 1; // Minimum 1 day charge
     
+    // Process and save extra charges if provided (e.g. Extra Bed, Mattress, Services)
+    if (req.body.extraCharges !== undefined) {
+      if (Array.isArray(req.body.extraCharges)) {
+        booking.extraCharges = req.body.extraCharges
+          .filter(item => item && item.name && !isNaN(Number(item.amount)) && Number(item.amount) > 0)
+          .map(item => ({
+            name: String(item.name).trim(),
+            amount: Number(item.amount),
+          }));
+      } else {
+        booking.extraCharges = [];
+      }
+    }
+
+    const extraTotal = (booking.extraCharges || []).reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+
     // Check if staff provided a manual override
-    if (req.body.manualTotalAmount !== undefined && req.body.manualTotalAmount !== null) {
+    if (req.body.manualTotalAmount !== undefined && req.body.manualTotalAmount !== null && !isNaN(Number(req.body.manualTotalAmount))) {
       booking.totalAmount = Number(req.body.manualTotalAmount);
     } else {
       let roomTotal = diffDays * booking.room.price;
@@ -293,7 +309,7 @@ exports.checkOut = async (req, res) => {
       if (booking.restaurantBills && booking.restaurantBills.length > 0) {
         restaurantTotal = booking.restaurantBills.reduce((sum, bill) => sum + bill.grandTotal, 0);
       }
-      booking.totalAmount = roomTotal + restaurantTotal;
+      booking.totalAmount = roomTotal + restaurantTotal + extraTotal;
     }
     
     if (req.body.finalPaymentMode !== undefined) {
@@ -606,6 +622,47 @@ exports.deleteAdvanceBooking = async (req, res) => {
     }
 
     res.json({ success: true, message: 'Advance booking deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Update Extra Charges for an Active Booking (During stay)
+// @route   PUT /api/room-bookings/:id/extra-charges
+// @access  Private (Staff/Admin)
+exports.updateExtraCharges = async (req, res) => {
+  try {
+    const booking = await RoomBooking.findOne({ _id: req.params.id, hotelId: req.user.hotelId })
+      .populate('room')
+      .populate('restaurantBills');
+
+    if (!booking) {
+      return res.status(404).json({ success: false, message: 'Booking not found or unauthorized' });
+    }
+
+    if (booking.status !== 'Checked-In') {
+      return res.status(400).json({ success: false, message: 'Extra charges can only be modified for currently Checked-In guests.' });
+    }
+
+    const { extraCharges } = req.body;
+    if (Array.isArray(extraCharges)) {
+      booking.extraCharges = extraCharges
+        .filter(item => item && item.name && !isNaN(Number(item.amount)) && Number(item.amount) > 0)
+        .map(item => ({
+          name: String(item.name).trim(),
+          amount: Number(item.amount),
+        }));
+    } else {
+      booking.extraCharges = [];
+    }
+
+    await booking.save();
+
+    res.json({
+      success: true,
+      message: 'Extra charges updated successfully!',
+      data: booking
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
